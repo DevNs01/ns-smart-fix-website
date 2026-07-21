@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script type="module" src="/src/main.js"></script>
 </head>
 <body>
 <x-dc>
@@ -97,7 +97,7 @@
           <p style="font-size:17px;line-height:1.6;color:#C9D6E5;margin:0 0 32px;max-width:560px;">{{ t.hero.subtitle }}</p>
           <div style="display:flex;gap:14px;flex-wrap:wrap;">
             <button style="background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}</button>
-            <a href="{{ waLinks.general }}" target="_blank" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}</a>
+            <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}</a>
           </div>
         </div>
         <div style="flex:1;min-width:280px;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
@@ -197,7 +197,8 @@
           <div style="background:#FFFFFF;border-radius:12px;padding:24px;text-align:center;">
             <div style="font-size:32px;">✅</div>
             <p style="font-size:15px;color:#0B1F33;font-weight:700;margin:10px 0 4px;">{{ t.quotation.successTitle }}</p>
-            <p style="font-size:13.5px;color:#5B6675;margin:0 0 4px;">{{ quickRef }}</p>
+            <p style="font-size:13.5px;color:#5B6675;margin:0 0 14px;">{{ quickRef }}</p>
+            <a href="{{ quickWaLink }}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;background:#25D366;border-radius:9px;padding:12px 20px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
           </div>
         </sc-if>
         <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
@@ -211,6 +212,9 @@
               </sc-for>
             </select>
             <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
+            <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
+              <p role="alert" style="grid-column:span 2;color:#B42318;font-size:13px;margin:0;">{{ quickError }}</p>
+            </sc-if>
             <button style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ submitQuick }}">{{ t.common.submit }}</button>
           </div>
         </sc-if>
@@ -298,7 +302,7 @@
             </sc-if>
             <div style="display:flex;gap:10px;margin-top:18px;">
               <button style="flex:1;background:#0B1F33;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ svc.request }}">{{ t.common.requestService }}</button>
-              <a href="{{ waLinks.general }}" target="_blank" style="flex:1;text-align:center;background:#EAF4FF;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#146CBE;text-decoration:none;">{{ t.common.learnMore }}</a>
+              <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;background:#EAF4FF;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#146CBE;text-decoration:none;">{{ t.common.learnMore }}</a>
             </div>
           </div>
         </sc-for>
@@ -330,13 +334,13 @@
               </sc-if>
             </div>
             <p style="font-size:13px;color:#5B6675;margin:0 0 16px;line-height:1.5;">{{ b.category }}</p>
-            <a href="{{ b.waLink }}" target="_blank" style="display:block;background:#25D366;border-radius:8px;padding:10px;font-size:13px;font-weight:700;color:#FFFFFF;text-decoration:none;">WhatsApp</a>
+            <a href="{{ b.waLink }}" target="_blank" rel="noopener noreferrer" style="display:block;background:#25D366;border-radius:8px;padding:10px;font-size:13px;font-weight:700;color:#FFFFFF;text-decoration:none;">WhatsApp</a>
           </div>
         </sc-for>
       </div>
       <div style="text-align:center;margin-top:36px;background:#EAF4FF;border-radius:14px;padding:28px;">
         <p style="font-size:15px;color:#0B1F33;font-weight:600;margin:0 0 16px;">{{ t.products.enquiryPrompt }}</p>
-        <a href="{{ waGeneralLink }}" target="_blank" style="background:#25D366;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;margin-right:10px;">{{ t.common.whatsappUs }}</a>
+        <a href="{{ waGeneralLink }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;margin-right:10px;">{{ t.common.whatsappUs }}</a>
         <button style="background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</button>
       </div>
     </section>
@@ -359,7 +363,7 @@
           <p style="font-size:14.5px;color:#5B6675;margin:0 0 18px;">{{ t.quotation.successMsg }}</p>
           <div style="display:inline-block;background:#EAF4FF;border-radius:10px;padding:12px 22px;font-family:monospace;font-size:16px;font-weight:700;color:#146CBE;margin-bottom:22px;">{{ quoteRef }}</div>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-            <a href="{{ quoteWaLink }}" target="_blank" style="background:#25D366;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
+            <a href="{{ quoteWaLink }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
             <button style="background:none;border:1px solid #C9D6E5;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.common.backHome }}</button>
           </div>
         </div>
@@ -484,7 +488,7 @@
           <p style="font-size:14px;color:#5B6675;margin:0 0 18px;">016-411 0681</p>
           <div style="display:flex;gap:10px;">
             <a href="tel:+60164110681" style="flex:1;text-align:center;background:#EAF4FF;color:#146CBE;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">{{ t.contact.call }}</a>
-            <a href="{{ waLinks.nasarudinGeneral }}" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
+            <a href="{{ waLinks.nasarudinGeneral }}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
           </div>
         </div>
         <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:28px;">
@@ -493,7 +497,7 @@
           <p style="font-size:14px;color:#5B6675;margin:0 0 18px;">012-885 1681</p>
           <div style="display:flex;gap:10px;">
             <a href="tel:+60128851681" style="flex:1;text-align:center;background:#EAF4FF;color:#146CBE;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">{{ t.contact.call }}</a>
-            <a href="{{ waLinks.nazrinGeneral }}" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
+            <a href="{{ waLinks.nazrinGeneral }}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
           </div>
         </div>
       </div>
@@ -621,7 +625,7 @@
   <!-- STICKY MOBILE BAR -->
   <div class="ns-sticky-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid #E5E9EF;z-index:60;box-shadow:0 -2px 8px rgba(0,0,0,0.06);">
     <a href="tel:+60164110681" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;text-decoration:none;">📞 {{ t.contact.call }}</a>
-    <a href="{{ waLinks.general }}" target="_blank" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#FFFFFF;background:#25D366;text-decoration:none;">WhatsApp</a>
+    <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#FFFFFF;background:#25D366;text-decoration:none;">WhatsApp</a>
     <a style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;background:#F59E0B;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
   </div>
 
@@ -677,7 +681,7 @@ en: {
     serviceRequired:"Service Required", location:"Project Location", visitDate:"Preferred Site Visit Date", preferredContact:"Preferred Contact Method",
     description:"Description of Requirement", budget:"Budget Range", urgency:"Urgency Level", uploadPhotos:"Upload Photos / Documents",
     agreement:"I agree that NS Smart Fix Solution may use the information above to process my enquiry, in line with the Privacy Notice.",
-    successTitle:"Thank you. Your quotation request has been submitted successfully.", successMsg:"Our team will contact you after reviewing the information.",
+    successTitle:"Your quotation request is ready to send.", successMsg:"Use the WhatsApp button below to send the details to our team for review.",
     sendWhatsapp:"Send Details via WhatsApp",
     budgetOptions:["Below RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Above RM50,000 / To be discussed"],
     serviceOptions:[{value:"electrical",label:"Electrical Wiring"},{value:"network",label:"Network Cabling"},{value:"server",label:"Server Setup"},{value:"product",label:"IT Product Supply"},{value:"tv",label:"TV Bracket Installation"},{value:"renovation",label:"Minor Renovation"},{value:"delivery",label:"Delivery"},{value:"troubleshoot",label:"Troubleshooting"}]
@@ -752,7 +756,7 @@ bm: {
     serviceRequired:"Perkhidmatan Diperlukan", location:"Lokasi Projek", visitDate:"Tarikh Lawatan Tapak Pilihan", preferredContact:"Kaedah Hubungan Pilihan",
     description:"Penerangan Keperluan", budget:"Julat Bajet", urgency:"Tahap Kecemasan", uploadPhotos:"Muat Naik Gambar / Dokumen",
     agreement:"Saya bersetuju NS Smart Fix Solution menggunakan maklumat di atas untuk memproses pertanyaan saya, selaras dengan Notis Privasi.",
-    successTitle:"Terima kasih. Permohonan sebut harga anda telah berjaya dihantar.", successMsg:"Pasukan kami akan menghubungi anda selepas menyemak maklumat.",
+    successTitle:"Permohonan sebut harga anda sedia untuk dihantar.", successMsg:"Gunakan butang WhatsApp di bawah untuk menghantar maklumat kepada pasukan kami untuk semakan.",
     sendWhatsapp:"Hantar Butiran melalui WhatsApp",
     budgetOptions:["Bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Atas RM50,000 / Untuk dibincang"],
     serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Kabel Rangkaian"},{value:"server",label:"Persediaan Server"},{value:"product",label:"Bekalan Produk IT"},{value:"tv",label:"Pemasangan Bracket TV"},{value:"renovation",label:"Renovasi Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
@@ -878,7 +882,7 @@ const BRANDS = [
 class Component extends DCLogic {
   state = {
     lang:'en', page:'home', mobileMenuOpen:false,
-    quickForm:{name:'',phone:'',service:'',message:''}, quickSubmitted:false, quickRef:'',
+    quickForm:{name:'',phone:'',service:'',message:''}, quickSubmitted:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
     quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteRef:'', quoteError:'', quoteFiles:[],
     openFaq:-1, legalTab:'privacy', qtyCounter:1
@@ -897,13 +901,20 @@ class Component extends DCLogic {
   setField(obj, field, value){ this.setState(s => ({ [obj]: { ...s[obj], [field]: value } })); }
 
   submitQuick = () => {
+    const f = this.state.quickForm;
+    if (!f.name.trim() || !f.phone.trim()) {
+      this.setState({quickError:'Please fill in your name and phone number.'});
+      return;
+    }
     const n = this.state.qtyCounter;
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
-    this.setState({ quickSubmitted:true, quickRef: ref, qtyCounter: n+1 });
+    this.setState({ quickSubmitted:true, quickRef: ref, quickError:'', qtyCounter: n+1 });
   };
   submitQuote = () => {
     const f = this.state.quoteForm;
     if (!f.fullName || !f.phone) { this.setState({quoteError:'Please fill in your name and phone number.'}); return; }
+    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.setState({quoteError:'Please enter a valid email address.'}); return; }
+    if (!f.agree) { this.setState({quoteError:'Please accept the privacy notice before continuing.'}); return; }
     const n = this.state.qtyCounter;
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
     this.setState({ quoteSubmitted:true, quoteRef: ref, qtyCounter:n+1, quoteError:'' });
@@ -926,6 +937,9 @@ class Component extends DCLogic {
       nasarudinGeneral: this.waLink('60164110681', isEn ? "Hello Mr. Nasarudin, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nasarudin, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution."),
       nazrinGeneral: this.waLink('60128851681', isEn ? "Hello Mr. Nazrin Shah, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nazrin Shah, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution.")
     };
+    const quickWaMessage = (isEn ? "Quick Enquiry " : "Pertanyaan Ringkas ") + s.quickRef + "\n" +
+      "Name: " + s.quickForm.name + "\nPhone: " + s.quickForm.phone + "\nService: " + s.quickForm.service + "\nMessage: " + s.quickForm.message;
+    const quickWaLink = this.waLink('60164110681', quickWaMessage);
 
     // services list for home + services page
     const serviceCards = SERVICE_KEYS.map((key,i) => ({
@@ -1024,7 +1038,8 @@ class Component extends DCLogic {
       isQuotation: s.page==='quotation', isContact: s.page==='contact',
       isFaq: s.page==='faq', isLegal: s.page==='legal',
       serviceCards, heroStats, featuredBrands,
-      quickForm: s.quickForm, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickRef: s.quickRef, submitQuick: this.submitQuick,
+      quickForm: s.quickForm, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickRef: s.quickRef,
+      quickError: s.quickError, hasQuickError: !!s.quickError, quickWaLink, submitQuick: this.submitQuick,
       qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
       brandCards, waGeneralLink: waLinks.general,
       quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,

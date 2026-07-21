@@ -1,0 +1,42 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = process.cwd();
+const source = readFileSync(join(root, 'index.html'), 'utf8');
+const failures = [];
+
+const assetPaths = [...source.matchAll(/(?:src=|resolveAsset\([^,]+,)['"]?\{?\{?\s*['"]?(assets\/[A-Za-z0-9._-]+)/g)]
+  .map(match => match[1]);
+
+for (const asset of new Set(assetPaths)) {
+  if (!existsSync(join(root, 'public', asset))) failures.push(`Missing source asset: ${asset}`);
+  if (!existsSync(join(root, 'dist', asset))) failures.push(`Missing built asset: ${asset}`);
+}
+
+for (const match of source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) {
+  if (!/rel="[^"]*noopener[^"]*"/.test(match[0])) failures.push(`Unsafe external link: ${match[0]}`);
+}
+
+const requiredPatterns = [
+  ['Vite entry point', /<script type="module" src="\/src\/main\.js"><\/script>/],
+  ['English navigation handlers', /const nav = \{ home:this\.go\('home'\).*faq:this\.go\('faq'\)/],
+  ['WhatsApp contact 1', /this\.waLink\('60164110681'/],
+  ['WhatsApp contact 2', /this\.waLink\('60128851681'/],
+  ['Phone contact 1', /href="tel:\+60164110681"/],
+  ['Phone contact 2', /href="tel:\+60128851681"/],
+  ['Quick enquiry validation', /if \(!f\.name\.trim\(\) \|\| !f\.phone\.trim\(\)\)/],
+  ['Quotation privacy validation', /if \(!f\.agree\)/],
+  ['Quick WhatsApp handoff', /quickWaLink/],
+  ['Quotation WhatsApp handoff', /quoteWaLink/],
+];
+
+for (const [name, pattern] of requiredPatterns) {
+  if (!pattern.test(source)) failures.push(`Missing ${name}`);
+}
+
+if (failures.length) {
+  console.error(failures.join('\n'));
+  process.exit(1);
+}
+
+console.log(`Verified ${new Set(assetPaths).size} referenced assets, navigation handlers, contact links, and form handoffs.`);
