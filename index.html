@@ -206,7 +206,8 @@
         <sc-if value="{{ quickSubmitted }}" hint-placeholder-val="{{ false }}">
           <div style="background:#FFFFFF;border-radius:12px;padding:24px;text-align:center;">
             <div style="font-size:32px;">✅</div>
-            <p style="font-size:15px;color:#0B1F33;font-weight:700;margin:10px 0 4px;">{{ t.quotation.successTitle }}</p>
+            <p style="font-size:15px;color:#0B1F33;font-weight:700;margin:10px 0 4px;">{{ t.home.quickSuccessTitle }}</p>
+            <p style="font-size:13.5px;color:#5B6675;margin:0 0 8px;">{{ t.home.quickSuccessMsg }}</p>
             <p style="font-size:13.5px;color:#5B6675;margin:0 0 14px;">{{ quickRef }}</p>
             <a href="{{ quickWaLink }}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;background:#25D366;border-radius:9px;padding:12px 20px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
           </div>
@@ -670,7 +671,8 @@ en: {
       {step:"5", title:"Schedule & Work", desc:"Once approved, we schedule and complete the work."},
       {step:"6", title:"Confirmation", desc:"You confirm completion and receive handover notes."}
     ],
-    enquiryTitle:"Quick Enquiry", enquirySub:"Send us a short message and our team will get back to you."
+    enquiryTitle:"Quick Enquiry", enquirySub:"Send us a short message and our team will get back to you.",
+    quickSuccessTitle:"Your enquiry is ready to send.", quickSuccessMsg:"Use the WhatsApp button below to send it to our team."
   },
   about: {
     title:"About NS Smart Fix Solution",
@@ -731,68 +733,69 @@ bm: {
     why:[
       {title:"Pasukan Berpengalaman", desc:"Juruteknik elektrik dan IT berpengalaman dalam projek kediaman dan komersial."},
       {title:"Perkhidmatan Sehenti", desc:"Elektrik, rangkaian, server, bekalan produk dan pemasangan dalam satu pasukan."},
-      {title:"Lawatan Tapak Dahulu", desc:"Kami menilai sebelum sebut harga disediakan, supaya harga mengikut skop sebenar."},
-      {title:"Liputan Seluruh Negara", desc:"Pasukan kami menyediakan perkhidmatan di seluruh Semenanjung Malaysia."},
-      {title:"Dokumentasi Disediakan", desc:"Label kabel, pemetaan port dan nota serah untuk projek IT."},
+      {title:"Penilaian Tapak Terlebih Dahulu", desc:"Kami menilai keadaan tapak sebelum menyediakan sebut harga agar harga menepati skop kerja sebenar."},
+      {title:"Liputan Semenanjung Malaysia", desc:"Pasukan kami menyediakan perkhidmatan di seluruh Semenanjung Malaysia, tertakluk kepada ketersediaan."},
+      {title:"Dokumentasi Disediakan", desc:"Pelabelan kabel, pemetaan port dan dokumen serahan untuk projek IT."},
       {title:"Proses Telus", desc:"Sebut harga jelas, kerja berjadual, dan pengesahan pada setiap peringkat."}
     ],
-    featuredTitle:"Produk Pilihan", projectsTitle:"Projek Terkini", processTitle:"Cara Ia Berfungsi",
+    featuredTitle:"Produk Pilihan", projectsTitle:"Projek Terkini", processTitle:"Proses Kami",
     process:[
       {step:"1", title:"Hantar Pertanyaan", desc:"Beritahu kami keperluan anda melalui laman web atau WhatsApp."},
       {step:"2", title:"Kami Semak", desc:"Pasukan kami menyemak keperluan dan skop kerja."},
       {step:"3", title:"Lawatan Tapak", desc:"Diatur apabila perlu untuk menilai lokasi."},
-      {step:"4", title:"Sebut Harga", desc:"Kami sediakan dan hantar sebut harga terperinci."},
-      {step:"5", title:"Jadual & Kerja", desc:"Selepas diluluskan, kerja dijadualkan dan dilaksanakan."},
-      {step:"6", title:"Pengesahan", desc:"Anda sahkan siap kerja dan terima nota serah."}
+      {step:"4", title:"Sebut Harga", desc:"Kami menyediakan dan menghantar sebut harga terperinci."},
+      {step:"5", title:"Penjadualan & Pelaksanaan", desc:"Selepas diluluskan, kerja akan dijadualkan dan dilaksanakan."},
+      {step:"6", title:"Pengesahan Siap Kerja", desc:"Anda mengesahkan kerja telah siap dan menerima dokumen serahan."}
     ],
-    enquiryTitle:"Pertanyaan Ringkas", enquirySub:"Hantar mesej ringkas dan pasukan kami akan hubungi anda."
+    enquiryTitle:"Pertanyaan Ringkas", enquirySub:"Hantar mesej ringkas dan pasukan kami akan menghubungi anda.",
+    quickSuccessTitle:"Pertanyaan anda sedia untuk dihantar.", quickSuccessMsg:"Gunakan butang WhatsApp di bawah untuk menghantarnya kepada pasukan kami."
   },
   about: {
     title:"Tentang NS Smart Fix Solution",
-    intro:"NS Smart Fix Solution menyediakan pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan perkhidmatan pemasangan untuk rumah dan perniagaan di seluruh Semenanjung Malaysia.",
+    intro:"NS Smart Fix Solution menyediakan perkhidmatan pendawaian elektrik, rangkaian IT, infrastruktur server, pembekalan produk dan pemasangan untuk kediaman serta perniagaan di seluruh Semenanjung Malaysia.",
     missionTitle:"Misi Kami", mission:"Menyediakan perkhidmatan elektrik, rangkaian dan infrastruktur IT yang boleh dipercayai, praktikal, selamat dan dipasang secara profesional mengikut keperluan operasi pelanggan.",
-    visionTitle:"Visi Kami", vision:"Menjadi penyedia perkhidmatan teknikal sehenti yang dipercayai untuk rumah, pejabat dan perniagaan yang berkembang.",
+    visionTitle:"Visi Kami", vision:"Menjadi penyedia perkhidmatan teknikal sehenti yang dipercayai untuk kediaman, pejabat dan perniagaan yang sedang berkembang.",
     valuesTitle:"Nilai Teras", values:["Keselamatan","Kebolehpercayaan","Profesionalisme","Ketelusan","Kerja Berkualiti","Kepuasan Pelanggan","Keselamatan Maklumat","Penambahbaikan Berterusan"],
     commitTitle:"Komitmen Kami",
-    commit:["Amalan kerja elektrik dan IT mengutamakan keselamatan","Kerja berkualiti untuk setiap projek, besar atau kecil","Dokumentasi dan serah kerja yang betul untuk projek IT dan rangkaian","Penyelesaian dirancang dengan mengambil kira prinsip keselamatan maklumat","Sokongan responsif untuk pelanggan kediaman dan perniagaan"],
+    commit:["Amalan kerja elektrik dan IT yang mengutamakan keselamatan","Hasil kerja berkualiti untuk setiap projek, sama ada besar atau kecil","Dokumentasi dan proses serahan kerja yang teratur untuk projek IT dan rangkaian","Penyelesaian yang dirancang dengan mengambil kira prinsip keselamatan maklumat","Sokongan yang responsif untuk pelanggan kediaman dan perniagaan"],
     coverage:"Kami menyediakan perkhidmatan kepada pelanggan kediaman dan perniagaan dengan pasukan teknikal meliputi Semenanjung Malaysia."
   },
   services: { title:"Perkhidmatan Kami", subtitle:"Elektrik, rangkaian, infrastruktur IT, bekalan produk dan pemasangan — dikendalikan oleh satu pasukan." },
   products: { title:"Produk", subtitle:"Komputer riba perniagaan, desktop, peralatan rangkaian, CCTV, kawalan akses dan peralatan server daripada jenama dipercayai.", enquiryPrompt:"Mencari model tertentu atau sebut harga pukal? Hubungi kami dan kami akan bantu anda pilih." },
-  projects: { title:"Projek Kami", subtitle:"Contoh kerja elektrik, rangkaian dan pemasangan terkini.", before:"SEBELUM — placeholder gambar", after:"SELEPAS — placeholder gambar", problemLabel:"Masalah", solutionLabel:"Penyelesaian", all:"Semua" },
+  projects: { title:"Projek Kami", subtitle:"Contoh kerja elektrik, rangkaian dan pemasangan terkini.", before:"SEBELUM KERJA", after:"SELEPAS KERJA", problemLabel:"Masalah", solutionLabel:"Penyelesaian", all:"Semua" },
   quotation: {
-    title:"Mohon Sebut Harga", subtitle:"Beritahu kami tentang projek anda dan pasukan kami akan menghubungi selepas menyemak butiran.",
+    title:"Mohon Sebut Harga", subtitle:"Kongsikan maklumat projek anda dan pasukan kami akan menghubungi anda selepas meneliti butiran tersebut.",
     fullName:"Nama Penuh", companyName:"Nama Syarikat", phone:"Nombor Telefon", email:"Alamat E-mel", customerType:"Jenis Pelanggan",
-    serviceRequired:"Perkhidmatan Diperlukan", location:"Lokasi Projek", visitDate:"Tarikh Lawatan Tapak Pilihan", preferredContact:"Kaedah Hubungan Pilihan",
+    serviceRequired:"Perkhidmatan Diperlukan", location:"Lokasi Projek", visitDate:"Tarikh Pilihan untuk Lawatan Tapak", preferredContact:"Kaedah Perhubungan Pilihan",
     description:"Penerangan Keperluan", budget:"Julat Bajet", urgency:"Tahap Kecemasan", uploadPhotos:"Muat Naik Gambar / Dokumen",
     agreement:"Saya bersetuju NS Smart Fix Solution menggunakan maklumat di atas untuk memproses pertanyaan saya, selaras dengan Notis Privasi.",
     successTitle:"Permohonan sebut harga anda sedia untuk dihantar.", successMsg:"Gunakan butang WhatsApp di bawah untuk menghantar maklumat kepada pasukan kami untuk semakan.",
     sendWhatsapp:"Hantar Butiran melalui WhatsApp",
-    budgetOptions:["Bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Atas RM50,000 / Untuk dibincang"],
-    serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Kabel Rangkaian"},{value:"server",label:"Persediaan Server"},{value:"product",label:"Bekalan Produk IT"},{value:"tv",label:"Pemasangan Bracket TV"},{value:"renovation",label:"Renovasi Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
+    budgetOptions:["Di bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Melebihi RM50,000 / Untuk dibincangkan"],
+    serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Pemasangan Kabel Rangkaian"},{value:"server",label:"Pemasangan & Konfigurasi Server"},{value:"product",label:"Pembekalan Produk IT"},{value:"tv",label:"Pemasangan Pendakap TV"},{value:"renovation",label:"Pengubahsuaian Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
   },
-  contact: { title:"Hubungi Kami", call:"Panggil", addressLabel:"Alamat Pejabat", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Waktu Perniagaan", hours:"9:00 Pagi – 6:00 Petang, Isnin – Sabtu", areaLabel:"Liputan Perkhidmatan", area:"Semenanjung Malaysia — pasukan kami menyediakan perkhidmatan di semua kawasan.", brnLabel:"Nombor Pendaftaran Perniagaan (BRN)", brn:"202603189342 (PG0590711-T)" },
+  contact: { title:"Hubungi Kami", call:"Telefon", addressLabel:"Alamat Pejabat", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Waktu Operasi", hours:"9:00 pagi – 6:00 petang, Isnin – Sabtu", areaLabel:"Liputan Perkhidmatan", area:"Seluruh Semenanjung Malaysia, tertakluk kepada ketersediaan pasukan di lokasi anda.", brnLabel:"Nombor Pendaftaran Perniagaan (BRN)", brn:"202603189342 (PG0590711-T)" },
   faq: { title:"Soalan Lazim", items:[
     {q:"Adakah anda menyediakan pemeriksaan tapak?", a:"Ya. Kebanyakan projek, terutamanya kerja elektrik dan rangkaian, dinilai di tapak sebelum sebut harga disediakan."},
-    {q:"Bolehkah saya mohon sebut harga melalui WhatsApp?", a:"Ya. Anda boleh WhatsApp mana-mana orang hubungan, atau hantar borang sebut harga dalam talian dan hantar melalui WhatsApp dengan satu klik."},
+    {q:"Bolehkah saya memohon sebut harga melalui WhatsApp?", a:"Ya. Anda boleh menghubungi salah seorang pegawai kami atau mengisi borang sebut harga dalam talian dan menghantar butiran melalui WhatsApp."},
     {q:"Adakah anda membekalkan produk dan pemasangan?", a:"Ya. Kami membekalkan peralatan IT dan rangkaian serta boleh mengendalikan penghantaran dan pemasangan."},
-    {q:"Bolehkah anda pasang kabel rangkaian untuk pejabat sedia ada?", a:"Ya, termasuk kabel CAT5e/CAT6/CAT6A, panel patch, susunan rak dan ujian/label kabel."},
+    {q:"Bolehkah anda memasang kabel rangkaian untuk pejabat sedia ada?", a:"Ya, termasuk kabel CAT5e/CAT6/CAT6A, panel tampalan, penyusunan rak, pengujian dan pelabelan kabel."},
     {q:"Bolehkah anda pasang soket dinding tambahan?", a:"Ya, tertakluk kepada pemeriksaan tapak untuk mengesahkan pendawaian dan kapasiti papan agihan."},
-    {q:"Adakah anda menyediakan pemasangan rak server?", a:"Ya, termasuk persediaan rak, UPS, konfigurasi asas server dan dokumentasi."},
+    {q:"Adakah anda menyediakan pemasangan rak server?", a:"Ya, termasuk pemasangan rak, UPS, konfigurasi asas server dan dokumentasi."},
     {q:"Adakah anda membekalkan komputer riba perniagaan?", a:"Ya, daripada jenama termasuk Lenovo, Dell, Acer, HP dan ASUS."},
     {q:"Bolehkah anda cadangkan komputer riba mengikut keperluan pejabat kami?", a:"Ya, pasukan kami boleh mencadangkan model sesuai berdasarkan penggunaan dan bajet anda."},
-    {q:"Adakah anda memasang bracket televisyen?", a:"Ya, bracket tetap, condong dan gerakan penuh untuk rumah, pejabat dan bilik mesyuarat."},
+    {q:"Adakah anda memasang pendakap televisyen?", a:"Ya, kami memasang pendakap jenis tetap, condong dan gerakan penuh untuk kediaman, pejabat serta bilik mesyuarat."},
     {q:"Adakah anda menyediakan penghantaran?", a:"Ya, penghantaran boleh diatur bersama pemasangan, atau secara berasingan."},
-    {q:"Bolehkah anda kendalikan kerja renovasi pejabat kecil?", a:"Ya, untuk kerja renovasi kecil berkaitan elektrik dan rangkaian, tertakluk kepada pemeriksaan tapak."},
+    {q:"Bolehkah anda mengendalikan kerja pengubahsuaian pejabat berskala kecil?", a:"Ya, bagi kerja pengubahsuaian kecil yang berkaitan dengan sistem elektrik dan rangkaian, tertakluk kepada pemeriksaan tapak."},
     {q:"Bolehkah anda sediakan dokumentasi untuk kabel rangkaian?", a:"Ya, termasuk label kabel dan pemetaan port jika berkaitan."},
     {q:"Adakah sebut harga tertakluk kepada pemeriksaan tapak?", a:"Kebanyakan sebut harga dimuktamadkan selepas pemeriksaan tapak untuk mengesahkan skop kerja."},
     {q:"Kawasan mana yang anda liputi?", a:"Pasukan kami meliputi Semenanjung Malaysia. Hubungi kami untuk mengesahkan ketersediaan di lokasi anda."}
   ]},
-  footer: { desc:"Perkhidmatan elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan untuk rumah dan perniagaan.", servicesTitle:"Perkhidmatan", contactTitle:"Hubungan", legalTitle:"Perundangan", privacy:"Notis Privasi", terms:"Terma & Syarat", warranty:"Polisi Waranti & Perkhidmatan", copyright:"© 2026 NS Smart Fix Solution. Hak cipta terpelihara." },
+  footer: { desc:"Perkhidmatan elektrik, rangkaian IT, infrastruktur server, pembekalan produk dan pemasangan untuk kediaman serta perniagaan.", servicesTitle:"Perkhidmatan", contactTitle:"Hubungi Kami", legalTitle:"Maklumat Perundangan", privacy:"Notis Privasi", terms:"Terma & Syarat", warranty:"Polisi Waranti & Perkhidmatan", copyright:"© 2026 NS Smart Fix Solution. Hak cipta terpelihara." },
   legal: {
-    privacy:"Notis Privasi\n\nNotis ini menerangkan secara umum bagaimana NS Smart Fix Solution mengendalikan data peribadi yang dihantar melalui laman web ini. Ia disediakan untuk ketelusan dan belum disemak sebagai dokumen perundangan formal.\n\nApa yang kami kumpul: nama, nombor hubungan, e-mel, lokasi projek, butiran perkhidmatan dan sebarang gambar atau dokumen yang dimuat naik bersama pertanyaan.\n\nMengapa dikumpul: untuk menyemak pertanyaan anda, menyediakan sebut harga, mengatur lawatan tapak, dan menghubungi anda.\n\nBagaimana digunakan: hanya untuk memproses pertanyaan anda dan menyampaikan perkhidmatan yang diminta.\n\nSiapa boleh mengakses: kakitangan NS Smart Fix Solution yang diberi kuasa dan terlibat dalam menyediakan sebut harga, penjadualan dan penyampaian perkhidmatan.\n\nPenyimpanan: maklumat disimpan hanya selagi diperlukan untuk melengkapkan pertanyaan anda dan untuk rekod munasabah.\n\nHak anda: anda boleh hubungi kami untuk memohon pembetulan atau pemadaman maklumat menggunakan butiran hubungan di laman web ini.\n\nNotis ini untuk kegunaan umum di Malaysia dan bukan nasihat perundangan atau dakwaan pematuhan regulatori.",
-    terms:"Terma & Syarat\n\nSemua sebut harga adalah anggaran dan tertakluk kepada pengesahan selepas pemeriksaan tapak. Harga akhir bergantung kepada skop kerja yang dipersetujui. Jadual kerja tertakluk kepada ketersediaan pasukan. Terma ini adalah placeholder dan perlu disemak oleh profesional bertauliah sebelum penerbitan formal.",
-    warranty:"Polisi Waranti & Perkhidmatan\n\nTempoh waranti kerja, terma waranti produk dan sokongan selepas perkhidmatan akan disahkan dalam setiap sebut harga. Ini adalah teks placeholder sehingga polisi syarikat dimuktamadkan."
+    privacy:"Notis Privasi\n\nNotis ini menerangkan secara umum cara NS Smart Fix Solution mengendalikan data peribadi yang dihantar melalui laman web ini.\n\nMaklumat yang dikumpulkan: nama, nombor telefon, alamat e-mel, lokasi projek, butiran perkhidmatan serta nama fail gambar atau dokumen yang dipilih bersama pertanyaan.\n\nTujuan pengumpulan: untuk meneliti pertanyaan anda, menyediakan sebut harga, mengatur lawatan tapak dan menghubungi anda mengenai permintaan tersebut.\n\nCara maklumat digunakan: maklumat digunakan hanya untuk memproses pertanyaan dan menyediakan perkhidmatan yang diminta.\n\nAkses kepada maklumat: hanya kakitangan NS Smart Fix Solution yang diberi kuasa dan terlibat dalam penyediaan sebut harga, penjadualan atau pelaksanaan perkhidmatan.\n\nTempoh penyimpanan: maklumat disimpan selama tempoh yang munasabah bagi mengurus pertanyaan, perkhidmatan dan rekod perniagaan.\n\nHak anda: anda boleh menghubungi kami untuk meminta pembetulan atau pemadaman maklumat peribadi melalui butiran hubungan yang dipaparkan di laman web ini.\n\nNotis ini disediakan untuk kegunaan umum di Malaysia dan hendaklah dibaca tertakluk kepada undang-undang perlindungan data yang berkenaan.",
+    terms:"TERMA DAN SYARAT\n\nTarikh Berkuat Kuasa: 21 Julai 2026\nTarikh Kemas Kini: 21 Julai 2026\n\nTerma dan Syarat ini mengawal sebut harga, pesanan, pembelian, penghantaran, pemasangan, perkhidmatan teknikal, kerja elektrik, kerja rangkaian, kerja pengubahsuaian dan perkhidmatan lain yang disediakan oleh NS Smart Fix Solution. Dengan menerima sebut harga, membuat bayaran atau mengarahkan kerja dimulakan, pelanggan dianggap telah membaca, memahami dan bersetuju dengan terma ini.\n\n1. Maklumat Perniagaan\n\nNama Perniagaan: NS Smart Fix Solution\nNombor Pendaftaran Perniagaan: 202603189342 (PG0590711-T)\nAlamat: 5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur\nKawasan Perkhidmatan: Malaysia, tertakluk kepada ketersediaan.\n\n2. Skop Produk dan Perkhidmatan\n\nSkop, kuantiti, spesifikasi, pengecualian dan harga akan dinyatakan dalam sebut harga, invois, arahan kerja atau pengesahan bertulis yang berkaitan. Sebarang kerja tambahan atau perubahan skop boleh menyebabkan perubahan harga dan jadual.\n\n3. Sebut Harga dan Penerimaan\n\nSebut harga adalah sah bagi tempoh yang dinyatakan. Harga boleh disemak sekiranya terdapat perubahan skop, keadaan tapak, harga pembekal, kadar pertukaran, kos pengangkutan atau keperluan pelanggan. Penerimaan boleh dibuat melalui tandatangan, WhatsApp, e-mel, pembayaran deposit atau arahan bertulis untuk meneruskan kerja.\n\n4. Bayaran\n\nMelainkan dinyatakan sebaliknya, deposit minimum 70% diperlukan sebelum produk ditempah, bahan disediakan, tarikh pemasangan ditempah atau kerja dimulakan. Produk khas, import atau dibuat mengikut pesanan mungkin memerlukan bayaran penuh terlebih dahulu. Baki bayaran hendaklah dijelaskan pada peringkat yang dinyatakan dalam sebut harga.\n\n5. Ketersediaan, Penghantaran dan Jadual Kerja\n\nSemua produk tertakluk kepada ketersediaan stok. Tarikh penghantaran dan penyiapan adalah anggaran melainkan dijamin secara bertulis. Kelewatan pembekal, pengilang, kurier, kelulusan bangunan, keadaan cuaca atau perkara di luar kawalan munasabah kami boleh menjejaskan jadual.\n\n6. Tanggungjawab Pelanggan dan Keselamatan Tapak\n\nPelanggan hendaklah memberikan maklumat yang tepat, menyediakan akses yang selamat, mendapatkan kelulusan yang diperlukan dan memaklumkan kami tentang kabel, paip, struktur atau bahaya tersembunyi. Kami boleh menghentikan atau menangguhkan kerja jika tapak tidak selamat.\n\n7. Kerja Elektrik, Rangkaian dan Pemasangan\n\nKeadaan tersembunyi atau kecacatan sedia ada yang tidak dapat dikenal pasti secara munasabah sebelum kerja bermula mungkin memerlukan kerja tambahan. Pembaikan kosmetik seperti mengecat semula, melepa atau mengganti jubin tidak termasuk kecuali dinyatakan dalam sebut harga. Pelanggan hendaklah membuat sandaran data sebelum sebarang kerja IT atau rangkaian dijalankan.\n\n8. Pembatalan, Pemulangan dan Bayaran Balik\n\nCaj pentadbiran, pemeriksaan, pengangkutan, kerja yang telah dilaksanakan, bahan yang telah digunakan dan bayaran pembekal yang tidak boleh dikembalikan boleh ditolak daripada bayaran balik. Produk khas, import, dikonfigurasi atau ditempah khusus biasanya tidak boleh dibatalkan selepas proses perolehan bermula, tertakluk kepada undang-undang yang berkenaan.\n\n9. Waranti\n\nProduk mungkin dilindungi oleh waranti pengilang atau pengedar. Tempoh dan skop waranti mutu kerja akan dinyatakan dalam sebut harga, invois atau dokumen serahan. Waranti tidak meliputi kerosakan akibat penyalahgunaan, kemalangan, air, kebakaran, lonjakan kuasa, pengubahsuaian tanpa kebenaran, pemasangan pihak ketiga atau kehausan biasa.\n\n10. Had Liabiliti\n\nSetakat yang dibenarkan oleh undang-undang, NS Smart Fix Solution bertanggungjawab terhadap kerugian langsung yang berpunca secara munasabah daripada pelanggaran atau kecuaian kami. Kami tidak bertanggungjawab terhadap kerugian tidak langsung atau kegagalan pihak ketiga di luar kawalan munasabah kami. Tiada apa-apa dalam terma ini mengehadkan hak pengguna yang tidak boleh dikecualikan oleh undang-undang Malaysia.\n\n11. Data Peribadi\n\nMaklumat peribadi boleh digunakan untuk menyediakan sebut harga, memproses bayaran, mengatur penghantaran dan pemasangan, menyediakan sokongan serta memenuhi keperluan undang-undang. Maklumat hanya akan dikongsi dengan pihak berkaitan apabila diperlukan untuk melaksanakan pesanan atau perkhidmatan.\n\n12. Pertikaian dan Undang-undang\n\nTerma ini ditadbir oleh undang-undang Malaysia. Sebarang aduan hendaklah dikemukakan kepada NS Smart Fix Solution terlebih dahulu untuk penyelesaian secara baik. Pelanggan kekal berhak mendapatkan bantuan daripada Tribunal Tuntutan Pengguna atau pihak berkuasa yang berkenaan.\n\n13. Hubungi Kami\n\nEncik Nasarudin — Telefon/WhatsApp: 016-411 0681\nEncik Nazrin Shah — Telefon/WhatsApp: 012-885 1681\nAlamat: 5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur\n\nVersi Bahasa Melayu ini ialah ringkasan praktikal bagi memudahkan pemahaman pelanggan. Sekiranya terdapat percanggahan, dokumen sebut harga atau perjanjian khusus yang dipersetujui secara bertulis akan diberi keutamaan.",
+    warranty:"POLISI WARANTI DAN PERKHIDMATAN\n\n1. Waranti Produk\n\nProduk yang dibekalkan mungkin dilindungi oleh waranti pengilang atau pengedar. Tempoh, skop perlindungan dan proses tuntutan adalah tertakluk kepada syarat pihak tersebut.\n\n2. Waranti Mutu Kerja\n\nSebarang waranti mutu kerja daripada NS Smart Fix Solution akan dinyatakan dalam sebut harga, invois, laporan perkhidmatan atau dokumen serahan. Pelanggan hendaklah melaporkan sebarang isu yang disyaki berkaitan mutu kerja dengan segera.\n\n3. Pengecualian Waranti\n\nWaranti tidak meliputi kerosakan akibat penyalahgunaan, kecuaian, kemalangan, air, kebakaran, kilat, lonjakan kuasa, perosak, pengubahsuaian tanpa kebenaran, pembaikan pihak ketiga, kehausan biasa, peralatan yang tidak serasi atau kegagalan mematuhi arahan penggunaan.\n\n4. Penilaian dan Tuntutan\n\nProduk mungkin perlu dihantar kepada pengilang, pengedar atau pusat servis sah untuk pemeriksaan. Tempoh penilaian dan pembaikan tertakluk kepada proses pihak berkenaan. Bukti pembelian, nombor siri, gambar atau video mungkin diperlukan.\n\n5. Sokongan Selepas Perkhidmatan\n\nSkop sokongan selepas pemasangan bergantung pada sebut harga atau perjanjian yang dipersetujui. Kerja tambahan, lawatan baharu atau isu yang tidak berkaitan dengan skop asal mungkin dikenakan caj berasingan."
   }
 }
 };
@@ -800,7 +803,7 @@ bm: {
 const SERVICE_ICONS = ["⚡","🌐","🖥","🛠","💻","📺","🏗","🚚","🔧"];
 const SERVICE_KEYS = ["electrical","network","server","itinfra","product","tv","renovation","delivery","troubleshoot"];
 const SERVICE_TITLES_EN = ["Electrical Wiring","Network Cabling","Server & IT Infrastructure","IT Infrastructure Design","IT Product Supply","TV Bracket Installation","Minor Renovation","Delivery & Installation","Troubleshooting & Maintenance"];
-const SERVICE_TITLES_BM = ["Pendawaian Elektrik","Kabel Rangkaian","Server & Infrastruktur IT","Reka Bentuk Infrastruktur IT","Bekalan Produk IT","Pemasangan Bracket TV","Renovasi Kecil","Penghantaran & Pemasangan","Penyelesaian Masalah & Penyelenggaraan"];
+const SERVICE_TITLES_BM = ["Pendawaian Elektrik","Pemasangan Kabel Rangkaian","Server & Infrastruktur IT","Reka Bentuk Infrastruktur IT","Pembekalan Produk IT","Pemasangan Pendakap TV","Pengubahsuaian Kecil","Penghantaran & Pemasangan","Penyelesaian Masalah & Penyelenggaraan"];
 const SERVICE_DESC_EN = [
   "New wiring, rewiring, power points, lighting and distribution board work for homes and offices.",
   "Structured cabling — CAT5e/6/6A, LAN points, patch panels, racks and testing.",
@@ -814,14 +817,14 @@ const SERVICE_DESC_EN = [
 ];
 const SERVICE_DESC_BM = [
   "Pendawaian baharu, pendawaian semula, soket kuasa, lampu dan papan agihan untuk rumah dan pejabat.",
-  "Kabel berstruktur — CAT5e/6/6A, titik LAN, panel patch, rak dan ujian.",
-  "Bekalan server, persediaan rak, UPS, NAS, konfigurasi asas dan dokumentasi.",
-  "Perancangan segmentasi rangkaian, VLAN dan kawalan akses untuk pejabat berkembang.",
+  "Pemasangan kabel berstruktur — CAT5e/6/6A, titik LAN, panel tampalan, rak dan pengujian.",
+  "Pembekalan server, pemasangan rak, UPS, NAS, konfigurasi asas dan dokumentasi.",
+  "Perancangan segmentasi rangkaian, VLAN dan kawalan akses untuk pejabat yang sedang berkembang.",
   "Komputer riba perniagaan, desktop, monitor, peralatan rangkaian dan aksesori daripada jenama dipercayai.",
-  "Bracket tetap, condong dan gerakan penuh untuk rumah, pejabat dan bilik mesyuarat.",
-  "Kerja renovasi kecil dan persediaan pejabat berkaitan elektrik dan rangkaian.",
-  "Penghantaran produk, pemasangan, ujian dan dokumentasi serah kerja.",
-  "Semakan litar, isu trip, masalah rangkaian dan sokongan penyelenggaraan am."
+  "Pendakap jenis tetap, condong dan gerakan penuh untuk kediaman, pejabat dan bilik mesyuarat.",
+  "Kerja pengubahsuaian kecil dan persediaan pejabat yang berkaitan dengan sistem elektrik dan rangkaian.",
+  "Penghantaran produk, pemasangan, pengujian dan dokumentasi serahan kerja.",
+  "Pemeriksaan litar, masalah bekalan terputus, kerosakan rangkaian dan sokongan penyelenggaraan am."
 ];
 const SERVICE_BULLETS_EN = [
   ["New wiring & rewiring","Power points & switches","LED / ceiling lighting","Distribution board (DB) install","Fault inspection & troubleshooting"],
@@ -835,18 +838,18 @@ const SERVICE_BULLETS_EN = [
   ["Circuit checking","Tripping issue diagnosis","Network fault tracing","Switch / socket replacement","Preventive maintenance"]
 ];
 const SERVICE_BULLETS_BM = [
-  ["Pendawaian baharu & semula","Soket & suis kuasa","Lampu LED / siling","Pemasangan papan agihan (DB)","Pemeriksaan & penyelesaian masalah"],
-  ["Kabel CAT5e / CAT6 / CAT6A","Pemasangan titik LAN","Panel patch & persediaan rak","Ujian & label rangkaian","Pemasangan access point Wi-Fi"],
-  ["Bekalan & pemasangan server","Rak kabinet & persediaan UPS","Persediaan NAS / storan sandaran","Asas Windows Server & AD","Dokumentasi server"],
+  ["Pendawaian baharu & pendawaian semula","Soket kuasa & suis","Lampu LED / lampu siling","Pemasangan papan agihan (DB)","Pemeriksaan & penyelesaian masalah"],
+  ["Kabel CAT5e / CAT6 / CAT6A","Pemasangan titik LAN","Panel tampalan & pemasangan rak","Pengujian & pelabelan rangkaian","Pemasangan titik capaian Wi-Fi"],
+  ["Pembekalan & pemasangan server","Kabinet rak & pemasangan UPS","Pemasangan NAS / storan sandaran","Asas Windows Server & AD","Dokumentasi server"],
   ["Perancangan segmentasi rangkaian","Persediaan VLAN","Perancangan kawalan akses","Pengenalan & label aset","Perancangan sandaran"],
-  ["Komputer riba & desktop perniagaan","Monitor, papan kekunci, tetikus","Docking station & pengecas","Pencetak & suis rangkaian","Server, rak & unit UPS"],
-  ["Tetap / condong / gerakan penuh","Pilihan pemasangan siling","Susunan kabel","Troli TV / kaki mudah alih","Pemasangan bilik mesyuarat & signage"],
-  ["Penambahbaikan susunatur elektrik","Soket kuasa tambahan","Penyembunyian kabel / trunking","Pemindahan titik rangkaian","Susunan semula pejabat kecil"],
-  ["Penghantaran produk","Pemasangan & ujian","Kedudukan peralatan","Dokumentasi serah kerja","Sokongan selepas pemasangan"],
-  ["Semakan litar","Diagnosis isu trip","Pengesanan kerosakan rangkaian","Penggantian suis / soket","Penyelenggaraan pencegahan"]
+  ["Komputer riba & desktop perniagaan","Monitor, papan kekunci & tetikus","Stesen dok & pengecas","Pencetak & suis rangkaian","Server, rak & unit UPS"],
+  ["Jenis tetap / condong / gerakan penuh","Pilihan pemasangan siling","Pengurusan kabel","Troli TV / kaki mudah alih","Pemasangan untuk bilik mesyuarat & papan tanda"],
+  ["Penambahbaikan susun atur elektrik","Soket kuasa tambahan","Penyembunyian kabel / sesalur kabel","Pemindahan titik rangkaian","Penyusunan semula pejabat kecil"],
+  ["Penghantaran produk","Pemasangan & pengujian","Penempatan peralatan","Dokumentasi serahan kerja","Sokongan selepas pemasangan"],
+  ["Pemeriksaan litar","Diagnosis masalah bekalan terputus","Pengesanan kerosakan rangkaian","Penggantian suis / soket","Penyelenggaraan pencegahan"]
 ];
 const SERVICE_NOTE_EN = ["Electrical work is subject to site inspection, safety requirements, applicable regulations and the agreed scope of work.","Cable labelling, testing, documentation and secure network design may be applied depending on the project.","Solutions can be planned with consideration for ISO/IEC 27001 information security principles — access control, asset management, network separation, backup planning and documentation.","","","","Every renovation project is subject to site inspection and an agreed quotation.","",""];
-const SERVICE_NOTE_BM = ["Kerja elektrik tertakluk kepada pemeriksaan tapak, keperluan keselamatan, peraturan berkenaan dan skop kerja yang dipersetujui.","Label kabel, ujian, dokumentasi dan reka bentuk rangkaian selamat mungkin digunakan bergantung kepada projek.","Penyelesaian boleh dirancang dengan mengambil kira prinsip keselamatan maklumat ISO/IEC 27001 — kawalan akses, pengurusan aset, pengasingan rangkaian, perancangan sandaran dan dokumentasi.","","","","Setiap projek renovasi tertakluk kepada pemeriksaan tapak dan sebut harga yang dipersetujui.","",""];
+const SERVICE_NOTE_BM = ["Kerja elektrik tertakluk kepada pemeriksaan tapak, keperluan keselamatan, peraturan yang berkenaan dan skop kerja yang dipersetujui.","Pelabelan kabel, pengujian, dokumentasi dan reka bentuk rangkaian selamat boleh dilaksanakan mengikut keperluan projek.","Penyelesaian boleh dirancang dengan mengambil kira prinsip keselamatan maklumat ISO/IEC 27001 — kawalan akses, pengurusan aset, pengasingan rangkaian, perancangan sandaran dan dokumentasi.","","","","Setiap projek pengubahsuaian tertakluk kepada pemeriksaan tapak dan sebut harga yang dipersetujui.","",""];
 
 const PRODUCTS = [
   {brand:"Lenovo", nameEn:"ThinkPad E14 Business Laptop", nameBm:"Komputer Riba Perniagaan ThinkPad E14", type:"Laptop", specsEn:"Intel Core i5, 16GB RAM, 512GB SSD", specsBm:"Intel Core i5, RAM 16GB, SSD 512GB", usageEn:"Office use", usageBm:"Kegunaan pejabat", stock:true},
@@ -855,9 +858,9 @@ const PRODUCTS = [
   {brand:"ASUS", nameEn:"24\" Business Monitor", nameBm:"Monitor Perniagaan 24\"", type:"Monitor", specsEn:"Full HD IPS, HDMI/VGA", specsBm:"Full HD IPS, HDMI/VGA", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
   {brand:"Acer", nameEn:"Aspire Desktop PC", nameBm:"PC Desktop Aspire", type:"Desktop", specsEn:"Intel Core i3, 8GB RAM, 256GB SSD", specsBm:"Intel Core i3, RAM 8GB, SSD 256GB", usageEn:"Home use", usageBm:"Kegunaan rumah", stock:true},
   {brand:"NS Smart Fix", nameEn:"24-Port Network Switch", nameBm:"Suis Rangkaian 24-Port", type:"Networking", specsEn:"Gigabit managed switch", specsBm:"Suis terurus Gigabit", usageEn:"Office / server room", usageBm:"Pejabat / bilik server", stock:true},
-  {brand:"NS Smart Fix", nameEn:"Wireless Access Point", nameBm:"Access Point Wayarles", type:"Networking", specsEn:"Dual-band Wi-Fi 6", specsBm:"Wi-Fi 6 jalur berkembar", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
+  {brand:"NS Smart Fix", nameEn:"Wireless Access Point", nameBm:"Titik Capaian Wayarles", type:"Networking", specsEn:"Dual-band Wi-Fi 6", specsBm:"Wi-Fi 6 jalur berkembar", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / kediaman", stock:true},
   {brand:"NS Smart Fix", nameEn:"Server Rack Cabinet 12U", nameBm:"Kabinet Rak Server 12U", type:"Server", specsEn:"Wall-mount, ventilated", specsBm:"Pasang dinding, berpengudaraan", usageEn:"Server room", usageBm:"Bilik server", stock:false},
-  {brand:"NS Smart Fix", nameEn:"1000VA UPS Unit", nameBm:"Unit UPS 1000VA", type:"UPS", specsEn:"Line-interactive, 4 outlets", specsBm:"Line-interactive, 4 outlet", usageEn:"Office / server room", usageBm:"Pejabat / bilik server", stock:true},
+  {brand:"NS Smart Fix", nameEn:"1000VA UPS Unit", nameBm:"Unit UPS 1000VA", type:"UPS", specsEn:"Line-interactive, 4 outlets", specsBm:"Interaktif talian, 4 soket keluaran", usageEn:"Office / server room", usageBm:"Pejabat / bilik server", stock:true},
   {brand:"NS Smart Fix", nameEn:"CAT6 Network Cable (305m box)", nameBm:"Kabel Rangkaian CAT6 (kotak 305m)", type:"Cable", specsEn:"UTP, solid copper", specsBm:"UTP, kuprum pejal", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
   {brand:"EZVIZ", nameEn:"2MP Outdoor CCTV Camera", nameBm:"Kamera CCTV Luar 2MP", type:"CCTV", specsEn:"Full HD, night vision, Wi-Fi", specsBm:"Full HD, penglihatan malam, Wi-Fi", usageEn:"Home / shop use", usageBm:"Kegunaan rumah / kedai", stock:true},
   {brand:"Dahua", nameEn:"4-Channel CCTV NVR Kit", nameBm:"Kit NVR CCTV 4-Saluran", type:"CCTV", specsEn:"4-channel NVR with 4 cameras", specsBm:"NVR 4-saluran dengan 4 kamera", usageEn:"Office / shop use", usageBm:"Kegunaan pejabat / kedai", stock:true},
@@ -913,7 +916,7 @@ class Component extends DCLogic {
   submitQuick = () => {
     const f = this.state.quickForm;
     if (!f.name.trim() || !f.phone.trim()) {
-      this.setState({quickError:'Please fill in your name and phone number.'});
+      this.setState({quickError:this.state.lang === 'bm' ? 'Sila isi nama dan nombor telefon anda.' : 'Please fill in your name and phone number.'});
       return;
     }
     const n = this.state.qtyCounter;
@@ -922,9 +925,10 @@ class Component extends DCLogic {
   };
   submitQuote = () => {
     const f = this.state.quoteForm;
-    if (!f.fullName || !f.phone) { this.setState({quoteError:'Please fill in your name and phone number.'}); return; }
-    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.setState({quoteError:'Please enter a valid email address.'}); return; }
-    if (!f.agree) { this.setState({quoteError:'Please accept the privacy notice before continuing.'}); return; }
+    const isBm = this.state.lang === 'bm';
+    if (!f.fullName || !f.phone) { this.setState({quoteError:isBm ? 'Sila isi nama dan nombor telefon anda.' : 'Please fill in your name and phone number.'}); return; }
+    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.setState({quoteError:isBm ? 'Sila masukkan alamat e-mel yang sah.' : 'Please enter a valid email address.'}); return; }
+    if (!f.agree) { this.setState({quoteError:isBm ? 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.' : 'Please accept the privacy notice before continuing.'}); return; }
     const n = this.state.qtyCounter;
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
     this.setState({ quoteSubmitted:true, quoteRef: ref, qtyCounter:n+1, quoteError:'' });
@@ -947,8 +951,12 @@ class Component extends DCLogic {
       nasarudinGeneral: this.waLink('60164110681', isEn ? "Hello Mr. Nasarudin, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nasarudin, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution."),
       nazrinGeneral: this.waLink('60128851681', isEn ? "Hello Mr. Nazrin Shah, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nazrin Shah, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution.")
     };
+    const quickServiceLabel = t.quotation.serviceOptions.find(opt => opt.value === s.quickForm.service)?.label || s.quickForm.service;
     const quickWaMessage = (isEn ? "Quick Enquiry " : "Pertanyaan Ringkas ") + s.quickRef + "\n" +
-      "Name: " + s.quickForm.name + "\nPhone: " + s.quickForm.phone + "\nService: " + s.quickForm.service + "\nMessage: " + s.quickForm.message;
+      (isEn ? "Name: " : "Nama: ") + s.quickForm.name + "\n" +
+      (isEn ? "Phone: " : "Telefon: ") + s.quickForm.phone + "\n" +
+      (isEn ? "Service: " : "Perkhidmatan: ") + quickServiceLabel + "\n" +
+      (isEn ? "Message: " : "Mesej: ") + s.quickForm.message;
     const quickWaLink = this.waLink('60164110681', quickWaMessage);
 
     // services list for home + services page
@@ -964,7 +972,7 @@ class Component extends DCLogic {
 
     const heroStats = [
       {value:"9+", label: isEn ? "Service Categories":"Kategori Perkhidmatan"},
-      {value:"5", label: isEn ? "Trusted Brands":"Jenama Dipercayai"},
+      {value:"11+", label: isEn ? "Trusted Brands":"Jenama Dipercayai"},
       {value:"1", label: isEn ? "Peninsular Coverage":"Liputan Semenanjung"},
       {value:"2", label: isEn ? "Direct Contacts":"Hubungan Terus"}
     ];
@@ -1005,7 +1013,10 @@ class Component extends DCLogic {
     }));
 
     const quoteWaMsg = (isEn? "Quotation Request " : "Permohonan Sebut Harga ") + s.quoteRef + "\n" +
-      "Name: " + s.quoteForm.fullName + "\nPhone: " + s.quoteForm.phone + "\nLocation: " + s.quoteForm.location + "\nDescription: " + s.quoteForm.description;
+      (isEn ? "Name: " : "Nama: ") + s.quoteForm.fullName + "\n" +
+      (isEn ? "Phone: " : "Telefon: ") + s.quoteForm.phone + "\n" +
+      (isEn ? "Location: " : "Lokasi: ") + s.quoteForm.location + "\n" +
+      (isEn ? "Description: " : "Penerangan: ") + s.quoteForm.description;
     const quoteWaLink = this.waLink('60164110681', quoteWaMsg);
 
     const faqs = t.faq.items.map((item,i) => ({ q:item.q, a:item.a, open: s.openFaq===i, symbol: s.openFaq===i?'−':'+', toggle: () => this.toggleFaq(i) }));
@@ -1019,10 +1030,11 @@ class Component extends DCLogic {
     };
     const legalPageTitle = t.footer[s.legalTab];
     const rawParas = t.legal[s.legalTab].split('\n\n').map(p => p.trim());
-    const metaParas = rawParas.filter(p => /^(Effective Date|Last Updated)/.test(p));
+    const legalMetaPattern = /^(Effective Date|Last Updated|Tarikh Berkuat Kuasa|Tarikh Kemas Kini)/;
+    const metaParas = rawParas.filter(p => legalMetaPattern.test(p));
     const legalMeta = metaParas.join('   •   ');
     let headingCounter = 0;
-    const legalBlocks = rawParas.filter(p => !/^(Effective Date|Last Updated)/.test(p)).map(text => {
+    const legalBlocks = rawParas.filter(p => !legalMetaPattern.test(p)).map(text => {
       const isTitle = text.length < 45 && !/^\d+\./.test(text) && text === text.replace(/[.:;]$/, '') && text.split(' ').length <= 5 && /^[A-Z]/.test(text);
       const headingMatch = !isTitle && /^(\d+)\.\s(.+)/.exec(text);
       const isHeading = !!headingMatch && text.length < 90;
