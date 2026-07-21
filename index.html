@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <meta name="ext-resource-dependency" content="assets/brand-lenovo.png" data-resource-id="brand-lenovo" />
+  <meta name="ext-resource-dependency" content="assets/brand-dell.png" data-resource-id="brand-dell" />
+  <meta name="ext-resource-dependency" content="assets/brand-hp.png" data-resource-id="brand-hp" />
+  <meta name="ext-resource-dependency" content="assets/brand-acer.png" data-resource-id="brand-acer" />
+  <meta name="ext-resource-dependency" content="assets/brand-asus.png" data-resource-id="brand-asus" />
+  <meta name="ext-resource-dependency" content="assets/brand-ezviz.png" data-resource-id="brand-ezviz" />
+  <meta name="ext-resource-dependency" content="assets/brand-dahua.png" data-resource-id="brand-dahua" />
+  <meta name="ext-resource-dependency" content="assets/brand-zkteco.png" data-resource-id="brand-zkteco" />
+  <meta name="ext-resource-dependency" content="assets/brand-hikvision.png" data-resource-id="brand-hikvision" />
+  <meta name="ext-resource-dependency" content="assets/brand-fortinet.png" data-resource-id="brand-fortinet" />
+  <meta name="ext-resource-dependency" content="assets/brand-vertiv.png" data-resource-id="brand-vertiv" />
+  <template id="__bundler_thumbnail" data-bg-color="#0B1F33">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <rect width="200" height="200" fill="#0B1F33"/>
+      <text x="100" y="118" font-family="Arial, sans-serif" font-size="72" font-weight="800" fill="#F59E0B" text-anchor="middle">NS</text>
+    </svg>
+  </template>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta name="description" content="{{ t.seo.desc }}">
+  <style>
+    body{margin:0;background:#F5F7FA;color:#1F2937;font-family:'Work Sans',sans-serif;}
+    *{box-sizing:border-box;}
+    a{color:#146CBE;}
+    a:hover{color:#0B1F33;}
+    input,select,textarea{font-family:'Work Sans',sans-serif;}
+    ::placeholder{color:#94A3B8;}
+    @media (max-width:860px){
+      .ns-desktop-nav{display:none !important;}
+      .ns-mobile-toggle{display:flex !important;}
+      .ns-sticky-bar{display:flex !important;}
+      .ns-grid-3{grid-template-columns:1fr !important;}
+      .ns-grid-4{grid-template-columns:1fr 1fr !important;}
+      .ns-grid-2{grid-template-columns:1fr !important;}
+      .ns-hero-row{flex-direction:column !important;}
+      .ns-footer-grid{grid-template-columns:1fr 1fr !important;}
+      .ns-body-pad{padding-bottom:76px !important;}
+    }
+  </style>
+</helmet>
+
+<div class="ns-body-pad" style="min-height:100vh;display:flex;flex-direction:column;">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:50;background:#FFFFFF;border-bottom:1px solid #E5E9EF;box-shadow:0 1px 3px rgba(11,31,51,0.04);">
+    <div style="max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onClick="{{ goHome }}">
+        <img src="assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
+      </div>
+      <nav class="ns-desktop-nav" style="display:flex;align-items:center;gap:22px;">
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.home }};text-decoration:none;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.about }};text-decoration:none;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.services }};text-decoration:none;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.products }};text-decoration:none;cursor:pointer;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.contact }};text-decoration:none;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
+        <a style="font-size:14px;font-weight:600;color:{{ navColor.faq }};text-decoration:none;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
+        <button class="ns-desktop-nav" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</button>
+        <button class="ns-mobile-toggle" style="display:none;background:none;border:1px solid #D9E2EC;border-radius:8px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;" onClick="{{ toggleMobileMenu }}">☰</button>
+      </div>
+    </div>
+    <sc-if value="{{ mobileMenuOpen }}">
+      <div class="ns-mobile-toggle" style="display:flex;flex-direction:column;padding:8px 24px 16px;gap:2px;border-top:1px solid #E5E9EF;">
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.quotation }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
+        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
+      </div>
+    </sc-if>
+  </header>
+
+  <main style="flex:1;">
+
+  <!-- ================= HOME ================= -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <section style="background:linear-gradient(135deg,#0B1F33 0%,#0F2A47 55%,#146CBE 130%);padding:72px 24px 88px;">
+      <div class="ns-hero-row" style="max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:48px;">
+        <div style="flex:1.1;min-width:280px;">
+          <div style="display:inline-block;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:0.04em;padding:6px 14px;border-radius:100px;margin-bottom:20px;">{{ t.hero.badge }}</div>
+          <h1 style="font-family:'Manrope',sans-serif;font-size:44px;line-height:1.15;color:#FFFFFF;font-weight:800;margin:0 0 18px;">{{ t.hero.title }}</h1>
+          <p style="font-size:17px;line-height:1.6;color:#C9D6E5;margin:0 0 32px;max-width:560px;">{{ t.hero.subtitle }}</p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;">
+            <button style="background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}</button>
+            <a href="{{ waLinks.general }}" target="_blank" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}</a>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
+          <img src="assets/photo-db-testing.jpg" alt="Electrician testing a distribution board with a voltage tester" style="width:100%;height:360px;object-fit:cover;display:block;">
+          <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(11,31,51,0.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
+              <div>
+                <div style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#FFFFFF;">{{ s.value }}</div>
+                <div style="font-size:11.5px;color:#C9D6E5;margin-top:2px;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+      <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:30px;font-weight:800;color:#0B1F33;margin:0 0 10px;">{{ t.home.servicesTitle }}</h2>
+        <p style="font-size:15.5px;color:#4B5768;margin:0;">{{ t.home.servicesSub }}</p>
+      </div>
+      <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+        <sc-for list="{{ t.services.list }}" as="svc" hint-placeholder-count="6">
+          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:26px;cursor:pointer;" onClick="{{ svc.goDetail }}">
+            <div style="width:44px;height:44px;border-radius:10px;background:#EAF4FF;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:800;color:#146CBE;font-size:17px;margin-bottom:14px;">{{ svc.icon }}</div>
+            <h3 style="font-size:17px;font-weight:700;color:#0B1F33;margin:0 0 8px;">{{ svc.title }}</h3>
+            <p style="font-size:14px;color:#5B6675;line-height:1.55;margin:0;">{{ svc.desc }}</p>
+          </div>
+        </sc-for>
+      </div>
+      <div style="text-align:center;margin-top:32px;">
+        <button style="background:none;border:1.5px solid #146CBE;border-radius:9px;padding:12px 24px;font-size:14.5px;font-weight:700;color:#146CBE;cursor:pointer;" onClick="{{ nav.services }}">{{ t.common.viewMore }}</button>
+      </div>
+    </section>
+
+    <section style="background:#0B1F33;margin-top:64px;padding:64px 24px;">
+      <div style="max-width:1280px;margin:0 auto;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#FFFFFF;text-align:center;margin:0 0 40px;">{{ t.home.whyTitle }}</h2>
+        <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+          <sc-for list="{{ t.home.why }}" as="w" hint-placeholder-count="6">
+            <div style="border-left:2px solid #146CBE;padding-left:16px;">
+              <h4 style="font-size:16px;font-weight:700;color:#FFFFFF;margin:0 0 6px;">{{ w.title }}</h4>
+              <p style="font-size:14px;color:#A9B8CB;line-height:1.55;margin:0;">{{ w.desc }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:64px auto 0;padding:0 24px;">
+      <div style="position:relative;border-radius:16px;overflow:hidden;">
+        <img src="assets/photo-datacenter.jpg" alt="Server room data hall with rows of illuminated network racks" style="width:100%;height:300px;object-fit:cover;display:block;">
+        <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,31,51,0.85) 0%,rgba(11,31,51,0.15) 55%);display:flex;align-items:flex-end;padding:28px;">
+          <p style="color:#FFFFFF;font-family:'Manrope',sans-serif;font-weight:700;font-size:19px;margin:0;max-width:520px;line-height:1.5;">Server rooms, racks and network infrastructure built to run reliably.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:8px;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#0B1F33;margin:0;">{{ t.home.featuredTitle }}</h2>
+        <a style="font-size:14px;font-weight:700;cursor:pointer;" onClick="{{ nav.products }}">{{ t.common.viewMore }} →</a>
+      </div>
+      <div class="ns-grid-4" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
+        <sc-for list="{{ featuredBrands }}" as="b" hint-placeholder-count="5">
+          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:12px;padding:20px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <sc-if value="{{ b.hasLogo }}" hint-placeholder-val="{{ false }}">
+              <img src="{{ b.logo }}" alt="{{ b.name }} logo" style="height:28px;max-width:100%;object-fit:contain;"/>
+            </sc-if>
+            <sc-if value="{{ b.noLogo }}">
+              <div style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:800;color:#0B1F33;">{{ b.name }}</div>
+            </sc-if>
+            <div style="font-size:11.5px;color:#5B6675;line-height:1.4;">{{ b.category }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+      <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#0B1F33;text-align:center;margin:0 0 40px;">{{ t.home.processTitle }}</h2>
+      <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+        <sc-for list="{{ t.home.process }}" as="step" hint-placeholder-count="6">
+          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:22px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:#0B1F33;color:#FFFFFF;font-weight:800;font-family:'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:12px;">{{ step.step }}</div>
+            <h4 style="font-size:15px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ step.title }}</h4>
+            <p style="font-size:13.5px;color:#5B6675;line-height:1.5;margin:0;">{{ step.desc }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="max-width:900px;margin:0 auto;padding:64px 24px 80px;">
+      <div style="background:#EAF4FF;border-radius:18px;padding:40px;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 6px;text-align:center;">{{ t.home.enquiryTitle }}</h2>
+        <p style="font-size:14.5px;color:#3E5A78;text-align:center;margin:0 0 26px;">{{ t.home.enquirySub }}</p>
+        <sc-if value="{{ quickSubmitted }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFFFF;border-radius:12px;padding:24px;text-align:center;">
+            <div style="font-size:32px;">✅</div>
+            <p style="font-size:15px;color:#0B1F33;font-weight:700;margin:10px 0 4px;">{{ t.quotation.successTitle }}</p>
+            <p style="font-size:13.5px;color:#5B6675;margin:0 0 4px;">{{ quickRef }}</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="ns-grid-2">
+            <input placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <input placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <select value="{{ quickForm.service }}" onChange="{{ qkh.service }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
+              <option value="">{{ t.quotation.serviceRequired }}</option>
+              <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+            <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
+            <button style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ submitQuick }}">{{ t.common.submit }}</button>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- ================= ABOUT ================= -->
+  <sc-if value="{{ isAbout }}">
+    <section style="background:#0B1F33;padding:56px 24px;">
+      <div style="max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.about.title }}</h1>
+        <p style="font-size:16px;color:#C9D6E5;line-height:1.6;margin:0;">{{ t.about.intro }}</p>
+      </div>
+    </section>
+    <section style="max-width:1000px;margin:0 auto;padding:56px 24px;">
+      <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px;">
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:28px;">
+          <div style="font-size:12px;font-weight:700;color:#146CBE;letter-spacing:0.05em;margin-bottom:8px;">{{ t.about.missionTitle }}</div>
+          <p style="font-size:15px;color:#374357;line-height:1.65;margin:0;">{{ t.about.mission }}</p>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:28px;">
+          <div style="font-size:12px;font-weight:700;color:#146CBE;letter-spacing:0.05em;margin-bottom:8px;">{{ t.about.visionTitle }}</div>
+          <p style="font-size:15px;color:#374357;line-height:1.65;margin:0;">{{ t.about.vision }}</p>
+        </div>
+      </div>
+      <h2 style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#0B1F33;text-align:center;margin:0 0 24px;">{{ t.about.valuesTitle }}</h2>
+      <div class="ns-grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px;">
+        <sc-for list="{{ t.about.values }}" as="v" hint-placeholder-count="8">
+          <div style="background:#EAF4FF;border-radius:10px;padding:16px;text-align:center;font-size:13.5px;font-weight:700;color:#0B1F33;">{{ v }}</div>
+        </sc-for>
+      </div>
+      <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:stretch;">
+        <img src="assets/photo-developer.jpg" alt="IT technician configuring servers and network infrastructure at a workstation" style="width:100%;height:100%;min-height:260px;object-fit:cover;border-radius:14px;">
+        <div style="background:#F5F7FA;border-radius:14px;padding:28px;">
+          <h3 style="font-size:16px;font-weight:700;color:#0B1F33;margin:0 0 14px;">{{ t.about.commitTitle }}</h3>
+          <sc-for list="{{ t.about.commit }}" as="c" hint-placeholder-count="5">
+            <div style="display:flex;gap:10px;margin-bottom:10px;">
+              <span style="color:#146CBE;font-weight:800;">✓</span>
+              <span style="font-size:14px;color:#374357;line-height:1.55;">{{ c }}</span>
+            </div>
+          </sc-for>
+          <p style="font-size:13.5px;color:#5B6675;margin:16px 0 0;font-style:italic;">{{ t.about.coverage }}</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:20px;margin-top:20px;">
+        <img src="assets/illustration-server-room.png" alt="Illustration of a server room with a technician monitoring racks" style="width:120px;height:auto;flex-shrink:0;">
+        <p style="font-size:13.5px;color:#374357;line-height:1.6;margin:0;">Server room and infrastructure work is planned before installation — layout, rack placement, cabling routes and access all mapped out ahead of time.</p>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- ================= SERVICES ================= -->
+  <sc-if value="{{ isServices }}">
+    <section style="background:#0B1F33;padding:56px 24px;">
+      <div style="max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.services.title }}</h1>
+        <p style="font-size:16px;color:#C9D6E5;margin:0;">{{ t.services.subtitle }}</p>
+      </div>
+    </section>
+    <section style="max-width:1280px;margin:24px auto 0;padding:0 24px;">
+      <div style="position:relative;border-radius:16px;overflow:hidden;">
+        <img src="assets/photo-control-panel.jpg" alt="Technician wiring an industrial control panel and terminal blocks" style="width:100%;height:260px;object-fit:cover;display:block;">
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,31,51,0.82) 0%,rgba(11,31,51,0.15) 60%);display:flex;align-items:center;">
+          <p style="color:#FFFFFF;font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;max-width:380px;margin:0;padding:0 32px;line-height:1.5;">Certified technicians handling wiring, panels and structured cabling with care.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:56px 24px 80px;">
+      <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;">
+        <sc-for list="{{ serviceCards }}" as="svc" hint-placeholder-count="9">
+          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:26px;display:flex;flex-direction:column;">
+            <div style="width:46px;height:46px;border-radius:10px;background:#EAF4FF;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:800;color:#146CBE;font-size:18px;margin-bottom:14px;">{{ svc.icon }}</div>
+            <h3 style="font-size:18px;font-weight:700;color:#0B1F33;margin:0 0 8px;">{{ svc.title }}</h3>
+            <p style="font-size:14px;color:#5B6675;line-height:1.55;margin:0 0 14px;">{{ svc.desc }}</p>
+            <sc-for list="{{ svc.bullets }}" as="b" hint-placeholder-count="5">
+              <div style="display:flex;gap:8px;margin-bottom:6px;">
+                <span style="color:#146CBE;">•</span>
+                <span style="font-size:13.5px;color:#374357;">{{ b }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ svc.note }}">
+              <p style="font-size:12.5px;color:#8A94A3;background:#F5F7FA;border-radius:8px;padding:10px 12px;margin:12px 0 0;line-height:1.5;">{{ svc.note }}</p>
+            </sc-if>
+            <div style="display:flex;gap:10px;margin-top:18px;">
+              <button style="flex:1;background:#0B1F33;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ svc.request }}">{{ t.common.requestService }}</button>
+              <a href="{{ waLinks.general }}" target="_blank" style="flex:1;text-align:center;background:#EAF4FF;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#146CBE;text-decoration:none;">{{ t.common.learnMore }}</a>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- ================= PRODUCTS ================= -->
+  <sc-if value="{{ isProducts }}">
+    <section style="position:relative;padding:64px 24px;overflow:hidden;">
+      <img src="assets/photo-cctv.jpg" alt="CCTV cameras mounted for outdoor surveillance" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,31,51,0.88) 0%,rgba(11,31,51,0.8) 60%,rgba(11,31,51,0.92) 100%);"></div>
+      <div style="position:relative;max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.products.title }}</h1>
+        <p style="font-size:16px;color:#C9D6E5;margin:0;">{{ t.products.subtitle }}</p>
+      </div>
+    </section>
+
+    <section style="max-width:1100px;margin:0 auto;padding:0 24px 80px;">
+      <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+        <sc-for list="{{ brandCards }}" as="b" hint-placeholder-count="10">
+          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:24px;text-align:center;">
+            <div style="height:52px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+              <sc-if value="{{ b.hasLogo }}" hint-placeholder-val="{{ false }}">
+                <img src="{{ b.logo }}" alt="{{ b.name }} logo" style="max-height:{{ b.logoHeight }};max-width:80%;object-fit:contain;"/>
+              </sc-if>
+              <sc-if value="{{ b.noLogo }}">
+                <div style="font-family:'Manrope',sans-serif;font-size:19px;font-weight:800;color:#0B1F33;">{{ b.name }}</div>
+              </sc-if>
+            </div>
+            <p style="font-size:13px;color:#5B6675;margin:0 0 16px;line-height:1.5;">{{ b.category }}</p>
+            <a href="{{ b.waLink }}" target="_blank" style="display:block;background:#25D366;border-radius:8px;padding:10px;font-size:13px;font-weight:700;color:#FFFFFF;text-decoration:none;">WhatsApp</a>
+          </div>
+        </sc-for>
+      </div>
+      <div style="text-align:center;margin-top:36px;background:#EAF4FF;border-radius:14px;padding:28px;">
+        <p style="font-size:15px;color:#0B1F33;font-weight:600;margin:0 0 16px;">{{ t.products.enquiryPrompt }}</p>
+        <a href="{{ waGeneralLink }}" target="_blank" style="background:#25D366;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;margin-right:10px;">{{ t.common.whatsappUs }}</a>
+        <button style="background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</button>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- ================= QUOTATION ================= -->
+  <sc-if value="{{ isQuotation }}">
+    <section style="background:#0B1F33;position:relative;overflow:hidden;padding:56px 24px;">
+      <img src="assets/photo-wiring-closeup.jpg" alt="Electrician preparing and stripping wires during an installation" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.22;">
+      <div style="position:relative;max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:32px;font-weight:800;color:#FFFFFF;margin:0 0 10px;">{{ t.quotation.title }}</h1>
+        <p style="font-size:15.5px;color:#C9D6E5;margin:0;">{{ t.quotation.subtitle }}</p>
+      </div>
+    </section>
+    <section style="max-width:760px;margin:0 auto;padding:48px 24px 80px;">
+      <sc-if value="{{ quoteSubmitted }}">
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:40px;text-align:center;">
+          <div style="font-size:40px;">✅</div>
+          <h2 style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#0B1F33;margin:16px 0 8px;">{{ t.quotation.successTitle }}</h2>
+          <p style="font-size:14.5px;color:#5B6675;margin:0 0 18px;">{{ t.quotation.successMsg }}</p>
+          <div style="display:inline-block;background:#EAF4FF;border-radius:10px;padding:12px 22px;font-family:monospace;font-size:16px;font-weight:700;color:#146CBE;margin-bottom:22px;">{{ quoteRef }}</div>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a href="{{ quoteWaLink }}" target="_blank" style="background:#25D366;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
+            <button style="background:none;border:1px solid #C9D6E5;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.common.backHome }}</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ quoteNotSubmitted }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:32px;">
+          <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.fullName }} *</label>
+              <input value="{{ quoteForm.fullName }}" onChange="{{ qh.fullName }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.companyName }}</label>
+              <input value="{{ quoteForm.company }}" onChange="{{ qh.company }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.phone }} *</label>
+              <input value="{{ quoteForm.phone }}" onChange="{{ qh.phone }}" placeholder="01x-xxx xxxx" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.email }}</label>
+              <input value="{{ quoteForm.email }}" onChange="{{ qh.email }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.customerType }}</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <sc-for list="{{ customerTypeOptions }}" as="ct" hint-placeholder-count="5">
+                <button style="background:{{ ct.bg }};border:1px solid {{ ct.border }};color:{{ ct.color }};border-radius:100px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ ct.select }}">{{ ct.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.serviceRequired }}</label>
+            <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+              <sc-for list="{{ serviceCheckOptions }}" as="sc" hint-placeholder-count="8">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:#374357;background:#F5F7FA;border-radius:8px;padding:10px 12px;cursor:pointer;">
+                  <input type="checkbox" checked="{{ sc.checked }}" onChange="{{ sc.toggle }}"/>{{ sc.label }}
+                </label>
+              </sc-for>
+            </div>
+          </div>
+
+          <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.location }}</label>
+              <input value="{{ quoteForm.location }}" onChange="{{ qh.location }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.visitDate }}</label>
+              <input type="date" value="{{ quoteForm.visitDate }}" onChange="{{ qh.visitDate }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.preferredContact }}</label>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <sc-for list="{{ contactMethodOptions }}" as="cm" hint-placeholder-count="3">
+                <button style="flex:1;background:{{ cm.bg }};border:1px solid {{ cm.border }};color:{{ cm.color }};border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ cm.select }}">{{ cm.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.description }}</label>
+            <textarea value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
+          </div>
+
+          <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.budget }}</label>
+              <select value="{{ quoteForm.budget }}" onChange="{{ qh.budget }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;color:#0B1F33;">
+                <sc-for list="{{ t.quotation.budgetOptions }}" as="bo" hint-placeholder-count="5"><option value="{{ bo }}">{{ bo }}</option></sc-for>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.urgency }}</label>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <sc-for list="{{ urgencyOptions }}" as="u" hint-placeholder-count="3">
+                  <button style="flex:1;background:{{ u.bg }};border:1px solid {{ u.border }};color:{{ u.color }};border-radius:8px;padding:10px;font-size:12.5px;font-weight:600;cursor:pointer;" onClick="{{ u.select }}">{{ u.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.uploadPhotos }}</label>
+            <input type="file" multiple onChange="{{ onFileUpload }}" style="width:100%;margin-top:6px;font-size:13px;"/>
+            <sc-if value="{{ hasUploadedFiles }}">
+              <div style="font-size:12px;color:#5B6675;margin-top:6px;">{{ uploadedFilesLabel }}</div>
+            </sc-if>
+          </div>
+
+          <label style="display:flex;align-items:flex-start;gap:10px;margin-top:22px;font-size:13px;color:#5B6675;line-height:1.5;">
+            <input type="checkbox" checked="{{ quoteForm.agree }}" onChange="{{ qh.agree }}" style="margin-top:2px;"/>
+            {{ t.quotation.agreement }}
+          </label>
+
+          <button style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ submitQuote }}">{{ t.common.submit }}</button>
+          <sc-if value="{{ quoteError }}">
+            <p style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center;">{{ quoteError }}</p>
+          </sc-if>
+        </div>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  <!-- ================= CONTACT ================= -->
+  <sc-if value="{{ isContact }}">
+    <section style="background:#0B1F33;padding:56px 24px;">
+      <div style="max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.contact.title }}</h1>
+      </div>
+    </section>
+    <section style="max-width:1000px;margin:0 auto;padding:48px 24px 80px;">
+      <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;">
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:28px;">
+          <div style="width:52px;height:52px;border-radius:100px;background:#EAF4FF;color:#146CBE;font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">MN</div>
+          <h3 style="font-size:17px;font-weight:700;color:#0B1F33;margin:0 0 4px;">Mr. Nasarudin</h3>
+          <p style="font-size:14px;color:#5B6675;margin:0 0 18px;">016-411 0681</p>
+          <div style="display:flex;gap:10px;">
+            <a href="tel:+60164110681" style="flex:1;text-align:center;background:#EAF4FF;color:#146CBE;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">{{ t.contact.call }}</a>
+            <a href="{{ waLinks.nasarudinGeneral }}" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:28px;">
+          <div style="width:52px;height:52px;border-radius:100px;background:#EAF4FF;color:#146CBE;font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">NS</div>
+          <h3 style="font-size:17px;font-weight:700;color:#0B1F33;margin:0 0 4px;">Mr. Nazrin Shah</h3>
+          <p style="font-size:14px;color:#5B6675;margin:0 0 18px;">012-885 1681</p>
+          <div style="display:flex;gap:10px;">
+            <a href="tel:+60128851681" style="flex:1;text-align:center;background:#EAF4FF;color:#146CBE;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">{{ t.contact.call }}</a>
+            <a href="{{ waLinks.nazrinGeneral }}" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#FFFFFF;border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;text-decoration:none;">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:40px;flex-wrap:wrap;">
+        <button style="background:#F59E0B;border:none;border-radius:9px;padding:14px 24px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</button>
+      </div>
+      <div style="background:#F5F7FA;border-radius:14px;padding:24px;max-width:520px;margin:0 auto;">
+        <h4 style="font-size:14px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ t.contact.addressLabel }}</h4>
+        <p style="font-size:13.5px;color:#374357;margin:0 0 16px;line-height:1.5;">{{ t.contact.address }}</p>
+        <h4 style="font-size:14px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ t.contact.hoursLabel }}</h4>
+        <p style="font-size:13.5px;color:#374357;margin:0 0 16px;">{{ t.contact.hours }}</p>
+        <h4 style="font-size:14px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ t.contact.areaLabel }}</h4>
+        <p style="font-size:13.5px;color:#374357;margin:0 0 16px;">{{ t.contact.area }}</p>
+        <h4 style="font-size:14px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ t.contact.brnLabel }}</h4>
+        <p style="font-size:13.5px;color:#374357;margin:0;">{{ t.contact.brn }}</p>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- ================= FAQ ================= -->
+  <sc-if value="{{ isFaq }}">
+    <section style="background:#EAF4FF;padding:56px 24px;">
+      <div style="max-width:900px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#0B1F33;margin:0;">{{ t.faq.title }}</h1>
+      </div>
+    </section>
+    <section style="max-width:760px;margin:0 auto;padding:48px 24px 80px;">
+      <sc-for list="{{ faqs }}" as="item" hint-placeholder-count="14">
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:12px;margin-bottom:10px;overflow:hidden;">
+          <div style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onClick="{{ item.toggle }}">
+            <span style="font-size:14.5px;font-weight:700;color:#0B1F33;">{{ item.q }}</span>
+            <span style="color:#146CBE;font-weight:800;">{{ item.symbol }}</span>
+          </div>
+          <sc-if value="{{ item.open }}">
+            <p style="padding:0 20px 18px;font-size:14px;color:#5B6675;line-height:1.6;margin:0;">{{ item.a }}</p>
+          </sc-if>
+        </div>
+      </sc-for>
+    </section>
+  </sc-if>
+
+  <!-- ================= LEGAL ================= -->
+  <sc-if value="{{ isLegal }}">
+    <section style="background:#0B1F33;padding:48px 24px 32px;">
+      <div style="max-width:1080px;margin:0 auto;text-align:center;">
+        <h1 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#FFFFFF;margin:0 0 10px;">{{ legalPageTitle }}</h1>
+        <sc-if value="{{ legalMeta }}">
+          <div style="display:inline-block;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:100px;padding:6px 16px;font-size:12.5px;color:#C9D6E5;">{{ legalMeta }}</div>
+        </sc-if>
+      </div>
+    </section>
+    <section style="max-width:1080px;margin:0 auto;padding:0 24px 80px;">
+      <div style="display:flex;gap:10px;margin:-24px 0 28px;position:relative;z-index:1;">
+        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.privacy.border }};background:{{ tabStyle.privacy.bg }};color:{{ tabStyle.privacy.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</button>
+        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.terms.border }};background:{{ tabStyle.terms.bg }};color:{{ tabStyle.terms.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</button>
+        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.warranty.border }};background:{{ tabStyle.warranty.bg }};color:{{ tabStyle.warranty.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</button>
+      </div>
+      <div class="ns-grid-2" style="display:grid;grid-template-columns:{{ legalGridCols }};gap:28px;align-items:start;">
+        <sc-if value="{{ hasToc }}">
+          <nav style="position:sticky;top:88px;background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:18px;max-height:calc(100vh - 120px);overflow-y:auto;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;color:#8A94A3;margin-bottom:10px;">ON THIS PAGE</div>
+            <sc-for list="{{ tocItems }}" as="item" hint-placeholder-count="10">
+              <a href="{{ item.href }}" style="display:block;font-size:13px;color:#374357;text-decoration:none;padding:7px 0;border-bottom:1px solid #F5F7FA;line-height:1.4;">{{ item.text }}</a>
+            </sc-for>
+          </nav>
+        </sc-if>
+        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:40px;">
+          <sc-for list="{{ legalBlocks }}" as="block" hint-placeholder-count="20">
+            <sc-if value="{{ block.isTitle }}">
+              <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 4px;">{{ block.text }}</h2>
+            </sc-if>
+            <sc-if value="{{ block.isHeading }}">
+              <h3 id="{{ block.id }}" style="display:flex;align-items:center;gap:10px;font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:#0B1F33;margin:32px 0 12px;padding-top:20px;border-top:1px solid #EEF1F5;scroll-margin-top:88px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#EAF4FF;color:#146CBE;font-size:12px;font-weight:800;flex-shrink:0;">{{ block.num }}</span>
+                {{ block.headingText }}
+              </h3>
+            </sc-if>
+            <sc-if value="{{ block.isBody }}">
+              <p style="font-size:14px;color:#374357;line-height:1.75;margin:0 0 14px;">{{ block.text }}</p>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="background:#0B1F33;padding:56px 24px 24px;">
+    <div class="ns-footer-grid" style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;">
+      <div>
+        <img src="assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution" style="height:64px;margin-bottom:14px;">
+        <p style="font-size:13.5px;color:#A9B8CB;line-height:1.6;margin:0;">{{ t.footer.desc }}</p>
+      </div>
+      <div>
+        <h5 style="font-size:13px;font-weight:700;color:#FFFFFF;margin:0 0 14px;">{{ t.footer.servicesTitle }}</h5>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <sc-for list="{{ footerServiceLinks }}" as="fl" hint-placeholder-count="5">
+            <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ fl.go }}">{{ fl.label }}</a>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <h5 style="font-size:13px;font-weight:700;color:#FFFFFF;margin:0 0 14px;">{{ t.footer.contactTitle }}</h5>
+        <p style="font-size:13px;color:#A9B8CB;margin:0 0 8px;">Nasarudin: 016-411 0681</p>
+        <p style="font-size:13px;color:#A9B8CB;margin:0 0 14px;">Nazrin Shah: 012-885 1681</p>
+        <p style="font-size:13px;color:#A9B8CB;margin:0 0 4px;">{{ t.contact.hours }}</p>
+        <p style="font-size:13px;color:#A9B8CB;margin:0;">{{ t.contact.area }}</p>
+      </div>
+      <div>
+        <h5 style="font-size:13px;font-weight:700;color:#FFFFFF;margin:0 0 14px;">{{ t.footer.legalTitle }}</h5>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</a>
+          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</a>
+          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1280px;margin:32px auto 0;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);text-align:center;">
+      <p style="font-size:12.5px;color:#7C8CA3;margin:0;">{{ t.footer.copyright }}</p>
+    </div>
+  </footer>
+
+  <!-- STICKY MOBILE BAR -->
+  <div class="ns-sticky-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid #E5E9EF;z-index:60;box-shadow:0 -2px 8px rgba(0,0,0,0.06);">
+    <a href="tel:+60164110681" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;text-decoration:none;">📞 {{ t.contact.call }}</a>
+    <a href="{{ waLinks.general }}" target="_blank" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#FFFFFF;background:#25D366;text-decoration:none;">WhatsApp</a>
+    <a style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;background:#F59E0B;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+const CONTENT = {
+en: {
+  seo: { desc: "NS Smart Fix Solution — electrical wiring, IT networking, server infrastructure, product supply and TV bracket installation across Peninsular Malaysia." },
+  nav: { home:"Home", about:"About Us", services:"Services", products:"Products", quotation:"Request Quotation", contact:"Contact Us", faq:"FAQ", login:"Customer Login", cta:"Get a Quotation" },
+  common: { requestQuote:"Request Quotation", whatsappUs:"WhatsApp Us", learnMore:"Learn More", requestService:"Request Service", viewMore:"View More", submit:"Submit", backHome:"Back to Home" },
+  hero: { badge:"Electrical • Networking • IT Infrastructure", title:"Reliable Electrical, Networking and IT Infrastructure Solutions for Homes and Businesses", subtitle:"From electrical wiring and network cabling to server installation, IT equipment supply and TV bracket mounting, NS Smart Fix Solution delivers complete supply, delivery and installation services.", cta1:"Request a Quotation", cta2:"WhatsApp Us" },
+  home: {
+    servicesTitle:"What We Do", servicesSub:"One team for electrical, networking, IT infrastructure and installation work.",
+    whyTitle:"Why Choose NS Smart Fix Solution",
+    why:[
+      {title:"Licensed & Experienced Team", desc:"Electrical and IT technicians experienced in residential and commercial projects."},
+      {title:"One-Stop Service", desc:"Electrical wiring, networking, servers, product supply and installation under one roof."},
+      {title:"Site Inspection First", desc:"We assess before we quote, so pricing reflects the actual scope of work."},
+      {title:"Nationwide Coverage", desc:"Our team serves customers across Peninsular Malaysia."},
+      {title:"Documentation Included", desc:"Cable labelling, port mapping and handover notes for IT projects."},
+      {title:"Transparent Process", desc:"Clear quotation, scheduled work, and confirmation at every step."}
+    ],
+    featuredTitle:"Featured Products", projectsTitle:"Recent Projects", processTitle:"How It Works",
+    process:[
+      {step:"1", title:"Submit Enquiry", desc:"Tell us what you need through the website or WhatsApp."},
+      {step:"2", title:"We Review", desc:"Our team reviews your requirement and scope."},
+      {step:"3", title:"Site Visit", desc:"Arranged when necessary to assess the site."},
+      {step:"4", title:"Quotation", desc:"We prepare and send a detailed quotation."},
+      {step:"5", title:"Schedule & Work", desc:"Once approved, we schedule and complete the work."},
+      {step:"6", title:"Confirmation", desc:"You confirm completion and receive handover notes."}
+    ],
+    enquiryTitle:"Quick Enquiry", enquirySub:"Send us a short message and our team will get back to you."
+  },
+  about: {
+    title:"About NS Smart Fix Solution",
+    intro:"NS Smart Fix Solution provides electrical wiring, IT networking, server infrastructure, product supply and installation services for homes and businesses across Peninsular Malaysia.",
+    missionTitle:"Our Mission", mission:"To provide dependable electrical, networking and IT infrastructure services that are practical, secure, professionally installed and suitable for the customer's operational needs.",
+    visionTitle:"Our Vision", vision:"To become a trusted one-stop technical service provider for homes, offices and growing businesses.",
+    valuesTitle:"Core Values", values:["Safety","Reliability","Professionalism","Transparency","Quality Workmanship","Customer Satisfaction","Information Security","Continuous Improvement"],
+    commitTitle:"Our Commitments",
+    commit:["Safety-first electrical and IT work practices","Quality workmanship on every project, big or small","Proper documentation and handover for IT and network projects","Solutions planned with consideration for information security principles","Responsive support for both residential and business customers"],
+    coverage:"We serve residential and business customers with a technical team covering Peninsular Malaysia."
+  },
+  services: { title:"Our Services", subtitle:"Electrical, networking, IT infrastructure, product supply and installation — handled by one team." },
+  products: { title:"Products", subtitle:"Business laptops, desktops, networking gear, CCTV, access control and server equipment from trusted brands.", enquiryPrompt:"Looking for a specific model or a bulk quotation? Reach out and we'll help you choose." },
+  projects: { title:"Our Projects", subtitle:"A sample of recent electrical, networking and installation work.", before:"BEFORE — photo placeholder", after:"AFTER — photo placeholder", problemLabel:"Problem", solutionLabel:"Solution", all:"All" },
+  quotation: {
+    title:"Request a Quotation", subtitle:"Tell us about your project and our team will follow up after reviewing the details.",
+    fullName:"Full Name", companyName:"Company Name", phone:"Phone Number", email:"Email Address", customerType:"Customer Type",
+    serviceRequired:"Service Required", location:"Project Location", visitDate:"Preferred Site Visit Date", preferredContact:"Preferred Contact Method",
+    description:"Description of Requirement", budget:"Budget Range", urgency:"Urgency Level", uploadPhotos:"Upload Photos / Documents",
+    agreement:"I agree that NS Smart Fix Solution may use the information above to process my enquiry, in line with the Privacy Notice.",
+    successTitle:"Thank you. Your quotation request has been submitted successfully.", successMsg:"Our team will contact you after reviewing the information.",
+    sendWhatsapp:"Send Details via WhatsApp",
+    budgetOptions:["Below RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Above RM50,000 / To be discussed"],
+    serviceOptions:[{value:"electrical",label:"Electrical Wiring"},{value:"network",label:"Network Cabling"},{value:"server",label:"Server Setup"},{value:"product",label:"IT Product Supply"},{value:"tv",label:"TV Bracket Installation"},{value:"renovation",label:"Minor Renovation"},{value:"delivery",label:"Delivery"},{value:"troubleshoot",label:"Troubleshooting"}]
+  },
+  contact: { title:"Contact Us", call:"Call", addressLabel:"Office Address", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Business Hours", hours:"9:00 AM – 6:00 PM, Monday – Saturday", areaLabel:"Service Coverage", area:"Peninsular Malaysia — our team serves all regions.", brnLabel:"Business Registration Number (BRN)", brn:"202603189342 (PG0590711-T)" },
+  faq: { title:"Frequently Asked Questions", items:[
+    {q:"Do you provide site inspections?", a:"Yes. Most projects, especially electrical and network work, are assessed on-site before a quotation is prepared."},
+    {q:"Can I request a quotation through WhatsApp?", a:"Yes. You can WhatsApp either contact person directly, or submit the online quotation form and send it via WhatsApp with one click."},
+    {q:"Do you provide both products and installation?", a:"Yes. We supply IT and networking equipment and can also handle delivery and installation."},
+    {q:"Can you install network cables for an existing office?", a:"Yes, including CAT5e/CAT6/CAT6A cabling, patch panels, rack organisation and cable testing/labelling."},
+    {q:"Can you install additional wall plugs?", a:"Yes, subject to a site inspection to confirm the wiring and distribution board capacity."},
+    {q:"Do you provide server rack installation?", a:"Yes, including rack setup, UPS, basic server configuration and documentation."},
+    {q:"Do you supply business laptops?", a:"Yes, from brands including Lenovo, Dell, Acer, HP and ASUS."},
+    {q:"Can you recommend a laptop based on our office requirements?", a:"Yes, our team can recommend suitable models based on your usage and budget."},
+    {q:"Do you install television brackets?", a:"Yes, fixed, tilting and full-motion brackets for homes, offices and meeting rooms."},
+    {q:"Do you provide delivery?", a:"Yes, delivery can be arranged together with installation, or separately."},
+    {q:"Can you handle small office renovation work?", a:"Yes, for electrical and network-related minor renovation work, subject to site inspection."},
+    {q:"Can you provide documentation for network cabling?", a:"Yes, including cable labelling and port mapping where applicable."},
+    {q:"Are quotations subject to site inspection?", a:"Most quotations are finalised after a site inspection to confirm the scope of work."},
+    {q:"What areas do you cover?", a:"Our team covers Peninsular Malaysia. Contact us to confirm availability for your location."}
+  ]},
+  footer: { desc:"Electrical, IT networking, server infrastructure, product supply and installation services for homes and businesses.", servicesTitle:"Services", contactTitle:"Contact", legalTitle:"Legal", privacy:"Privacy Notice", terms:"Terms & Conditions", warranty:"Warranty & Service Policy", copyright:"© 2026 NS Smart Fix Solution. All rights reserved." },
+  legal: {
+    privacy:"Privacy Notice\n\nThis notice explains, in general terms, how NS Smart Fix Solution handles personal data submitted through this website. It is provided for transparency and has not been reviewed as a formal legal document.\n\nWhat we collect: name, contact number, email, project location, service details and any photos or documents you upload with an enquiry.\n\nWhy we collect it: to review your enquiry, prepare a quotation, arrange a site visit, and contact you about your request.\n\nHow it is used: solely to process your enquiry and deliver the requested service.\n\nWho may access it: authorised NS Smart Fix Solution staff involved in preparing quotations, scheduling and delivering the service.\n\nRetention: information is retained only as long as needed to complete your enquiry and for reasonable record-keeping, and may be updated once a formal retention policy is set.\n\nYour rights: you may contact us to request correction or deletion of your information using the contact details on this website.\n\nThis notice is intended for general use in Malaysia and does not constitute legal advice or a claim of regulatory compliance.",
+    terms:"TERMS AND CONDITIONS\n\nEffective Date: 21 July 2026\nLast Updated: 21 July 2026\n\nWelcome to NS Smart Fix Solution.\n\nThese Terms and Conditions govern quotations, orders, purchases, deliveries, installations, technical services, electrical works, networking works, renovation works and other services provided by NS Smart Fix Solution.\n\nBy accepting our quotation, making any payment, placing an order, scheduling an installation or allowing us to begin work, the Customer confirms that they have read, understood and agreed to these Terms and Conditions.\n\n1. Business Information\n\nThese Terms and Conditions apply to services and products supplied by:\n\nBusiness Name: NS Smart Fix Solution\nBusiness Registration Number (BRN): 202603189342 (PG0590711-T)\nBusiness Address: 5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur\nService Area: Malaysia, subject to availability\nContact Persons:\n- Mr Nasarudin: 016-411 0681\n- Mr Nazrin Shah: 012-885 1681\n\nNS Smart Fix Solution may also be referred to in these Terms as \"NS Smart Fix\", \"we\", \"us\", \"our\" or \"the Company\". The purchaser, client, property owner, tenant, representative or organisation engaging our services may be referred to as \"the Customer\", \"you\" or \"your\".\n\n2. Scope of Products and Services\n\nNS Smart Fix Solution may provide products and services including: residential and office electrical wiring; installation, replacement or upgrading of electrical sockets, switches, lighting, fans, distribution boards, MCBs and related electrical components; small office and residential renovation works; network cabling, structured cabling and cable management; server, rack, UPS, firewall, switch and networking equipment setup; IT infrastructure supply, installation and configuration; supply of laptops, desktops, monitors, servers, networking equipment, accessories and office technology products; supply of products from brands such as Lenovo, Dell, Acer, HP and ASUS; supply, delivery and installation of fixed, tilting or movable television brackets; troubleshooting, maintenance, inspection and technical support; delivery and installation services; and other products or services agreed in writing.\n\nThe exact scope, quantity, specifications, exclusions and price will be stated in the applicable quotation, invoice, work order or written confirmation.\n\n3. Quotations\n\n3.1 Validity — Unless stated otherwise, quotations are valid for the period specified in the quotation. After that period, we may revise the price due to supplier pricing, foreign exchange movement, transport costs, product availability or changes in the Customer's requirements.\n\n3.2 Estimated Price — A quotation is based on the information available at the time it is prepared. Additional charges may apply where the actual site condition differs from the information provided, additional materials, manpower or equipment are required, the Customer changes the scope, quantity, design or specifications, concealed wiring, damaged cables, unsuitable walls or structural problems are discovered, existing installations do not meet safe working requirements, additional delivery trips or installation visits are required, work must be performed outside normal operating hours, or approval, permits, access equipment or specialist services are required. We will, where reasonably possible, notify the Customer before performing chargeable additional work.\n\n3.3 Acceptance — A quotation is considered accepted when the Customer signs or confirms acceptance of the quotation, confirms acceptance by WhatsApp, email or another written channel, pays the required deposit, or instructs NS Smart Fix Solution to proceed. Verbal discussions do not override the written quotation unless confirmed by us in writing.\n\n4. Payment Terms\n\n4.1 Minimum Deposit — Unless a different payment arrangement is stated in the quotation, the Customer must pay a minimum deposit of 70% of the total quoted amount before we reserve products, purchase or order products from suppliers, allocate materials, schedule delivery, reserve technicians or installers, or begin any work. An order is not confirmed until the required payment has been received as cleared funds.\n\n4.2 Different Deposit Requirements — The required deposit may vary depending on the product, supplier, order value, customisation, availability and project requirements. NS Smart Fix Solution may require up to 100% advance payment for special-order products, imported products, custom-made items, limited-stock products, promotional or clearance products, software, licences or subscriptions, products purchased specifically for the Customer, high-value equipment, urgent procurement, or orders where the supplier requires full payment in advance. The applicable payment requirement will be stated in the quotation or communicated before the order is confirmed.\n\n4.3 Remaining Balance — Unless otherwise agreed in writing, the remaining balance must be paid before delivery, before installation begins, before equipment is handed over, before system credentials are released, or at another stage stated in the quotation. NS Smart Fix Solution may withhold delivery, installation, activation, configuration, documentation, passwords, handover or completion until all outstanding amounts are paid.\n\n4.4 Payment Methods — Payments must be made through an approved payment method or bank account confirmed by NS Smart Fix Solution. The Customer must verify payment details directly with our authorised representatives before transferring money. We are not responsible for payments sent to an unauthorised person or incorrect bank account unless the error was caused directly by us.\n\n4.5 Proof of Payment — The Customer must provide valid proof of payment when requested. A payment screenshot alone does not confirm payment until the funds have been received and verified.\n\n4.6 Late or Outstanding Payment — Where payment is overdue, NS Smart Fix Solution may suspend procurement, delivery or installation; reschedule the project; withhold products or documentation; cancel any reserved installation date; charge reasonable storage, transport or rescheduling costs; recover reasonable debt collection costs where legally permitted; or terminate the order, subject to applicable law. Any delay caused by late payment will automatically extend the delivery or completion timeline.\n\n5. Product Availability and Stock\n\n5.1 Stock Is Subject to Availability — All products are subject to stock availability from NS Smart Fix Solution, distributors, manufacturers and third-party suppliers. Displaying a product on our website, catalogue, quotation or promotional material does not guarantee that the product is immediately available.\n\n5.2 Stock Confirmation — Stock will normally be confirmed after the Customer confirms the required model and specifications, the deposit or required payment has been received, the supplier confirms availability, and NS Smart Fix Solution accepts the order. Stock may be sold or allocated by the supplier before payment is received. We are not required to reserve stock without the required deposit.\n\n5.3 Out-of-Stock Products — Where a selected product becomes unavailable, we may offer the Customer a revised delivery estimate, a comparable replacement model, an upgraded or alternative product, a back-order arrangement, a credit toward another product, or a refund for the unavailable product, subject to applicable deductions and legal rights. We will not substitute a materially different product without the Customer's approval.\n\n5.4 Product Revisions — Manufacturers may revise product components, packaging, colours, designs or specifications without prior notice. Minor variations that do not materially reduce the product's functionality will not normally be considered a defect.\n\n6. Delivery Time\n\n6.1 Delivery Period Is an Estimate — All delivery dates and completion dates are estimates unless NS Smart Fix Solution expressly confirms a guaranteed date in writing. Delivery time depends on product stock availability, supplier processing time, manufacturer or distributor lead time, receipt of the required deposit or full payment, final confirmation of model, quantity and specifications, delivery location, courier or transportation availability, site accessibility and readiness, installation scheduling, customs or import processing, public holidays, severe weather or road conditions, and events outside our reasonable control.\n\n6.2 When Delivery Time Begins — The estimated delivery period begins only after all of the following have been completed: the Customer accepts the quotation; the required deposit or payment is received as cleared funds; product specifications are finalised; stock or supplier availability is confirmed; the Customer provides a complete and accurate delivery address; any required site inspection is completed; and the Customer provides all information or approvals required for the order. A quotation issued before payment or stock confirmation does not guarantee a delivery date.\n\n6.3 Delays Caused by Payment — NS Smart Fix Solution is not responsible for a delay caused by late deposit payment, late balance payment, payment verification issues, incorrect payment references, a payment dispute, insufficient payment, or delay in providing proof of payment. Where payment is delayed, the original stock allocation or installation date may no longer be available.\n\n6.4 Supplier and Manufacturer Delays — NS Smart Fix Solution relies on manufacturers, distributors, logistics providers and other third parties. Supplier lead times may change after an order is placed. We will use reasonable efforts to provide updates, but we are not responsible for delays outside our reasonable control. Such delays do not automatically entitle the Customer to compensation, provided that we continue to act reasonably and in accordance with applicable law.\n\n6.5 Partial Delivery — We may make partial deliveries where part of an order is ready before the remaining items. Unless the quotation states otherwise, the Customer must pay the amount applicable to the items being delivered before the partial delivery takes place.\n\n6.6 Customer Availability — The Customer must ensure that an authorised person is available to receive the products at the agreed location and time. Where delivery cannot be completed because nobody is available, access is denied, the address is incorrect, the site is unsafe, parking, loading or building access was not arranged, or the Customer requests a last-minute change, the Customer may be charged for redelivery, transportation, manpower, parking, storage and rescheduling.\n\n6.7 Inspection on Delivery — The Customer should inspect the packaging, quantity and visible condition of the products when delivered. Any visible damage, shortage or incorrect item should be recorded on the delivery document and reported to us as soon as reasonably possible, together with photographs or video evidence. Signing a delivery document without noting visible damage may affect our ability to submit a claim to the courier or supplier.\n\n7. Installation and Service Scheduling\n\n7.1 Appointment Confirmation — Installation and service appointments are subject to payment being up to date, product and material availability, technician availability, site readiness, building management approval, safe access, and confirmation by NS Smart Fix Solution. A requested date is not confirmed until we approve it in writing.\n\n7.2 Rescheduling by the Customer — The Customer should provide reasonable advance notice when requesting a change of appointment. A rescheduling fee may apply where technicians have already been assigned, transport has been arranged, materials have been prepared, access equipment has been booked, a technician is already travelling to the site, or notice is given at the last minute.\n\n7.3 Delays at the Site — Additional charges may apply where our personnel are required to wait because the Customer or representative is late, building access has not been arranged, work permits are unavailable, the installation area is not ready, furniture or equipment must be moved, electricity or network access is unavailable, or another contractor prevents us from beginning work.\n\n8. Customer Responsibilities and Site Safety\n\nThe Customer must provide complete and accurate information; confirm that they have authority to approve the work; obtain landlord, building management or regulatory approval where required; provide safe and reasonable access to the site; inform us of concealed wiring, water pipes, gas pipes, structural supports or other hazards; ensure the installation area is clear and accessible; secure valuable, fragile or personal items; provide parking, loading access, work permits and access passes where necessary; ensure that children, pets and unauthorised persons remain away from the work area; and follow all safety and operating instructions given by our technicians.\n\nNS Smart Fix Solution may stop or postpone work where the site is unsafe or where continuing the work may endanger people, property, equipment or our personnel. Any additional visit resulting from an unsafe or unprepared site may be chargeable.\n\n9. Electrical and Renovation Works\n\n9.1 Existing Conditions — Before work begins, the Customer must disclose any known electrical faults, water leaks, damaged wiring, overloaded circuits, structural weaknesses or previous unauthorised modifications.\n\n9.2 Concealed Conditions — NS Smart Fix Solution is not responsible for concealed defects or hazards that could not reasonably be identified before work began, including hidden electrical cables, concealed water or drainage pipes, damaged internal wiring, weak or hollow walls, existing short circuits, termite or water damage, non-compliant previous installation work, or structural defects. Where such conditions are discovered, work may be stopped until the Customer approves the necessary variation or corrective work.\n\n9.3 Wall Drilling and Finishing — The Customer acknowledges that installation work may require drilling, cutting, trunking, mounting or opening access points. Unless specifically included in the quotation, our service does not include repainting, plastering, tile replacement, wallpaper repair or cosmetic restoration.\n\n9.4 Existing Electrical Capacity — Installation of new equipment may require an assessment of the property's electrical capacity. Upgrading of the distribution board, MCB, cabling, socket or power supply will be charged separately unless included in the original quotation.\n\n10. TV Bracket Installation\n\nThe Customer must ensure that the television model and size information is accurate, the selected wall is suitable for mounting, the installation location is approved by the property owner, power and signal points are available, and any concealed pipes or cables are disclosed.\n\nWhere the wall is found to be unsuitable, NS Smart Fix Solution may recommend another location, additional reinforcement, a different bracket or cancellation of the installation. Additional charges may apply for special wall materials, wall reinforcement, high-level installation, additional manpower, cable concealment, new electrical sockets, additional cabling, or removal and relocation of an existing television.\n\n11. IT Infrastructure and Networking Services\n\n11.1 Customer Data Backup — Before we service, configure, repair, upgrade, reset or relocate any IT equipment, the Customer must back up all important data. Unless expressly included in the service scope, NS Smart Fix Solution is not responsible for the loss of files, emails, databases, applications, configuration settings, passwords, licences, recordings, photographs, or other digital information. This limitation does not apply where the loss was directly caused by our fraud, wilful misconduct or liability that cannot legally be excluded.\n\n11.2 Credentials and Access — The Customer must provide authorised access, passwords, network information and administrator approval where required. The Customer is responsible for changing temporary passwords after handover and for protecting all administrator credentials.\n\n11.3 Third-Party Services — The performance of an IT or network solution may depend on third-party services including internet service providers, cloud services, software vendors, domain providers, licensing platforms, manufacturers, and telecommunications providers. NS Smart Fix Solution does not guarantee the continuous availability, speed or performance of a third-party service outside our control.\n\n11.4 Changes After Handover — We are not responsible for issues caused by unauthorised configuration changes, third-party technicians, malware, cyberattacks, expired licences, power interruptions, hardware failure or misuse after handover.\n\n12. Change of Scope and Variation Orders\n\nAny request to change the agreed scope may result in a revised price, additional material costs, additional labour charges, a new deposit requirement, a revised delivery date, or a revised completion schedule. A variation may be approved through a signed document, email, WhatsApp message or another written communication. NS Smart Fix Solution is not required to perform additional work until the variation and additional payment have been approved.\n\n13. Cancellation by the Customer\n\n13.1 Cancellation Before Procurement — Where the Customer cancels before any product has been ordered, reserved, customised or allocated and before work begins, we may refund the amount paid after deducting reasonable administrative, inspection, transport, payment processing or preparation costs.\n\n13.2 Cancellation After Procurement — Where products have already been ordered, purchased, customised, imported, reserved or allocated specifically for the Customer, the deposit may be non-refundable to the extent required to cover supplier cancellation charges, non-refundable supplier payments, restocking charges, customisation costs, delivery or transportation costs, currency exchange losses, work already completed, materials already used, and other reasonable losses arising from the cancellation. Any deduction will remain subject to applicable Malaysian law and the Customer's non-excludable legal rights.\n\n13.3 Special-Order Products — Special-order, imported, customised, configured, cut-to-length or made-to-order items cannot normally be cancelled or returned after procurement has begun unless the product is defective, the product materially differs from the agreed specification, NS Smart Fix Solution agrees in writing, or applicable law requires otherwise.\n\n13.4 Cancellation of Services — Where service work has begun, the Customer must pay for work completed, technician time, materials used, site visits, transportation, inspection or assessment, and any committed third-party costs.\n\n14. Cancellation or Suspension by NS Smart Fix Solution\n\nWe may cancel, suspend or postpone an order where a product is unavailable, the supplier cancels the product, there is an obvious pricing or specification error, the Customer fails to make payment, the Customer provides inaccurate information, the site is unsafe, the requested work is unlawful or technically unsafe, the Customer or another person threatens or abuses our personnel, required access or approvals are unavailable, or an event outside our reasonable control prevents performance. Where we cancel an order for reasons not caused by the Customer, we will provide an appropriate refund for the unperformed portion, subject to applicable law.\n\n15. Returns and Refunds\n\n15.1 Prior Approval Required — Products must not be returned without prior written approval from NS Smart Fix Solution.\n\n15.2 Change-of-Mind Returns — Unless required by law or approved by us in writing, change-of-mind returns are not accepted for opened products, used products, installed products, activated software or licences, customised products, special-order products, products with damaged packaging, products missing accessories, or products ordered specifically for the Customer.\n\n15.3 Defective or Incorrect Products — Where a product is defective, damaged or materially different from the confirmed order, the Customer should contact us promptly and provide the invoice or order number, product model and serial number, a description of the issue, photographs or video evidence, and any other information reasonably required. The available remedy may include inspection, repair, replacement, supplier warranty assistance or refund, depending on the circumstances and applicable law.\n\n15.4 Refund Processing — Approved refunds will normally be returned using the original payment method or another agreed method. Processing time may depend on supplier inspection, manufacturer approval, banking processing and the return of the product in the required condition. Nothing in this section limits any remedy that cannot legally be excluded.\n\n16. Product and Workmanship Warranty\n\n16.1 Manufacturer Warranty — Products supplied by NS Smart Fix Solution may be covered by the relevant manufacturer's or distributor's warranty. The warranty period, coverage and claim procedure are determined by the manufacturer or distributor unless we expressly provide a separate warranty in writing.\n\n16.2 Workmanship Warranty — Any workmanship warranty provided by NS Smart Fix Solution will be stated in the quotation, invoice, service report or handover document. Where no specific workmanship warranty period is stated, the Customer should report suspected workmanship issues as soon as reasonably possible.\n\n16.3 Warranty Exclusions — A warranty may not cover damage or failure caused by misuse or negligence, accidental or physical damage, water, fire, lightning or power surge, pest or environmental damage, unauthorised repair or modification, third-party installation, normal wear and tear, failure to follow instructions, incompatible equipment, external network or internet issues, expired software or licences, or existing defects unrelated to our work.\n\n16.4 Warranty Assessment — Products may need to be returned to the manufacturer, principal or authorised service centre for inspection. The Customer acknowledges that warranty assessment and repair timelines are controlled by the manufacturer or service centre and may require the equipment to be retained for a reasonable period.\n\n17. Ownership and Risk\n\nUnless otherwise required by law, risk of loss or damage passes to the Customer when the product is delivered and accepted; ownership of supplied products remains with NS Smart Fix Solution until full payment has been received; and the Customer must not sell, transfer or dispose of unpaid products. Where legally permitted, NS Smart Fix Solution may recover unpaid products after providing reasonable notice.\n\n18. Limitation of Liability\n\nTo the maximum extent permitted by law, NS Smart Fix Solution is responsible only for direct loss reasonably caused by our breach, negligence or failure to exercise reasonable care; we are not responsible for indirect, special or consequential losses such as loss of profit, loss of opportunity, loss of business, loss of anticipated savings or business interruption; we are not responsible for delays, failures or losses caused by suppliers, manufacturers, couriers, internet providers or other third parties outside our reasonable control; and our total liability relating to a particular order will not exceed the amount paid for the affected product or service, except where such a limitation is prohibited by law. Nothing in these Terms excludes liability for fraud, wilful misconduct, death or personal injury caused by negligence, or any right or liability that cannot legally be excluded or limited.\n\n19. Force Majeure\n\nNS Smart Fix Solution will not be responsible for a delay or failure caused by events outside our reasonable control, including natural disasters, floods or severe weather, fire, epidemics or public health emergencies, war, terrorism or civil disturbance, government restrictions, road closures, power or internet outages, supplier or manufacturer disruption, import or customs delays, courier disruption, labour shortage, or material shortage. Where possible, we will notify the Customer and provide a revised timeline.\n\n20. Personal Data and Privacy\n\nNS Smart Fix Solution may collect personal information including the Customer's name, telephone number, email address, billing and delivery address, company details, payment confirmation, site information, and order or service records. This information may be used to prepare quotations, process payments, arrange deliveries and installations, communicate order updates, provide technical support, manage warranties, maintain business and accounting records, prevent fraud, and meet legal or regulatory requirements. Personal information may be shared with relevant suppliers, manufacturers, couriers, payment providers, technicians or service partners where reasonably necessary to complete the order. Personal information will be handled in accordance with applicable Malaysian personal data protection requirements and our Privacy Notice.\n\n21. Website Information\n\nWe make reasonable efforts to ensure that website information is accurate. However, product images may be for illustration purposes, actual colours may vary depending on the device or manufacturer, specifications may change, prices may be corrected, products may become unavailable, and typographical or technical errors may occur. Where an obvious pricing or description error is discovered, we may correct the error before accepting or fulfilling the order.\n\n22. Intellectual Property\n\nThe NS Smart Fix Solution name, logo, website content, graphics, photographs, quotations, designs and service materials may not be copied, reproduced or used for commercial purposes without written permission. Manufacturer names and trademarks belong to their respective owners.\n\n23. Complaints and Dispute Resolution\n\nCustomers should contact NS Smart Fix Solution promptly if they have a complaint. We will attempt to resolve complaints professionally and fairly through inspection, discussion, correction, repair, replacement or another appropriate solution. These Terms are governed by the laws of Malaysia. Any dispute that cannot be resolved amicably may be referred to the appropriate Malaysian court, tribunal or dispute-resolution body. Nothing in these Terms limits a consumer's right to seek assistance from the Tribunal for Consumer Claims or another authority where applicable.\n\n24. Non-Excludable Consumer Rights\n\nThese Terms are intended to operate subject to applicable Malaysian law. Nothing in these Terms excludes, restricts or modifies any guarantee, right, remedy or liability that cannot legally be excluded, restricted or modified. Where any provision conflicts with a mandatory legal requirement, the legal requirement will prevail and the remaining provisions will continue to apply.\n\n25. Changes to These Terms\n\nNS Smart Fix Solution may update these Terms from time to time. The version applicable to an order will normally be the version provided or published when the Customer accepts the quotation or places the order, unless the parties agree otherwise in writing.\n\n26. Severability\n\nIf any provision of these Terms is found to be invalid or unenforceable, that provision will be adjusted or removed only to the extent necessary. The remaining provisions will continue to be valid and enforceable.\n\n27. Entire Agreement\n\nThe accepted quotation, invoice, work order, written variation and these Terms form the agreement between NS Smart Fix Solution and the Customer. Where there is a conflict, the following order of priority will apply: (1) a specifically negotiated written agreement; (2) the accepted quotation or variation; (3) the invoice or work order; and (4) these general Terms and Conditions.\n\n28. Contact Us\n\nFor quotations, order updates, delivery arrangements, installations, warranty assistance or complaints, please contact:\n\nMr Nasarudin — Telephone/WhatsApp: 016-411 0681\nMr Nazrin Shah — Telephone/WhatsApp: 012-885 1681\nBusiness Address: 5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur\nEmail: [Insert Official Business Email]\n\nCUSTOMER ACCEPTANCE\n\nBy clicking \"I Agree\", accepting a quotation, making a deposit, placing an order or instructing NS Smart Fix Solution to proceed, the Customer confirms that the product or service requirements have been checked; the quotation and payment terms have been accepted; delivery and completion dates are understood to depend on payment, stock availability and site readiness; a minimum 70% deposit may be required before procurement or work begins; special-order products may require full advance payment; additional work or changes may result in additional charges; and these Terms and Conditions have been read, understood and accepted.",
+    warranty:"Warranty & Service Policy\n\nWorkmanship warranty periods, product warranty terms and after-service support terms will be confirmed in each quotation. This is placeholder text pending finalised company policy."
+  }
+},
+bm: {
+  seo: { desc: "NS Smart Fix Solution — pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan bracket TV di seluruh Semenanjung Malaysia." },
+  nav: { home:"Utama", about:"Tentang Kami", services:"Perkhidmatan", products:"Produk", quotation:"Mohon Sebut Harga", contact:"Hubungi Kami", faq:"Soalan Lazim", login:"Log Masuk Pelanggan", cta:"Dapatkan Sebut Harga" },
+  common: { requestQuote:"Mohon Sebut Harga", whatsappUs:"WhatsApp Kami", learnMore:"Ketahui Lebih Lanjut", requestService:"Mohon Perkhidmatan", viewMore:"Lihat Lagi", submit:"Hantar", backHome:"Kembali ke Utama" },
+  hero: { badge:"Elektrik • Rangkaian • Infrastruktur IT", title:"Penyelesaian Elektrik, Rangkaian dan Infrastruktur IT yang Boleh Dipercayai untuk Rumah dan Perniagaan", subtitle:"Daripada pendawaian elektrik dan kabel rangkaian sehingga pemasangan server, bekalan peralatan IT dan pemasangan bracket TV, NS Smart Fix Solution menyediakan perkhidmatan bekalan, penghantaran dan pemasangan yang lengkap.", cta1:"Mohon Sebut Harga", cta2:"WhatsApp Kami" },
+  home: {
+    servicesTitle:"Perkhidmatan Kami", servicesSub:"Satu pasukan untuk kerja elektrik, rangkaian, infrastruktur IT dan pemasangan.",
+    whyTitle:"Kenapa Pilih NS Smart Fix Solution",
+    why:[
+      {title:"Pasukan Berpengalaman", desc:"Juruteknik elektrik dan IT berpengalaman dalam projek kediaman dan komersial."},
+      {title:"Perkhidmatan Sehenti", desc:"Elektrik, rangkaian, server, bekalan produk dan pemasangan dalam satu pasukan."},
+      {title:"Lawatan Tapak Dahulu", desc:"Kami menilai sebelum sebut harga disediakan, supaya harga mengikut skop sebenar."},
+      {title:"Liputan Seluruh Negara", desc:"Pasukan kami menyediakan perkhidmatan di seluruh Semenanjung Malaysia."},
+      {title:"Dokumentasi Disediakan", desc:"Label kabel, pemetaan port dan nota serah untuk projek IT."},
+      {title:"Proses Telus", desc:"Sebut harga jelas, kerja berjadual, dan pengesahan pada setiap peringkat."}
+    ],
+    featuredTitle:"Produk Pilihan", projectsTitle:"Projek Terkini", processTitle:"Cara Ia Berfungsi",
+    process:[
+      {step:"1", title:"Hantar Pertanyaan", desc:"Beritahu kami keperluan anda melalui laman web atau WhatsApp."},
+      {step:"2", title:"Kami Semak", desc:"Pasukan kami menyemak keperluan dan skop kerja."},
+      {step:"3", title:"Lawatan Tapak", desc:"Diatur apabila perlu untuk menilai lokasi."},
+      {step:"4", title:"Sebut Harga", desc:"Kami sediakan dan hantar sebut harga terperinci."},
+      {step:"5", title:"Jadual & Kerja", desc:"Selepas diluluskan, kerja dijadualkan dan dilaksanakan."},
+      {step:"6", title:"Pengesahan", desc:"Anda sahkan siap kerja dan terima nota serah."}
+    ],
+    enquiryTitle:"Pertanyaan Ringkas", enquirySub:"Hantar mesej ringkas dan pasukan kami akan hubungi anda."
+  },
+  about: {
+    title:"Tentang NS Smart Fix Solution",
+    intro:"NS Smart Fix Solution menyediakan pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan perkhidmatan pemasangan untuk rumah dan perniagaan di seluruh Semenanjung Malaysia.",
+    missionTitle:"Misi Kami", mission:"Menyediakan perkhidmatan elektrik, rangkaian dan infrastruktur IT yang boleh dipercayai, praktikal, selamat dan dipasang secara profesional mengikut keperluan operasi pelanggan.",
+    visionTitle:"Visi Kami", vision:"Menjadi penyedia perkhidmatan teknikal sehenti yang dipercayai untuk rumah, pejabat dan perniagaan yang berkembang.",
+    valuesTitle:"Nilai Teras", values:["Keselamatan","Kebolehpercayaan","Profesionalisme","Ketelusan","Kerja Berkualiti","Kepuasan Pelanggan","Keselamatan Maklumat","Penambahbaikan Berterusan"],
+    commitTitle:"Komitmen Kami",
+    commit:["Amalan kerja elektrik dan IT mengutamakan keselamatan","Kerja berkualiti untuk setiap projek, besar atau kecil","Dokumentasi dan serah kerja yang betul untuk projek IT dan rangkaian","Penyelesaian dirancang dengan mengambil kira prinsip keselamatan maklumat","Sokongan responsif untuk pelanggan kediaman dan perniagaan"],
+    coverage:"Kami menyediakan perkhidmatan kepada pelanggan kediaman dan perniagaan dengan pasukan teknikal meliputi Semenanjung Malaysia."
+  },
+  services: { title:"Perkhidmatan Kami", subtitle:"Elektrik, rangkaian, infrastruktur IT, bekalan produk dan pemasangan — dikendalikan oleh satu pasukan." },
+  products: { title:"Produk", subtitle:"Komputer riba perniagaan, desktop, peralatan rangkaian, CCTV, kawalan akses dan peralatan server daripada jenama dipercayai.", enquiryPrompt:"Mencari model tertentu atau sebut harga pukal? Hubungi kami dan kami akan bantu anda pilih." },
+  projects: { title:"Projek Kami", subtitle:"Contoh kerja elektrik, rangkaian dan pemasangan terkini.", before:"SEBELUM — placeholder gambar", after:"SELEPAS — placeholder gambar", problemLabel:"Masalah", solutionLabel:"Penyelesaian", all:"Semua" },
+  quotation: {
+    title:"Mohon Sebut Harga", subtitle:"Beritahu kami tentang projek anda dan pasukan kami akan menghubungi selepas menyemak butiran.",
+    fullName:"Nama Penuh", companyName:"Nama Syarikat", phone:"Nombor Telefon", email:"Alamat E-mel", customerType:"Jenis Pelanggan",
+    serviceRequired:"Perkhidmatan Diperlukan", location:"Lokasi Projek", visitDate:"Tarikh Lawatan Tapak Pilihan", preferredContact:"Kaedah Hubungan Pilihan",
+    description:"Penerangan Keperluan", budget:"Julat Bajet", urgency:"Tahap Kecemasan", uploadPhotos:"Muat Naik Gambar / Dokumen",
+    agreement:"Saya bersetuju NS Smart Fix Solution menggunakan maklumat di atas untuk memproses pertanyaan saya, selaras dengan Notis Privasi.",
+    successTitle:"Terima kasih. Permohonan sebut harga anda telah berjaya dihantar.", successMsg:"Pasukan kami akan menghubungi anda selepas menyemak maklumat.",
+    sendWhatsapp:"Hantar Butiran melalui WhatsApp",
+    budgetOptions:["Bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Atas RM50,000 / Untuk dibincang"],
+    serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Kabel Rangkaian"},{value:"server",label:"Persediaan Server"},{value:"product",label:"Bekalan Produk IT"},{value:"tv",label:"Pemasangan Bracket TV"},{value:"renovation",label:"Renovasi Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
+  },
+  contact: { title:"Hubungi Kami", call:"Panggil", addressLabel:"Alamat Pejabat", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Waktu Perniagaan", hours:"9:00 Pagi – 6:00 Petang, Isnin – Sabtu", areaLabel:"Liputan Perkhidmatan", area:"Semenanjung Malaysia — pasukan kami menyediakan perkhidmatan di semua kawasan.", brnLabel:"Nombor Pendaftaran Perniagaan (BRN)", brn:"202603189342 (PG0590711-T)" },
+  faq: { title:"Soalan Lazim", items:[
+    {q:"Adakah anda menyediakan pemeriksaan tapak?", a:"Ya. Kebanyakan projek, terutamanya kerja elektrik dan rangkaian, dinilai di tapak sebelum sebut harga disediakan."},
+    {q:"Bolehkah saya mohon sebut harga melalui WhatsApp?", a:"Ya. Anda boleh WhatsApp mana-mana orang hubungan, atau hantar borang sebut harga dalam talian dan hantar melalui WhatsApp dengan satu klik."},
+    {q:"Adakah anda membekalkan produk dan pemasangan?", a:"Ya. Kami membekalkan peralatan IT dan rangkaian serta boleh mengendalikan penghantaran dan pemasangan."},
+    {q:"Bolehkah anda pasang kabel rangkaian untuk pejabat sedia ada?", a:"Ya, termasuk kabel CAT5e/CAT6/CAT6A, panel patch, susunan rak dan ujian/label kabel."},
+    {q:"Bolehkah anda pasang soket dinding tambahan?", a:"Ya, tertakluk kepada pemeriksaan tapak untuk mengesahkan pendawaian dan kapasiti papan agihan."},
+    {q:"Adakah anda menyediakan pemasangan rak server?", a:"Ya, termasuk persediaan rak, UPS, konfigurasi asas server dan dokumentasi."},
+    {q:"Adakah anda membekalkan komputer riba perniagaan?", a:"Ya, daripada jenama termasuk Lenovo, Dell, Acer, HP dan ASUS."},
+    {q:"Bolehkah anda cadangkan komputer riba mengikut keperluan pejabat kami?", a:"Ya, pasukan kami boleh mencadangkan model sesuai berdasarkan penggunaan dan bajet anda."},
+    {q:"Adakah anda memasang bracket televisyen?", a:"Ya, bracket tetap, condong dan gerakan penuh untuk rumah, pejabat dan bilik mesyuarat."},
+    {q:"Adakah anda menyediakan penghantaran?", a:"Ya, penghantaran boleh diatur bersama pemasangan, atau secara berasingan."},
+    {q:"Bolehkah anda kendalikan kerja renovasi pejabat kecil?", a:"Ya, untuk kerja renovasi kecil berkaitan elektrik dan rangkaian, tertakluk kepada pemeriksaan tapak."},
+    {q:"Bolehkah anda sediakan dokumentasi untuk kabel rangkaian?", a:"Ya, termasuk label kabel dan pemetaan port jika berkaitan."},
+    {q:"Adakah sebut harga tertakluk kepada pemeriksaan tapak?", a:"Kebanyakan sebut harga dimuktamadkan selepas pemeriksaan tapak untuk mengesahkan skop kerja."},
+    {q:"Kawasan mana yang anda liputi?", a:"Pasukan kami meliputi Semenanjung Malaysia. Hubungi kami untuk mengesahkan ketersediaan di lokasi anda."}
+  ]},
+  footer: { desc:"Perkhidmatan elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan untuk rumah dan perniagaan.", servicesTitle:"Perkhidmatan", contactTitle:"Hubungan", legalTitle:"Perundangan", privacy:"Notis Privasi", terms:"Terma & Syarat", warranty:"Polisi Waranti & Perkhidmatan", copyright:"© 2026 NS Smart Fix Solution. Hak cipta terpelihara." },
+  legal: {
+    privacy:"Notis Privasi\n\nNotis ini menerangkan secara umum bagaimana NS Smart Fix Solution mengendalikan data peribadi yang dihantar melalui laman web ini. Ia disediakan untuk ketelusan dan belum disemak sebagai dokumen perundangan formal.\n\nApa yang kami kumpul: nama, nombor hubungan, e-mel, lokasi projek, butiran perkhidmatan dan sebarang gambar atau dokumen yang dimuat naik bersama pertanyaan.\n\nMengapa dikumpul: untuk menyemak pertanyaan anda, menyediakan sebut harga, mengatur lawatan tapak, dan menghubungi anda.\n\nBagaimana digunakan: hanya untuk memproses pertanyaan anda dan menyampaikan perkhidmatan yang diminta.\n\nSiapa boleh mengakses: kakitangan NS Smart Fix Solution yang diberi kuasa dan terlibat dalam menyediakan sebut harga, penjadualan dan penyampaian perkhidmatan.\n\nPenyimpanan: maklumat disimpan hanya selagi diperlukan untuk melengkapkan pertanyaan anda dan untuk rekod munasabah.\n\nHak anda: anda boleh hubungi kami untuk memohon pembetulan atau pemadaman maklumat menggunakan butiran hubungan di laman web ini.\n\nNotis ini untuk kegunaan umum di Malaysia dan bukan nasihat perundangan atau dakwaan pematuhan regulatori.",
+    terms:"Terma & Syarat\n\nSemua sebut harga adalah anggaran dan tertakluk kepada pengesahan selepas pemeriksaan tapak. Harga akhir bergantung kepada skop kerja yang dipersetujui. Jadual kerja tertakluk kepada ketersediaan pasukan. Terma ini adalah placeholder dan perlu disemak oleh profesional bertauliah sebelum penerbitan formal.",
+    warranty:"Polisi Waranti & Perkhidmatan\n\nTempoh waranti kerja, terma waranti produk dan sokongan selepas perkhidmatan akan disahkan dalam setiap sebut harga. Ini adalah teks placeholder sehingga polisi syarikat dimuktamadkan."
+  }
+}
+};
+
+const SERVICE_ICONS = ["⚡","🌐","🖥","🛠","💻","📺","🏗","🚚","🔧"];
+const SERVICE_KEYS = ["electrical","network","server","itinfra","product","tv","renovation","delivery","troubleshoot"];
+const SERVICE_TITLES_EN = ["Electrical Wiring","Network Cabling","Server & IT Infrastructure","IT Infrastructure Design","IT Product Supply","TV Bracket Installation","Minor Renovation","Delivery & Installation","Troubleshooting & Maintenance"];
+const SERVICE_TITLES_BM = ["Pendawaian Elektrik","Kabel Rangkaian","Server & Infrastruktur IT","Reka Bentuk Infrastruktur IT","Bekalan Produk IT","Pemasangan Bracket TV","Renovasi Kecil","Penghantaran & Pemasangan","Penyelesaian Masalah & Penyelenggaraan"];
+const SERVICE_DESC_EN = [
+  "New wiring, rewiring, power points, lighting and distribution board work for homes and offices.",
+  "Structured cabling — CAT5e/6/6A, LAN points, patch panels, racks and testing.",
+  "Server supply, rack setup, UPS, NAS, basic configuration and documentation.",
+  "Network segmentation, VLAN and access-control planning for growing offices.",
+  "Business laptops, desktops, monitors, networking gear and accessories from trusted brands.",
+  "Fixed, tilting and full-motion brackets for homes, offices and meeting rooms.",
+  "Electrical and network-related small renovation and office preparation work.",
+  "Product delivery, installation, testing and handover documentation.",
+  "Circuit checks, tripping issues, network faults and general maintenance support."
+];
+const SERVICE_DESC_BM = [
+  "Pendawaian baharu, pendawaian semula, soket kuasa, lampu dan papan agihan untuk rumah dan pejabat.",
+  "Kabel berstruktur — CAT5e/6/6A, titik LAN, panel patch, rak dan ujian.",
+  "Bekalan server, persediaan rak, UPS, NAS, konfigurasi asas dan dokumentasi.",
+  "Perancangan segmentasi rangkaian, VLAN dan kawalan akses untuk pejabat berkembang.",
+  "Komputer riba perniagaan, desktop, monitor, peralatan rangkaian dan aksesori daripada jenama dipercayai.",
+  "Bracket tetap, condong dan gerakan penuh untuk rumah, pejabat dan bilik mesyuarat.",
+  "Kerja renovasi kecil dan persediaan pejabat berkaitan elektrik dan rangkaian.",
+  "Penghantaran produk, pemasangan, ujian dan dokumentasi serah kerja.",
+  "Semakan litar, isu trip, masalah rangkaian dan sokongan penyelenggaraan am."
+];
+const SERVICE_BULLETS_EN = [
+  ["New wiring & rewiring","Power points & switches","LED / ceiling lighting","Distribution board (DB) install","Fault inspection & troubleshooting"],
+  ["CAT5e / CAT6 / CAT6A cabling","LAN point installation","Patch panel & rack setup","Network testing & labelling","Wi-Fi access point installation"],
+  ["Server supply & installation","Rack cabinet & UPS setup","NAS / backup storage setup","Windows Server & AD basics","Server documentation"],
+  ["Network segmentation planning","VLAN preparation","Access control planning","Asset identification & labelling","Backup planning"],
+  ["Business laptops & desktops","Monitors, keyboards, mouse","Docking stations & chargers","Printers & network switches","Servers, racks & UPS units"],
+  ["Fixed / tilting / full-motion","Ceiling mount options","Cable organisation","TV trolley / mobile stand","Meeting room & signage mounting"],
+  ["Electrical layout improvement","Additional power points","Cable concealment / trunking","Network point relocation","Small office rearrangement"],
+  ["Product delivery","Installation & testing","Equipment positioning","Handover documentation","Post-installation support"],
+  ["Circuit checking","Tripping issue diagnosis","Network fault tracing","Switch / socket replacement","Preventive maintenance"]
+];
+const SERVICE_BULLETS_BM = [
+  ["Pendawaian baharu & semula","Soket & suis kuasa","Lampu LED / siling","Pemasangan papan agihan (DB)","Pemeriksaan & penyelesaian masalah"],
+  ["Kabel CAT5e / CAT6 / CAT6A","Pemasangan titik LAN","Panel patch & persediaan rak","Ujian & label rangkaian","Pemasangan access point Wi-Fi"],
+  ["Bekalan & pemasangan server","Rak kabinet & persediaan UPS","Persediaan NAS / storan sandaran","Asas Windows Server & AD","Dokumentasi server"],
+  ["Perancangan segmentasi rangkaian","Persediaan VLAN","Perancangan kawalan akses","Pengenalan & label aset","Perancangan sandaran"],
+  ["Komputer riba & desktop perniagaan","Monitor, papan kekunci, tetikus","Docking station & pengecas","Pencetak & suis rangkaian","Server, rak & unit UPS"],
+  ["Tetap / condong / gerakan penuh","Pilihan pemasangan siling","Susunan kabel","Troli TV / kaki mudah alih","Pemasangan bilik mesyuarat & signage"],
+  ["Penambahbaikan susunatur elektrik","Soket kuasa tambahan","Penyembunyian kabel / trunking","Pemindahan titik rangkaian","Susunan semula pejabat kecil"],
+  ["Penghantaran produk","Pemasangan & ujian","Kedudukan peralatan","Dokumentasi serah kerja","Sokongan selepas pemasangan"],
+  ["Semakan litar","Diagnosis isu trip","Pengesanan kerosakan rangkaian","Penggantian suis / soket","Penyelenggaraan pencegahan"]
+];
+const SERVICE_NOTE_EN = ["Electrical work is subject to site inspection, safety requirements, applicable regulations and the agreed scope of work.","Cable labelling, testing, documentation and secure network design may be applied depending on the project.","Solutions can be planned with consideration for ISO/IEC 27001 information security principles — access control, asset management, network separation, backup planning and documentation.","","","","Every renovation project is subject to site inspection and an agreed quotation.","",""];
+const SERVICE_NOTE_BM = ["Kerja elektrik tertakluk kepada pemeriksaan tapak, keperluan keselamatan, peraturan berkenaan dan skop kerja yang dipersetujui.","Label kabel, ujian, dokumentasi dan reka bentuk rangkaian selamat mungkin digunakan bergantung kepada projek.","Penyelesaian boleh dirancang dengan mengambil kira prinsip keselamatan maklumat ISO/IEC 27001 — kawalan akses, pengurusan aset, pengasingan rangkaian, perancangan sandaran dan dokumentasi.","","","","Setiap projek renovasi tertakluk kepada pemeriksaan tapak dan sebut harga yang dipersetujui.","",""];
+
+const PRODUCTS = [
+  {brand:"Lenovo", nameEn:"ThinkPad E14 Business Laptop", nameBm:"Komputer Riba Perniagaan ThinkPad E14", type:"Laptop", specsEn:"Intel Core i5, 16GB RAM, 512GB SSD", specsBm:"Intel Core i5, RAM 16GB, SSD 512GB", usageEn:"Office use", usageBm:"Kegunaan pejabat", stock:true},
+  {brand:"Dell", nameEn:"Latitude 5440 Laptop", nameBm:"Komputer Riba Latitude 5440", type:"Laptop", specsEn:"Intel Core i7, 16GB RAM, 512GB SSD", specsBm:"Intel Core i7, RAM 16GB, SSD 512GB", usageEn:"Business use", usageBm:"Kegunaan perniagaan", stock:true},
+  {brand:"HP", nameEn:"ProDesk Desktop PC", nameBm:"PC Desktop ProDesk", type:"Desktop", specsEn:"Intel Core i5, 8GB RAM, 256GB SSD", specsBm:"Intel Core i5, RAM 8GB, SSD 256GB", usageEn:"Office use", usageBm:"Kegunaan pejabat", stock:false},
+  {brand:"ASUS", nameEn:"24\" Business Monitor", nameBm:"Monitor Perniagaan 24\"", type:"Monitor", specsEn:"Full HD IPS, HDMI/VGA", specsBm:"Full HD IPS, HDMI/VGA", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
+  {brand:"Acer", nameEn:"Aspire Desktop PC", nameBm:"PC Desktop Aspire", type:"Desktop", specsEn:"Intel Core i3, 8GB RAM, 256GB SSD", specsBm:"Intel Core i3, RAM 8GB, SSD 256GB", usageEn:"Home use", usageBm:"Kegunaan rumah", stock:true},
+  {brand:"NS Smart Fix", nameEn:"24-Port Network Switch", nameBm:"Suis Rangkaian 24-Port", type:"Networking", specsEn:"Gigabit managed switch", specsBm:"Suis terurus Gigabit", usageEn:"Office / server room", usageBm:"Pejabat / bilik server", stock:true},
+  {brand:"NS Smart Fix", nameEn:"Wireless Access Point", nameBm:"Access Point Wayarles", type:"Networking", specsEn:"Dual-band Wi-Fi 6", specsBm:"Wi-Fi 6 jalur berkembar", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
+  {brand:"NS Smart Fix", nameEn:"Server Rack Cabinet 12U", nameBm:"Kabinet Rak Server 12U", type:"Server", specsEn:"Wall-mount, ventilated", specsBm:"Pasang dinding, berpengudaraan", usageEn:"Server room", usageBm:"Bilik server", stock:false},
+  {brand:"NS Smart Fix", nameEn:"1000VA UPS Unit", nameBm:"Unit UPS 1000VA", type:"UPS", specsEn:"Line-interactive, 4 outlets", specsBm:"Line-interactive, 4 outlet", usageEn:"Office / server room", usageBm:"Pejabat / bilik server", stock:true},
+  {brand:"NS Smart Fix", nameEn:"CAT6 Network Cable (305m box)", nameBm:"Kabel Rangkaian CAT6 (kotak 305m)", type:"Cable", specsEn:"UTP, solid copper", specsBm:"UTP, kuprum pejal", usageEn:"Office / home use", usageBm:"Kegunaan pejabat / rumah", stock:true},
+  {brand:"EZVIZ", nameEn:"2MP Outdoor CCTV Camera", nameBm:"Kamera CCTV Luar 2MP", type:"CCTV", specsEn:"Full HD, night vision, Wi-Fi", specsBm:"Full HD, penglihatan malam, Wi-Fi", usageEn:"Home / shop use", usageBm:"Kegunaan rumah / kedai", stock:true},
+  {brand:"Dahua", nameEn:"4-Channel CCTV NVR Kit", nameBm:"Kit NVR CCTV 4-Saluran", type:"CCTV", specsEn:"4-channel NVR with 4 cameras", specsBm:"NVR 4-saluran dengan 4 kamera", usageEn:"Office / shop use", usageBm:"Kegunaan pejabat / kedai", stock:true},
+  {brand:"ZKTeco", nameEn:"IP CCTV Camera", nameBm:"Kamera CCTV IP", type:"CCTV", specsEn:"5MP IP camera, PoE", specsBm:"Kamera IP 5MP, PoE", usageEn:"Office / commercial use", usageBm:"Kegunaan pejabat / komersial", stock:false},
+  {brand:"Hikvision", nameEn:"8-Channel CCTV NVR Kit", nameBm:"Kit NVR CCTV 8-Saluran", type:"CCTV", specsEn:"8-channel NVR with 8 cameras", specsBm:"NVR 8-saluran dengan 8 kamera", usageEn:"Office / commercial use", usageBm:"Kegunaan pejabat / komersial", stock:true},
+  {brand:"ZKTeco", nameEn:"Gate Access Controller", nameBm:"Pengawal Akses Pintu Pagar", type:"Access Control", specsEn:"Fingerprint / card gate access", specsBm:"Akses pintu pagar cap jari / kad", usageEn:"House / commercial gate", usageBm:"Pintu pagar rumah / komersial", stock:true},
+  {brand:"ZKTeco", nameEn:"Door Magnetic Sensor", nameBm:"Sensor Magnet Pintu", type:"Access Control", specsEn:"Wired door open/close sensor", specsBm:"Sensor buka/tutup pintu berwayar", usageEn:"House / office door", usageBm:"Pintu rumah / pejabat", stock:true},
+  {brand:"Hikvision", nameEn:"Video Door Access Terminal", nameBm:"Terminal Akses Pintu Video", type:"Access Control", specsEn:"Face recognition door terminal", specsBm:"Terminal pintu pengecaman wajah", usageEn:"Office / gate entrance", usageBm:"Pejabat / pintu masuk pagar", stock:false}
+];
+
+const FOOTER_SERVICE_KEYS_IDX = [0,1,2,4,5];
+
+function resolveAsset(id, fallback){
+  if (typeof window !== 'undefined' && window.__resources && window.__resources[id]) return window.__resources[id];
+  return fallback;
+}
+const BRANDS = [
+  {name:"Lenovo", logo:resolveAsset('brand-lenovo','assets/brand-lenovo.png'), catEn:"Business Laptops & Desktops", catBm:"Komputer Riba & Desktop Perniagaan"},
+  {name:"Dell", logo:resolveAsset('brand-dell','assets/brand-dell.png'), catEn:"Business Laptops & Desktops", catBm:"Komputer Riba & Desktop Perniagaan"},
+  {name:"HP", logo:resolveAsset('brand-hp','assets/brand-hp.png'), catEn:"Business Laptops & Desktops", catBm:"Komputer Riba & Desktop Perniagaan"},
+  {name:"Acer", logo:resolveAsset('brand-acer','assets/brand-acer.png'), catEn:"Laptops & Desktops", catBm:"Komputer Riba & Desktop"},
+  {name:"ASUS", logo:resolveAsset('brand-asus','assets/brand-asus.png'), catEn:"Laptops & Monitors", catBm:"Komputer Riba & Monitor"},
+  {name:"EZVIZ", logo:resolveAsset('brand-ezviz','assets/brand-ezviz.png'), catEn:"CCTV & Security Cameras", catBm:"CCTV & Kamera Keselamatan"},
+  {name:"Dahua", logo:resolveAsset('brand-dahua','assets/brand-dahua.png'), catEn:"CCTV & NVR Systems", catBm:"Sistem CCTV & NVR"},
+  {name:"ZKTeco", logo:resolveAsset('brand-zkteco','assets/brand-zkteco.png'), catEn:"CCTV, Access Control & Door Sensors", catBm:"CCTV, Kawalan Akses & Sensor Pintu"},
+  {name:"Hikvision", logo:resolveAsset('brand-hikvision','assets/brand-hikvision.png'), catEn:"CCTV, NVR & Access Control", catBm:"CCTV, NVR & Kawalan Akses"},
+  {name:"Fortinet", logo:resolveAsset('brand-fortinet','assets/brand-fortinet.png'), logoScale:1.8, catEn:"Firewalls & Network Security", catBm:"Firewall & Keselamatan Rangkaian"},
+  {name:"Vertiv", logo:resolveAsset('brand-vertiv','assets/brand-vertiv.png'), catEn:"UPS & Power Infrastructure", catBm:"UPS & Infrastruktur Kuasa"},
+  {name:"NS Smart Fix", logo:null, catEn:"Networking & Server Equipment", catBm:"Peralatan Rangkaian & Server"}
+];
+
+class Component extends DCLogic {
+  state = {
+    lang:'en', page:'home', mobileMenuOpen:false,
+    quickForm:{name:'',phone:'',service:'',message:''}, quickSubmitted:false, quickRef:'',
+    quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
+    quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteRef:'', quoteError:'', quoteFiles:[],
+    openFaq:-1, legalTab:'privacy', qtyCounter:1
+  };
+
+  waLink(phone, msg){ return "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg); }
+  scrollTop(){ if (typeof window !== 'undefined') window.scrollTo(0,0); }
+  go(page){ return () => { this.setState({page, mobileMenuOpen:false}); this.scrollTop(); }; }
+  goQuoteFor(serviceKey){
+    const key = serviceKey === 'itinfra' ? 'server' : serviceKey;
+    return () => {
+      this.setState(s => ({ page:'quotation', mobileMenuOpen:false, quoteServices: { ...s.quoteServices, [key]: true } }));
+      this.scrollTop();
+    };
+  }
+  setField(obj, field, value){ this.setState(s => ({ [obj]: { ...s[obj], [field]: value } })); }
+
+  submitQuick = () => {
+    const n = this.state.qtyCounter;
+    const ref = "NSQ-2026-" + String(n).padStart(4,'0');
+    this.setState({ quickSubmitted:true, quickRef: ref, qtyCounter: n+1 });
+  };
+  submitQuote = () => {
+    const f = this.state.quoteForm;
+    if (!f.fullName || !f.phone) { this.setState({quoteError:'Please fill in your name and phone number.'}); return; }
+    const n = this.state.qtyCounter;
+    const ref = "NSQ-2026-" + String(n).padStart(4,'0');
+    this.setState({ quoteSubmitted:true, quoteRef: ref, qtyCounter:n+1, quoteError:'' });
+  };
+  onFileUpload = (e) => { const files = Array.from(e.target.files||[]).map(f=>f.name); this.setState({quoteFiles: files}); };
+
+  toggleFaq(i){ this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })); }
+
+  renderVals() {
+    const s = this.state;
+    const t = CONTENT[s.lang];
+    const isEn = s.lang === 'en';
+
+    const nav = { home:this.go('home'), about:this.go('about'), services:this.go('services'), products:this.go('products'), quotation:this.go('quotation'), contact:this.go('contact'), faq:this.go('faq') };
+    const navColor = {};
+    ['home','about','services','products','contact','faq'].forEach(k => navColor[k] = s.page === k ? '#146CBE' : '#0B1F33');
+
+    const waLinks = {
+      general: this.waLink('60164110681', isEn ? "Hello NS Smart Fix Solution, I would like to request a quotation for your service." : "Hello NS Smart Fix Solution, saya ingin memohon sebut harga untuk perkhidmatan anda."),
+      nasarudinGeneral: this.waLink('60164110681', isEn ? "Hello Mr. Nasarudin, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nasarudin, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution."),
+      nazrinGeneral: this.waLink('60128851681', isEn ? "Hello Mr. Nazrin Shah, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nazrin Shah, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution.")
+    };
+
+    // services list for home + services page
+    const serviceCards = SERVICE_KEYS.map((key,i) => ({
+      icon: SERVICE_ICONS[i],
+      title: isEn ? SERVICE_TITLES_EN[i] : SERVICE_TITLES_BM[i],
+      desc: isEn ? SERVICE_DESC_EN[i] : SERVICE_DESC_BM[i],
+      bullets: isEn ? SERVICE_BULLETS_EN[i] : SERVICE_BULLETS_BM[i],
+      note: isEn ? SERVICE_NOTE_EN[i] : SERVICE_NOTE_BM[i],
+      request: this.goQuoteFor(key),
+      goDetail: this.go('services')
+    }));
+
+    const heroStats = [
+      {value:"9+", label: isEn ? "Service Categories":"Kategori Perkhidmatan"},
+      {value:"5", label: isEn ? "Trusted Brands":"Jenama Dipercayai"},
+      {value:"1", label: isEn ? "Peninsular Coverage":"Liputan Semenanjung"},
+      {value:"2", label: isEn ? "Direct Contacts":"Hubungan Terus"}
+    ];
+
+    const brandCards = BRANDS.map(b => ({
+      name: b.name, logo: b.logo, hasLogo: !!b.logo, noLogo: !b.logo, category: isEn ? b.catEn : b.catBm,
+      logoHeight: Math.round(36 * (b.logoScale || 1)) + 'px',
+      waLink: this.waLink('60164110681', (isEn ? "Hello NS Smart Fix Solution, I would like to enquire about products from: " : "Hello NS Smart Fix Solution, saya ingin bertanya tentang produk daripada: ") + b.name)
+    }));
+    const featuredBrands = brandCards.slice(0,5);
+
+    const qh = {
+      fullName:(e)=>this.setField('quoteForm','fullName',e.target.value), company:(e)=>this.setField('quoteForm','company',e.target.value),
+      phone:(e)=>this.setField('quoteForm','phone',e.target.value), email:(e)=>this.setField('quoteForm','email',e.target.value),
+      location:(e)=>this.setField('quoteForm','location',e.target.value), visitDate:(e)=>this.setField('quoteForm','visitDate',e.target.value),
+      description:(e)=>this.setField('quoteForm','description',e.target.value), budget:(e)=>this.setField('quoteForm','budget',e.target.value),
+      agree:(e)=>this.setField('quoteForm','agree',e.target.checked)
+    };
+    const custTypesEn = ["House","Office","Shop","Commercial Premises","Other"];
+    const custTypesBm = ["Rumah","Pejabat","Kedai","Premis Komersial","Lain-lain"];
+    const customerTypeOptions = (isEn?custTypesEn:custTypesBm).map((label,i) => ({
+      label, bg: s.quoteCustomerType===label?'#0B1F33':'#FFFFFF', color:s.quoteCustomerType===label?'#FFFFFF':'#0B1F33', border:s.quoteCustomerType===label?'#0B1F33':'#E5E9EF',
+      select: () => this.setState({quoteCustomerType:label})
+    }));
+    const serviceCheckOptions = t.quotation.serviceOptions.map(opt => ({
+      label: opt.label, checked: !!s.quoteServices[opt.value],
+      toggle: () => this.setState(st => ({quoteServices: {...st.quoteServices, [opt.value]: !st.quoteServices[opt.value]}}))
+    }));
+    const contactMethodsEn=["Phone Call","WhatsApp","Email"], contactMethodsBm=["Panggilan Telefon","WhatsApp","E-mel"];
+    const contactMethodOptions = (isEn?contactMethodsEn:contactMethodsBm).map(label => ({
+      label, bg: s.quoteContactMethod===label?'#0B1F33':'#FFFFFF', color:s.quoteContactMethod===label?'#FFFFFF':'#0B1F33', border:s.quoteContactMethod===label?'#0B1F33':'#E5E9EF',
+      select: () => this.setState({quoteContactMethod:label})
+    }));
+    const urgencyEn=["Standard","Urgent","Emergency Assessment"], urgencyBm=["Standard","Segera","Penilaian Kecemasan"];
+    const urgencyOptions = (isEn?urgencyEn:urgencyBm).map(label => ({
+      label, bg: s.quoteUrgency===label?'#0B1F33':'#FFFFFF', color:s.quoteUrgency===label?'#FFFFFF':'#0B1F33', border:s.quoteUrgency===label?'#0B1F33':'#E5E9EF',
+      select: () => this.setState({quoteUrgency:label})
+    }));
+
+    const quoteWaMsg = (isEn? "Quotation Request " : "Permohonan Sebut Harga ") + s.quoteRef + "\n" +
+      "Name: " + s.quoteForm.fullName + "\nPhone: " + s.quoteForm.phone + "\nLocation: " + s.quoteForm.location + "\nDescription: " + s.quoteForm.description;
+    const quoteWaLink = this.waLink('60164110681', quoteWaMsg);
+
+    const faqs = t.faq.items.map((item,i) => ({ q:item.q, a:item.a, open: s.openFaq===i, symbol: s.openFaq===i?'−':'+', toggle: () => this.toggleFaq(i) }));
+
+    const activeTabStyle = { border:'#146CBE', bg:'#EAF4FF', color:'#0B1F33' };
+    const inactiveTabStyle = { border:'#E5E9EF', bg:'#FFFFFF', color:'#5B6675' };
+    const tabStyle = {
+      privacy: s.legalTab==='privacy' ? activeTabStyle : inactiveTabStyle,
+      terms: s.legalTab==='terms' ? activeTabStyle : inactiveTabStyle,
+      warranty: s.legalTab==='warranty' ? activeTabStyle : inactiveTabStyle
+    };
+    const legalPageTitle = t.footer[s.legalTab];
+    const rawParas = t.legal[s.legalTab].split('\n\n').map(p => p.trim());
+    const metaParas = rawParas.filter(p => /^(Effective Date|Last Updated)/.test(p));
+    const legalMeta = metaParas.join('   •   ');
+    let headingCounter = 0;
+    const legalBlocks = rawParas.filter(p => !/^(Effective Date|Last Updated)/.test(p)).map(text => {
+      const isTitle = text.length < 45 && !/^\d+\./.test(text) && text === text.replace(/[.:;]$/, '') && text.split(' ').length <= 5 && /^[A-Z]/.test(text);
+      const headingMatch = !isTitle && /^(\d+)\.\s(.+)/.exec(text);
+      const isHeading = !!headingMatch && text.length < 90;
+      if (isHeading) headingCounter++;
+      return {
+        text, isTitle: isTitle && !isHeading, isHeading, isBody: !isTitle && !isHeading,
+        num: isHeading ? headingMatch[1] : null,
+        headingText: isHeading ? headingMatch[2] : null,
+        id: isHeading ? ('legal-sec-' + headingCounter) : null
+      };
+    });
+    const tocItems = legalBlocks.filter(b => b.isHeading).map(b => ({ href: '#' + b.id, text: b.num + '. ' + b.headingText }));
+
+    const legalHandlers = { privacy: () => this.setState({page:'legal', legalTab:'privacy'}), terms: () => this.setState({page:'legal', legalTab:'terms'}), warranty: () => this.setState({page:'legal', legalTab:'warranty'}) };
+    const footerServiceLinks = FOOTER_SERVICE_KEYS_IDX.map(i => ({ label: isEn?SERVICE_TITLES_EN[i]:SERVICE_TITLES_BM[i], go: this.go('services') }));
+
+    return {
+      t, lang:s.lang, langLabel: isEn ? 'BM' : 'EN', toggleLang: () => this.setState(st => ({lang: st.lang==='en'?'bm':'en'})),
+      mobileMenuOpen: s.mobileMenuOpen, toggleMobileMenu: () => this.setState(st=>({mobileMenuOpen:!st.mobileMenuOpen})),
+      goHome: this.go('home'),
+      nav, navColor, waLinks,
+      isHome: s.page==='home', isAbout: s.page==='about', isServices: s.page==='services', isProducts: s.page==='products',
+      isQuotation: s.page==='quotation', isContact: s.page==='contact',
+      isFaq: s.page==='faq', isLegal: s.page==='legal',
+      serviceCards, heroStats, featuredBrands,
+      quickForm: s.quickForm, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickRef: s.quickRef, submitQuick: this.submitQuick,
+      qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
+      brandCards, waGeneralLink: waLinks.general,
+      quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,
+      submitQuote: this.submitQuote, quoteSubmitted: s.quoteSubmitted, quoteNotSubmitted: !s.quoteSubmitted, quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
+      onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
+      faqs, legalTab: s.legalTab, legalHandlers, legalBlocks, tabStyle, legalPageTitle, legalMeta, tocItems, hasToc: tocItems.length > 0, legalGridCols: tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
+    };
+  }
+}
+
+</script>
+</body>
+</html>
