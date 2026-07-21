@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Production builds and Vercel state
+dist/
+.vercel/
+
+# Environment files (examples remain committable)
+.env
+.env.*
+!.env.example
+
+# Logs and local tooling
+*.log
+.DS_Store
+.idea/
+.vscode/
+coverage/
+*.tsbuildinfo
