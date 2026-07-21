@@ -28,6 +28,9 @@ const requiredPatterns = [
   ['Quotation privacy validation', /if \(!f\.agree\)/],
   ['Quick WhatsApp handoff', /quickWaLink/],
   ['Quotation WhatsApp handoff', /quoteWaLink/],
+  ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],
+  ['Mobile stacked form fields', /\.ns-grid-2\{display:flex !important;flex-direction:column !important;/],
+  ['Responsive quick enquiry card', /class="ns-quick-card"/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {

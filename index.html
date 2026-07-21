@@ -30,8 +30,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <meta name="description" content="{{ t.seo.desc }}">
   <style>
+    html,body{max-width:100%;overflow-x:hidden;}
     body{margin:0;background:#F5F7FA;color:#1F2937;font-family:'Work Sans',sans-serif;}
     *{box-sizing:border-box;}
+    img{max-width:100%;}
     a{color:#146CBE;}
     a:hover{color:#0B1F33;}
     input,select,textarea{font-family:'Work Sans',sans-serif;}
@@ -41,11 +43,19 @@
       .ns-mobile-toggle{display:flex !important;}
       .ns-sticky-bar{display:flex !important;}
       .ns-grid-3{grid-template-columns:1fr !important;}
-      .ns-grid-4{grid-template-columns:1fr 1fr !important;}
-      .ns-grid-2{grid-template-columns:1fr !important;}
+      .ns-grid-4{grid-template-columns:1fr 1fr !important;min-width:0 !important;}
+      .ns-grid-4 > *{min-width:0 !important;}
+      .ns-grid-2{display:flex !important;flex-direction:column !important;width:100% !important;min-width:0 !important;}
+      .ns-grid-2 > *{grid-column:auto !important;width:100% !important;min-width:0 !important;max-width:100% !important;}
       .ns-hero-row{flex-direction:column !important;}
       .ns-footer-grid{grid-template-columns:1fr 1fr !important;}
       .ns-body-pad{padding-bottom:76px !important;}
+      .ns-header-inner{padding:8px 16px !important;}
+      .ns-header-logo{height:48px !important;}
+      .ns-quick-section{width:100% !important;max-width:100% !important;padding:40px 16px 56px !important;}
+      .ns-quick-card{width:100% !important;max-width:100% !important;padding:28px 18px !important;overflow:hidden !important;}
+      .ns-quick-grid input,.ns-quick-grid select,.ns-quick-grid textarea{font-size:16px !important;}
+      .ns-sticky-bar > *{min-width:0 !important;}
     }
   </style>
 </helmet>
@@ -54,9 +64,9 @@
 
   <!-- HEADER -->
   <header style="position:sticky;top:0;z-index:50;background:#FFFFFF;border-bottom:1px solid #E5E9EF;box-shadow:0 1px 3px rgba(11,31,51,0.04);">
-    <div style="max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+    <div class="ns-header-inner" style="max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
       <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onClick="{{ goHome }}">
-        <img src="assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
+        <img class="ns-header-logo" src="assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
       </div>
       <nav class="ns-desktop-nav" style="display:flex;align-items:center;gap:22px;">
         <a style="font-size:14px;font-weight:600;color:{{ navColor.home }};text-decoration:none;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
@@ -189,8 +199,8 @@
       </div>
     </section>
 
-    <section style="max-width:900px;margin:0 auto;padding:64px 24px 80px;">
-      <div style="background:#EAF4FF;border-radius:18px;padding:40px;">
+    <section class="ns-quick-section" style="width:100%;max-width:900px;margin:0 auto;padding:64px 24px 80px;">
+      <div class="ns-quick-card" style="width:100%;background:#EAF4FF;border-radius:18px;padding:40px;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 6px;text-align:center;">{{ t.home.enquiryTitle }}</h2>
         <p style="font-size:14.5px;color:#3E5A78;text-align:center;margin:0 0 26px;">{{ t.home.enquirySub }}</p>
         <sc-if value="{{ quickSubmitted }}" hint-placeholder-val="{{ false }}">
@@ -202,7 +212,7 @@
           </div>
         </sc-if>
         <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="ns-grid-2">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
             <input placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
             <input placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
             <select value="{{ quickForm.service }}" onChange="{{ qkh.service }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
