@@ -61,6 +61,10 @@
       .ns-product-cta-actions{flex-direction:column !important;align-items:stretch !important;gap:12px !important;}
       .ns-product-cta-actions > *{width:100% !important;min-height:48px !important;margin:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;}
       .ns-legal-tabs{flex-direction:column !important;margin-top:-18px !important;}
+      .ns-legal-section{padding-left:16px !important;padding-right:16px !important;}
+      .ns-legal-toc{position:static !important;top:auto !important;max-height:none !important;overflow:visible !important;}
+      .ns-legal-toc a{display:flex !important;align-items:center !important;min-height:44px !important;padding:10px 0 !important;}
+      .ns-legal-content{padding:28px 20px !important;}
       .ns-sticky-bar{padding-bottom:env(safe-area-inset-bottom) !important;}
       .ns-sticky-bar > *{min-width:0 !important;min-height:52px !important;padding:10px 6px !important;display:flex !important;align-items:center !important;justify-content:center !important;line-height:1.25 !important;white-space:normal !important;}
     }
@@ -573,7 +577,7 @@
         </sc-if>
       </div>
     </section>
-    <section style="max-width:1080px;margin:0 auto;padding:0 24px 80px;">
+    <section class="ns-legal-section" style="max-width:1080px;margin:0 auto;padding:0 24px 80px;">
       <div class="ns-legal-tabs" style="display:flex;gap:10px;margin:-24px 0 28px;position:relative;z-index:1;">
         <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.privacy.border }};background:{{ tabStyle.privacy.bg }};color:{{ tabStyle.privacy.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</button>
         <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.terms.border }};background:{{ tabStyle.terms.bg }};color:{{ tabStyle.terms.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</button>
@@ -581,14 +585,14 @@
       </div>
       <div class="ns-grid-2" style="display:grid;grid-template-columns:{{ legalGridCols }};gap:28px;align-items:start;">
         <sc-if value="{{ hasToc }}">
-          <nav style="position:sticky;top:88px;background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:18px;max-height:calc(100vh - 120px);overflow-y:auto;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;color:#8A94A3;margin-bottom:10px;">ON THIS PAGE</div>
+          <nav class="ns-legal-toc" aria-label="{{ legalTocLabel }}" style="position:sticky;top:88px;background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:18px;max-height:calc(100vh - 120px);overflow-y:auto;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;color:#8A94A3;margin-bottom:10px;">{{ legalTocLabel }}</div>
             <sc-for list="{{ tocItems }}" as="item" hint-placeholder-count="10">
               <a href="{{ item.href }}" style="display:block;font-size:13px;color:#374357;text-decoration:none;padding:7px 0;border-bottom:1px solid #F5F7FA;line-height:1.4;">{{ item.text }}</a>
             </sc-for>
           </nav>
         </sc-if>
-        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:40px;">
+        <div class="ns-legal-content" style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:40px;">
           <sc-for list="{{ legalBlocks }}" as="block" hint-placeholder-count="20">
             <sc-if value="{{ block.isTitle }}">
               <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 4px;">{{ block.text }}</h2>
@@ -1225,6 +1229,7 @@ class Component extends DCLogic {
       warranty: s.legalTab==='warranty' ? activeTabStyle : inactiveTabStyle
     };
     const legalPageTitle = t.footer[s.legalTab];
+    const legalTocLabel = isEn ? 'ON THIS PAGE' : 'DALAM HALAMAN INI';
     const legalSource = !isEn && s.legalTab === 'terms' ? BM_TERMS_FULL : t.legal[s.legalTab];
     const rawParas = legalSource.split('\n\n').map(p => p.trim());
     const legalMetaPattern = /^(Effective Date|Last Updated|Tarikh Berkuat Kuasa|Tarikh Kemas Kini)/;
@@ -1264,7 +1269,7 @@ class Component extends DCLogic {
       quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,
       submitQuote: this.submitQuote, quoteSubmitted: s.quoteSubmitted, quoteNotSubmitted: !s.quoteSubmitted, quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
       onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
-      faqs, legalTab: s.legalTab, legalHandlers, legalBlocks, tabStyle, legalPageTitle, legalMeta, tocItems, hasToc: tocItems.length > 0, legalGridCols: tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
+      faqs, legalTab: s.legalTab, legalHandlers, legalBlocks, tabStyle, legalPageTitle, legalMeta, legalTocLabel, tocItems, hasToc: tocItems.length > 0, legalGridCols: tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
     };
   }
 }
