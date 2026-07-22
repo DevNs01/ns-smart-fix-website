@@ -43,6 +43,10 @@ const requiredPatterns = [
   ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],
   ['Mobile stacked form fields', /\.ns-grid-2\{display:flex !important;flex-direction:column !important;/],
   ['Responsive quick enquiry card', /class="ns-quick-card"/],
+  ['Stacked mobile product CTAs', /\.ns-product-cta-actions\{flex-direction:column !important;/],
+  ['Mobile form zoom protection', /input,select,textarea\{font-size:16px !important;\}/],
+  ['iOS safe-area support', /padding-bottom:env\(safe-area-inset-bottom\)/],
+  ['Responsive legal tabs', /\.ns-legal-tabs\{flex-direction:column !important;/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {
