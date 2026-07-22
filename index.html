@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NS Smart Fix Solution | Electrical, Networking &amp; IT Services</title>
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
@@ -214,15 +215,15 @@
         </sc-if>
         <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
           <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
-            <input placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
-            <input placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <input placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" autocomplete="name" maxlength="100" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <input placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" autocomplete="tel" inputmode="tel" maxlength="24" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
             <select value="{{ quickForm.service }}" onChange="{{ qkh.service }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
               <option value="">{{ t.quotation.serviceRequired }}</option>
               <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
                 <option value="{{ opt.value }}">{{ opt.label }}</option>
               </sc-for>
             </select>
-            <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
+            <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" maxlength="1000" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
             <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
               <p role="alert" style="grid-column:span 2;color:#B42318;font-size:13px;margin:0;">{{ quickError }}</p>
             </sc-if>
@@ -384,19 +385,19 @@
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.fullName }} *</label>
-              <input value="{{ quoteForm.fullName }}" onChange="{{ qh.fullName }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <input value="{{ quoteForm.fullName }}" onChange="{{ qh.fullName }}" autocomplete="name" maxlength="100" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.companyName }}</label>
-              <input value="{{ quoteForm.company }}" onChange="{{ qh.company }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <input value="{{ quoteForm.company }}" onChange="{{ qh.company }}" autocomplete="organization" maxlength="120" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.phone }} *</label>
-              <input value="{{ quoteForm.phone }}" onChange="{{ qh.phone }}" placeholder="01x-xxx xxxx" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <input value="{{ quoteForm.phone }}" onChange="{{ qh.phone }}" placeholder="01x-xxx xxxx" autocomplete="tel" inputmode="tel" maxlength="24" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.email }}</label>
-              <input value="{{ quoteForm.email }}" onChange="{{ qh.email }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <input type="email" value="{{ quoteForm.email }}" onChange="{{ qh.email }}" autocomplete="email" maxlength="254" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
           </div>
 
@@ -423,7 +424,7 @@
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.location }}</label>
-              <input value="{{ quoteForm.location }}" onChange="{{ qh.location }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <input value="{{ quoteForm.location }}" onChange="{{ qh.location }}" autocomplete="street-address" maxlength="250" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
               <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.visitDate }}</label>
@@ -442,7 +443,7 @@
 
           <div style="margin-top:20px;">
             <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.description }}</label>
-            <textarea value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
+            <textarea value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" maxlength="2000" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
           </div>
 
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
@@ -464,7 +465,7 @@
 
           <div style="margin-top:20px;">
             <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.uploadPhotos }}</label>
-            <input type="file" multiple onChange="{{ onFileUpload }}" style="width:100%;margin-top:6px;font-size:13px;"/>
+            <input type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" onChange="{{ onFileUpload }}" style="width:100%;margin-top:6px;font-size:13px;"/>
             <sc-if value="{{ hasUploadedFiles }}">
               <div style="font-size:12px;color:#5B6675;margin-top:6px;">{{ uploadedFilesLabel }}</div>
             </sc-if>
@@ -723,7 +724,7 @@ en: {
   }
 },
 bm: {
-  seo: { desc: "NS Smart Fix Solution — pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan bracket TV di seluruh Semenanjung Malaysia." },
+  seo: { desc: "NS Smart Fix Solution — pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan pendakap TV di seluruh Semenanjung Malaysia." },
   nav: { home:"Utama", about:"Tentang Kami", services:"Perkhidmatan", products:"Produk", quotation:"Mohon Sebut Harga", contact:"Hubungi Kami", faq:"Soalan Lazim", login:"Log Masuk Pelanggan", cta:"Dapatkan Sebut Harga" },
   common: { requestQuote:"Mohon Sebut Harga", whatsappUs:"WhatsApp Kami", learnMore:"Ketahui Lebih Lanjut", requestService:"Mohon Perkhidmatan", viewMore:"Lihat Lagi", submit:"Hantar", backHome:"Kembali ke Utama" },
   hero: { badge:"Elektrik • Rangkaian • Infrastruktur IT", title:"Penyelesaian Elektrik, Rangkaian dan Infrastruktur IT yang Boleh Dipercayai untuk Rumah dan Perniagaan", subtitle:"Daripada pendawaian elektrik dan kabel rangkaian sehingga pemasangan server, bekalan peralatan IT dan pemasangan bracket TV, NS Smart Fix Solution menyediakan perkhidmatan bekalan, penghantaran dan pemasangan yang lengkap.", cta1:"Mohon Sebut Harga", cta2:"WhatsApp Kami" },
@@ -902,6 +903,10 @@ class Component extends DCLogic {
   };
 
   waLink(phone, msg){ return "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg); }
+  cleanText(value, max){ return String(value || '').trim().replace(/[\u0000-\u001F\u007F]/g, ' ').slice(0, max); }
+  validName(value){ const v = this.cleanText(value, 100); return v.length >= 2 && /^[\p{L}\p{M} .'-]+$/u.test(v); }
+  validPhone(value){ const digits = String(value || '').replace(/\D/g, ''); return digits.length >= 8 && digits.length <= 15; }
+  errorText(en, bm){ return this.state.lang === 'bm' ? bm : en; }
   scrollTop(){ if (typeof window !== 'undefined') window.scrollTo(0,0); }
   go(page){ return () => { this.setState({page, mobileMenuOpen:false}); this.scrollTop(); }; }
   goQuoteFor(serviceKey){
@@ -915,9 +920,16 @@ class Component extends DCLogic {
 
   submitQuick = () => {
     const f = this.state.quickForm;
-    if (!f.name.trim() || !f.phone.trim()) {
-      this.setState({quickError:this.state.lang === 'bm' ? 'Sila isi nama dan nombor telefon anda.' : 'Please fill in your name and phone number.'});
+    if (!this.validName(f.name) || !this.validPhone(f.phone)) {
+      this.setState({quickError:this.errorText('Please enter a valid name and phone number.', 'Sila masukkan nama dan nombor telefon yang sah.')});
       return;
+    }
+    const validServices = CONTENT[this.state.lang].quotation.serviceOptions.map(item => item.value);
+    if (f.service && !validServices.includes(f.service)) {
+      this.setState({quickError:this.errorText('Please select a valid service.', 'Sila pilih perkhidmatan yang sah.')}); return;
+    }
+    if (this.cleanText(f.message, 1001).length > 1000) {
+      this.setState({quickError:this.errorText('Your message is too long.', 'Mesej anda terlalu panjang.')}); return;
     }
     const n = this.state.qtyCounter;
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
@@ -926,14 +938,34 @@ class Component extends DCLogic {
   submitQuote = () => {
     const f = this.state.quoteForm;
     const isBm = this.state.lang === 'bm';
-    if (!f.fullName || !f.phone) { this.setState({quoteError:isBm ? 'Sila isi nama dan nombor telefon anda.' : 'Please fill in your name and phone number.'}); return; }
-    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.setState({quoteError:isBm ? 'Sila masukkan alamat e-mel yang sah.' : 'Please enter a valid email address.'}); return; }
+    if (!this.validName(f.fullName) || !this.validPhone(f.phone)) { this.setState({quoteError:isBm ? 'Sila masukkan nama dan nombor telefon yang sah.' : 'Please enter a valid name and phone number.'}); return; }
+    if (f.company.length > 120 || f.location.length > 250 || f.description.length > 2000) { this.setState({quoteError:isBm ? 'Satu atau lebih medan melebihi had aksara.' : 'One or more fields exceed the allowed length.'}); return; }
+    if (f.email && (f.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))) { this.setState({quoteError:isBm ? 'Sila masukkan alamat e-mel yang sah.' : 'Please enter a valid email address.'}); return; }
+    if (f.visitDate) {
+      const selected = new Date(f.visitDate + 'T00:00:00');
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (Number.isNaN(selected.getTime()) || selected < today) { this.setState({quoteError:isBm ? 'Sila pilih tarikh lawatan hari ini atau selepasnya.' : 'Please choose today or a future visit date.'}); return; }
+    }
     if (!f.agree) { this.setState({quoteError:isBm ? 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.' : 'Please accept the privacy notice before continuing.'}); return; }
     const n = this.state.qtyCounter;
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
     this.setState({ quoteSubmitted:true, quoteRef: ref, qtyCounter:n+1, quoteError:'' });
   };
-  onFileUpload = (e) => { const files = Array.from(e.target.files||[]).map(f=>f.name); this.setState({quoteFiles: files}); };
+  onFileUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    const allowedTypes = new Set(['image/jpeg','image/png','image/webp','application/pdf']);
+    const allowedExtensions = /\.(jpe?g|png|webp|pdf)$/i;
+    if (files.length > 5) {
+      e.target.value = '';
+      this.setState({quoteFiles:[], quoteError:this.errorText('Select no more than 5 files.', 'Pilih tidak melebihi 5 fail.')}); return;
+    }
+    const invalid = files.some(file => file.size <= 0 || file.size > 5 * 1024 * 1024 || !allowedTypes.has(file.type) || !allowedExtensions.test(file.name));
+    if (invalid) {
+      e.target.value = '';
+      this.setState({quoteFiles:[], quoteError:this.errorText('Only JPG, PNG, WebP, or PDF files up to 5 MB are accepted.', 'Hanya fail JPG, PNG, WebP atau PDF sehingga 5 MB diterima.')}); return;
+    }
+    this.setState({quoteFiles:files.map(file => this.cleanText(file.name, 120)), quoteError:''});
+  };
 
   toggleFaq(i){ this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })); }
 
