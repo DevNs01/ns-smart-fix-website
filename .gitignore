@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.npm-cache/
 
 # Production builds and Vercel state
 dist/
@@ -17,3 +18,7 @@ dist/
 .vscode/
 coverage/
 *.tsbuildinfo
+
+# Local security-tool output
+.security-reports/
+zap-report.*

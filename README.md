@@ -49,6 +49,16 @@ None are required. The project contains no API keys or server-side credentials. 
 
 The checked-in `vercel.json` contains the same build and output settings.
 
+## Security
+
+Run the complete local security and build verification with:
+
+```bash
+npm run check
+```
+
+See [SECURITY.md](SECURITY.md) to report a vulnerability privately. The repository also contains the threat model, security audit, configuration guidance, test evidence and Vercel owner checklist. Do not put secrets in `VITE_*` variables because Vite exposes them in the browser bundle.
+
 ## Project structure
 
 ```text
