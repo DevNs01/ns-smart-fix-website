@@ -19,5 +19,6 @@ Execution date: 22 July 2026. Target: local repository and local build only.
 | ST-13 | Repository inspection confirms no backend routes/API/database/server URL fetch/cookie session/state-changing GET. | Not applicable |
 | ST-14 | Repository inspection confirms no login implementation, accounts, protected documents or roles despite unused translation labels. | Not applicable |
 | ST-15 | Final Vite Production build passed; 20 referenced assets plus navigation, contact links and form handoffs were verified. Browser testing found loaded images, no console error/warning, no horizontal overflow and no injected element after malicious-looking input. | Pass |
+| ST-16 | The first GitHub dependency-review run correctly failed because Dependency Graph was disabled. Dependency vulnerability alerts and Dependabot security updates were then enabled through GitHub; a fresh PR run is required to verify the correction. | Pending fresh GitHub run |
 
 No scan was run against the public Production domain. A CSP/header check on a protected Vercel Preview remains required before merge because Vite's local preview server does not apply `vercel.json` response headers.

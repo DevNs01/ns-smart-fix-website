@@ -48,7 +48,7 @@ Open risks are the Design Canvas runtime's `unsafe-eval` requirement, personal d
 ## GitHub actions
 
 - Protect `main`; require pull request approval, CODEOWNERS where supported, successful CI/CodeQL/dependency review, conversation resolution and restricted force-push/deletion.
-- Enable dependency graph, Dependabot alerts/security updates, private vulnerability reporting, secret scanning and push protection where available.
+- Dependency vulnerability alerts and Dependabot security updates were enabled during this review. Secret scanning and push protection were already enabled. Confirm Dependency Graph/dependency review succeeds on the fresh PR run, and enable private vulnerability reporting where available.
 - Require MFA, review collaborators/deploy keys/apps and configure a Production environment approval gate.
 
 ## Secrets and dependencies
