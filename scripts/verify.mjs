@@ -47,6 +47,8 @@ const requiredPatterns = [
   ['Mobile form zoom protection', /input,select,textarea\{font-size:16px !important;\}/],
   ['iOS safe-area support', /padding-bottom:env\(safe-area-inset-bottom\)/],
   ['Responsive legal tabs', /\.ns-legal-tabs\{flex-direction:column !important;/],
+  ['Non-sticky mobile legal contents', /\.ns-legal-toc\{position:static !important;top:auto !important;max-height:none !important;overflow:visible !important;/],
+  ['Accessible mobile legal links', /\.ns-legal-toc a\{display:flex !important;align-items:center !important;min-height:44px !important;/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {
