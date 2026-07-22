@@ -5,6 +5,14 @@ const root = process.cwd();
 const source = readFileSync(join(root, 'index.html'), 'utf8');
 const failures = [];
 
+const bmTerms = /const BM_TERMS_FULL = `([\s\S]*?)`;/.exec(source)?.[1];
+if (!bmTerms) failures.push('Missing full Bahasa Malaysia Terms and Conditions');
+else {
+  const numberedSections = bmTerms.match(/^\d+\.\s/gm) || [];
+  if (numberedSections.length !== 28) failures.push(`Expected 28 BM terms sections, found ${numberedSections.length}`);
+  if (!bmTerms.includes('PENERIMAAN PELANGGAN')) failures.push('Missing BM customer acceptance section');
+}
+
 const assetPaths = [...source.matchAll(/(?:src=|resolveAsset\([^,]+,)['"]?\{?\{?\s*['"]?(assets\/[A-Za-z0-9._-]+)/g)]
   .map(match => match[1]);
 
