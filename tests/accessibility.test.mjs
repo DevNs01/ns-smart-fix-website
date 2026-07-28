@@ -41,3 +41,9 @@ test('local SEO includes Malaysian business metadata and structured data', () =>
   assert.match(source, /meta property="og:locale" content="en_MY"/);
   assert.match(source, /setMeta\('meta\[property="og:url"\]','content',canonical\.href\)/);
 });
+
+test('raw crawler metadata never exposes template expressions', () => {
+  const metadata = [...source.matchAll(/<meta\b[^>]*(?:name|property)="[^"]+"[^>]*>/g)].map(match => match[0]).join('\n');
+  assert.doesNotMatch(metadata, /\{\{/);
+  assert.match(source, /<meta name="description" content="Electrical wiring, networking, server infrastructure, IT product supply and installation services across Peninsular Malaysia\.">/);
+});
