@@ -1167,11 +1167,12 @@ const BRANDS = [
 
 class Component extends DCLogic {
   state = {
-    lang:'en', ...routeStateFromPath(typeof window !== 'undefined' ? window.location.pathname : '/'), mobileMenuOpen:false,
+    lang:'en', mobileMenuOpen:false,
     quickForm:{name:'',phone:'',service:'',message:''}, quickAgree:false, quickSubmitted:false, quickSending:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
     quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteSending:false, quoteRef:'', quoteError:'', quoteFiles:[],
-    openFaq:-1, legalTab:'privacy', qtyCounter:1
+    openFaq:-1, qtyCounter:1,
+    ...routeStateFromPath(typeof window !== 'undefined' ? window.location.pathname : '/')
   };
 
   waLink(phone, msg){ return "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg); }
