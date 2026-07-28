@@ -1257,11 +1257,35 @@ class Component extends DCLogic {
       nazrinGeneral: this.waLink('60128851681', isEn ? "Hello Mr. Nazrin Shah, I would like to enquire about NS Smart Fix Solution services." : "Salam Encik Nazrin Shah, saya ingin bertanya tentang perkhidmatan NS Smart Fix Solution.")
     };
     const quickServiceLabel = t.quotation.serviceOptions.find(opt => opt.value === s.quickForm.service)?.label || s.quickForm.service;
-    const quickWaMessage = (isEn ? "Quick Enquiry " : "Pertanyaan Ringkas ") + s.quickRef + "\n" +
-      (isEn ? "Name: " : "Nama: ") + s.quickForm.name + "\n" +
-      (isEn ? "Phone: " : "Telefon: ") + s.quickForm.phone + "\n" +
-      (isEn ? "Service: " : "Perkhidmatan: ") + quickServiceLabel + "\n" +
-      (isEn ? "Message: " : "Mesej: ") + s.quickForm.message;
+    const quickWaMessage = isEn
+      ? [
+          '🔧 *NS SMART FIX SOLUTION*',
+          '*NEW QUICK ENQUIRY*',
+          '',
+          `🧾 *Reference:* ${s.quickRef || 'Pending'}`,
+          `👤 *Name:* ${s.quickForm.name || 'Not provided'}`,
+          `📞 *Phone:* ${s.quickForm.phone || 'Not provided'}`,
+          `🛠️ *Service:* ${quickServiceLabel || 'Not provided'}`,
+          '',
+          '*Message*',
+          s.quickForm.message || 'Not provided',
+          '',
+          '_This enquiry was also sent to the NS Smart Fix official email._'
+        ].join('\n')
+      : [
+          '🔧 *NS SMART FIX SOLUTION*',
+          '*PERTANYAAN RINGKAS BAHARU*',
+          '',
+          `🧾 *Rujukan:* ${s.quickRef || 'Belum tersedia'}`,
+          `👤 *Nama:* ${s.quickForm.name || 'Tidak diberikan'}`,
+          `📞 *Telefon:* ${s.quickForm.phone || 'Tidak diberikan'}`,
+          `🛠️ *Perkhidmatan:* ${quickServiceLabel || 'Tidak diberikan'}`,
+          '',
+          '*Mesej*',
+          s.quickForm.message || 'Tidak diberikan',
+          '',
+          '_Pertanyaan ini turut dihantar ke e-mel rasmi NS Smart Fix._'
+        ].join('\n');
     const quickWaLink = this.waLink('60164110681', quickWaMessage);
 
     // services list for home + services page
@@ -1317,11 +1341,58 @@ class Component extends DCLogic {
       select: () => this.setState({quoteUrgency:label})
     }));
 
-    const quoteWaMsg = (isEn? "Quotation Request " : "Permohonan Sebut Harga ") + s.quoteRef + "\n" +
-      (isEn ? "Name: " : "Nama: ") + s.quoteForm.fullName + "\n" +
-      (isEn ? "Phone: " : "Telefon: ") + s.quoteForm.phone + "\n" +
-      (isEn ? "Location: " : "Lokasi: ") + s.quoteForm.location + "\n" +
-      (isEn ? "Description: " : "Penerangan: ") + s.quoteForm.description;
+    const selectedQuoteServices = t.quotation.serviceOptions
+      .filter(opt => s.quoteServices[opt.value])
+      .map(opt => opt.label)
+      .join(', ');
+    const selectedFiles = s.quoteFiles.join(', ');
+    const quoteWaMsg = isEn
+      ? [
+          '🔧 *NS SMART FIX SOLUTION*',
+          '*NEW QUOTATION REQUEST*',
+          '',
+          `🧾 *Reference:* ${s.quoteRef || 'Pending'}`,
+          `👤 *Full Name:* ${s.quoteForm.fullName || 'Not provided'}`,
+          `🏢 *Company:* ${s.quoteForm.company || 'Not provided'}`,
+          `📞 *Phone:* ${s.quoteForm.phone || 'Not provided'}`,
+          `✉️ *Email:* ${s.quoteForm.email || 'Not provided'}`,
+          `🏠 *Customer Type:* ${s.quoteCustomerType || 'Not provided'}`,
+          `🛠️ *Services Required:* ${selectedQuoteServices || 'Not provided'}`,
+          `📍 *Project Location:* ${s.quoteForm.location || 'Not provided'}`,
+          `📅 *Preferred Site Visit:* ${s.quoteForm.visitDate || 'Not provided'}`,
+          `💬 *Preferred Contact:* ${s.quoteContactMethod || 'Not provided'}`,
+          `💰 *Budget Range:* ${s.quoteForm.budget || 'Not provided'}`,
+          `⚡ *Urgency:* ${s.quoteUrgency || 'Not provided'}`,
+          `📎 *Selected Files:* ${selectedFiles || 'Not provided'}`,
+          '',
+          '*Description of Requirement*',
+          s.quoteForm.description || 'Not provided',
+          '',
+          '_Selected files are not attached automatically. Please attach them in this WhatsApp chat if required._'
+        ].join('\n')
+      : [
+          '🔧 *NS SMART FIX SOLUTION*',
+          '*PERMOHONAN SEBUT HARGA BAHARU*',
+          '',
+          `🧾 *Rujukan:* ${s.quoteRef || 'Belum tersedia'}`,
+          `👤 *Nama Penuh:* ${s.quoteForm.fullName || 'Tidak diberikan'}`,
+          `🏢 *Syarikat:* ${s.quoteForm.company || 'Tidak diberikan'}`,
+          `📞 *Telefon:* ${s.quoteForm.phone || 'Tidak diberikan'}`,
+          `✉️ *E-mel:* ${s.quoteForm.email || 'Tidak diberikan'}`,
+          `🏠 *Jenis Pelanggan:* ${s.quoteCustomerType || 'Tidak diberikan'}`,
+          `🛠️ *Perkhidmatan Diperlukan:* ${selectedQuoteServices || 'Tidak diberikan'}`,
+          `📍 *Lokasi Projek:* ${s.quoteForm.location || 'Tidak diberikan'}`,
+          `📅 *Tarikh Lawatan Pilihan:* ${s.quoteForm.visitDate || 'Tidak diberikan'}`,
+          `💬 *Kaedah Hubungan Pilihan:* ${s.quoteContactMethod || 'Tidak diberikan'}`,
+          `💰 *Julat Bajet:* ${s.quoteForm.budget || 'Tidak diberikan'}`,
+          `⚡ *Tahap Keutamaan:* ${s.quoteUrgency || 'Tidak diberikan'}`,
+          `📎 *Fail Dipilih:* ${selectedFiles || 'Tidak diberikan'}`,
+          '',
+          '*Penerangan Keperluan*',
+          s.quoteForm.description || 'Tidak diberikan',
+          '',
+          '_Fail yang dipilih tidak dilampirkan secara automatik. Sila lampirkan fail dalam perbualan WhatsApp ini jika diperlukan._'
+        ].join('\n');
     const quoteWaLink = this.waLink('60164110681', quoteWaMsg);
 
     const faqs = t.faq.items.map((item,i) => ({ q:item.q, a:item.a, open: s.openFaq===i, symbol: s.openFaq===i?'−':'+', toggle: () => this.toggleFaq(i) }));
