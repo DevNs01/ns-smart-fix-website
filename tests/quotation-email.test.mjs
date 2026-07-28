@@ -74,6 +74,8 @@ test('formatted quotation email includes details and escapes customer HTML', () 
   const { html, plain } = buildEmail({ ...validPayload, description: '<script>alert(1)</script>' }, 'NSQ-TEST-123');
   assert.match(html, /NSQ-TEST-123/);
   assert.match(html, /Network Cabling, Server Setup/);
+  assert.match(html, /ns-smart-fix-logo-transparent\.png/);
+  assert.match(html, /alt="NS Smart Fix Solution"/);
   assert.doesNotMatch(html, /<script>/i);
   assert.match(html, /&lt;script&gt;/);
   assert.match(plain, /Nur Aina/);
@@ -86,6 +88,8 @@ test('customer acknowledgement includes reference, submitted details, response t
   assert.match(html, /We Have Received Your Request/);
   assert.match(html, /within 1 business day/);
   assert.match(html, /Network Cabling, Server Setup/);
+  assert.match(html, /ns-smart-fix-logo-transparent\.png/);
+  assert.match(html, /alt="NS Smart Fix Solution"/);
   assert.match(html, /016-411 0681/);
   assert.match(html, /012-885 1681/);
   assert.match(html, /https:\/\/wa\.me\/60164110681/);

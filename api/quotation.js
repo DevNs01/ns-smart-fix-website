@@ -4,6 +4,7 @@ const MAX_BODY_BYTES = 24 * 1024;
 const RECIPIENT = process.env.QUOTATION_TO_EMAIL || 'admin@nssmartfixsolution.com';
 const SENDER = process.env.QUOTATION_FROM_EMAIL || 'NS Smart Fix Website <website@nssmartfixsolution.com>';
 const WEBSITE_URL = 'https://nssmartfixsolution.com';
+const LOGO_URL = `${WEBSITE_URL}/assets/ns-smart-fix-logo-transparent.png`;
 const WHATSAPP_URL = 'https://wa.me/60164110681';
 const PRIMARY_PHONE = '016-411 0681';
 const SECONDARY_PHONE = '012-885 1681';
@@ -165,6 +166,19 @@ function row(label, value) {
   return `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;background:#F5F7FA;border:1px solid #DDE5EE;width:190px;color:#0B1F33;">${escapeHtml(label)}</th><td style="padding:10px 12px;border:1px solid #DDE5EE;color:#374151;">${escapeHtml(value || 'Not provided')}</td></tr>`;
 }
 
+function emailHeader(eyebrow, title) {
+  return `<div style="background:#0B1F33;padding:24px;border-radius:14px 14px 0 0;">
+<table role="presentation" style="width:100%;border-collapse:collapse;"><tr>
+<td style="width:112px;padding:0 18px 0 0;vertical-align:middle;">
+<div style="background:#FFFFFF;border-radius:10px;padding:8px;text-align:center;">
+<img src="${LOGO_URL}" width="96" alt="NS Smart Fix Solution" style="display:block;width:96px;max-width:100%;height:auto;margin:0 auto;border:0;">
+</div></td>
+<td style="vertical-align:middle;">
+<div style="color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:.08em;">${escapeHtml(eyebrow)}</div>
+<h1 style="margin:8px 0 0;color:#FFFFFF;font-size:24px;line-height:1.25;">${escapeHtml(title)}</h1>
+</td></tr></table></div>`;
+}
+
 export function buildEmail(input, reference) {
   const services = (input.services || []).map(key => SERVICE_LABELS[key]).join(', ');
   const files = (input.files || []).map(name => clean(name, 120)).join(', ');
@@ -188,9 +202,7 @@ export function buildEmail(input, reference) {
   const html = `<!doctype html>
 <html><body style="margin:0;background:#F5F7FA;font-family:Arial,sans-serif;color:#1F2937;">
 <div style="max-width:720px;margin:0 auto;padding:28px 16px;">
-<div style="background:#0B1F33;padding:24px;border-radius:14px 14px 0 0;">
-<div style="color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:.08em;">NS SMART FIX SOLUTION</div>
-<h1 style="margin:8px 0 0;color:#FFFFFF;font-size:24px;">New Quotation Request</h1></div>
+${emailHeader('NS SMART FIX SOLUTION', 'New Quotation Request')}
 <div style="background:#FFFFFF;padding:24px;border:1px solid #DDE5EE;border-top:0;border-radius:0 0 14px 14px;">
 <table style="width:100%;border-collapse:collapse;font-size:14px;">${details.map(([label, value]) => row(label, value)).join('')}</table>
 <h2 style="font-size:16px;color:#0B1F33;margin:24px 0 8px;">Description of Requirement</h2>
@@ -274,9 +286,7 @@ export function buildCustomerEmail(input, reference) {
   const html = `<!doctype html>
 <html lang="${isBm ? 'ms' : 'en'}"><body style="margin:0;background:#F5F7FA;font-family:Arial,sans-serif;color:#1F2937;">
 <div style="max-width:720px;margin:0 auto;padding:28px 16px;">
-<div style="background:#0B1F33;padding:24px;border-radius:14px 14px 0 0;">
-<div style="color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:.08em;">${copy.eyebrow}</div>
-<h1 style="margin:8px 0 0;color:#FFFFFF;font-size:24px;">${copy.title}</h1></div>
+${emailHeader(copy.eyebrow, copy.title)}
 <div style="background:#FFFFFF;padding:24px;border:1px solid #DDE5EE;border-top:0;border-radius:0 0 14px 14px;">
 <p style="font-size:15px;line-height:1.6;margin:0 0 8px;color:#0B1F33;font-weight:700;">${escapeHtml(copy.greeting)}</p>
 <p style="font-size:14px;line-height:1.6;margin:0 0 14px;color:#374151;">${copy.intro}</p>
