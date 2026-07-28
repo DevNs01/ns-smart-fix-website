@@ -294,10 +294,14 @@
               </sc-for>
             </select>
             <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" maxlength="1000" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
+            <label style="grid-column:span 2;display:flex;align-items:flex-start;gap:9px;color:#5B6675;font-size:12.5px;line-height:1.45;">
+              <input type="checkbox" checked="{{ quickAgree }}" onChange="{{ toggleQuickAgree }}" style="margin-top:2px;"/>
+              <span>{{ quickConsentLabel }}</span>
+            </label>
             <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
               <p role="alert" style="grid-column:span 2;color:#B42318;font-size:13px;margin:0;">{{ quickError }}</p>
             </sc-if>
-            <button style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ submitQuick }}">{{ t.common.submit }}</button>
+            <button disabled="{{ quickSending }}" style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quickSubmitOpacity }};" onClick="{{ submitQuick }}">{{ quickSubmitLabel }}</button>
           </div>
         </sc-if>
       </div>
@@ -1120,7 +1124,7 @@ const BRANDS = [
 class Component extends DCLogic {
   state = {
     lang:'en', page:'home', mobileMenuOpen:false,
-    quickForm:{name:'',phone:'',service:'',message:''}, quickSubmitted:false, quickRef:'', quickError:'',
+    quickForm:{name:'',phone:'',service:'',message:''}, quickAgree:false, quickSubmitted:false, quickSending:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
     quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteSending:false, quoteRef:'', quoteError:'', quoteFiles:[],
     openFaq:-1, legalTab:'privacy', qtyCounter:1
@@ -1142,7 +1146,8 @@ class Component extends DCLogic {
   }
   setField(obj, field, value){ this.setState(s => ({ [obj]: { ...s[obj], [field]: value } })); }
 
-  submitQuick = () => {
+  submitQuick = async () => {
+    if (this.state.quickSending) return;
     const f = this.state.quickForm;
     if (!this.validName(f.name) || !this.validPhone(f.phone)) {
       this.setState({quickError:this.errorText('Please enter a valid name and phone number.', 'Sila masukkan nama dan nombor telefon yang sah.')});
@@ -1155,9 +1160,30 @@ class Component extends DCLogic {
     if (this.cleanText(f.message, 1001).length > 1000) {
       this.setState({quickError:this.errorText('Your message is too long.', 'Mesej anda terlalu panjang.')}); return;
     }
-    const n = this.state.qtyCounter;
-    const ref = "NSQ-2026-" + String(n).padStart(4,'0');
-    this.setState({ quickSubmitted:true, quickRef: ref, quickError:'', qtyCounter: n+1 });
+    if (!this.state.quickAgree) {
+      this.setState({quickError:this.errorText('Please accept the privacy notice before continuing.', 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.')}); return;
+    }
+    this.setState({quickSending:true, quickError:''});
+    try {
+      const response = await fetch('/api/quotation', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          fullName:f.name, phone:f.phone, email:'', company:'', customerType:'Quick Enquiry',
+          services:f.service ? [f.service] : [], location:'', visitDate:'', contactMethod:'Not specified',
+          description:f.message, budget:'Not specified', urgency:'Standard', files:[],
+          agree:true, language:this.state.lang
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.reference) throw new Error('delivery_failed');
+      this.setState({quickSubmitted:true, quickSending:false, quickRef:result.reference, quickError:''});
+    } catch {
+      this.setState({
+        quickSending:false,
+        quickError:this.errorText('The email could not be sent. Please try again or contact us through WhatsApp.', 'E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.')
+      });
+    }
   };
   submitQuote = async () => {
     if (this.state.quoteSending) return;
@@ -1345,8 +1371,12 @@ class Component extends DCLogic {
       isQuotation: s.page==='quotation', isContact: s.page==='contact',
       isFaq: s.page==='faq', isLegal: s.page==='legal',
       serviceCards, heroStats, featuredBrands,
-      quickForm: s.quickForm, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickRef: s.quickRef,
+      quickForm: s.quickForm, quickAgree:s.quickAgree, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickSending:s.quickSending, quickRef: s.quickRef,
       quickError: s.quickError, hasQuickError: !!s.quickError, quickWaLink, submitQuick: this.submitQuick,
+      quickConsentLabel: isEn ? 'I agree that NS Smart Fix Solution may use these details to process my enquiry, in line with the Privacy Notice.' : 'Saya bersetuju bahawa NS Smart Fix Solution boleh menggunakan maklumat ini untuk memproses pertanyaan saya, selaras dengan Notis Privasi.',
+      toggleQuickAgree:(e)=>this.setState({quickAgree:e.target.checked}),
+      quickSubmitLabel:s.quickSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
+      quickSubmitOpacity:s.quickSending ? '0.65' : '1',
       qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
       brandCards, waGeneralLink: waLinks.general,
       quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,
