@@ -4,6 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NS Smart Fix Solution | Electrical, Networking &amp; IT Services</title>
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#0B1F33">
+<meta name="geo.region" content="MY-14">
+<meta name="geo.placename" content="Bangsar, Kuala Lumpur">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NS Smart Fix Solution">
+<meta property="og:title" content="NS Smart Fix Solution | Electrical, Networking &amp; IT Services">
+<meta property="og:description" content="Electrical wiring, networking, server infrastructure, IT product supply and installation services across Peninsular Malaysia.">
+<meta property="og:url" content="https://nssmartfixsolution.com/">
+<meta property="og:locale" content="en_MY">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","@id":"https://nssmartfixsolution.com/#business","name":"NS Smart Fix Solution","url":"https://nssmartfixsolution.com/","logo":"https://nssmartfixsolution.com/assets/ns-smart-fix-logo.png","image":"https://nssmartfixsolution.com/assets/photo-datacenter.jpg","email":"admin@nssmartfixsolution.com","telephone":"+60164110681","address":{"@type":"PostalAddress","streetAddress":"5, Jalan Bangsar Utama 1","addressLocality":"Bangsar","postalCode":"59000","addressRegion":"Kuala Lumpur","addressCountry":"MY"},"areaServed":{"@type":"AdministrativeArea","name":"Peninsular Malaysia"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"}],"sameAs":[],"knowsLanguage":["en","ms"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Electrical and IT Services","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Electrical Wiring"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Network Cabling"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Server and IT Infrastructure"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"IT Product Supply"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"TV Bracket Installation"}}]}}
+</script>
 <style>
   /* Critical first-paint guard: keep Design Canvas expressions hidden until React commits. */
   x-dc{display:none!important;}
@@ -25,6 +39,7 @@
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
+<a class="ns-skip-link" href="#main-content">Skip to main content / Langkau ke kandungan utama</a>
 <div id="ns-boot-loader" role="status" aria-live="polite" aria-label="Loading website">
   <div class="ns-boot-card">
     <img class="ns-boot-logo" src="/assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution">
@@ -71,6 +86,18 @@
     a:hover{color:#0B1F33;}
     input,select,textarea{font-family:'Work Sans',sans-serif;}
     button,a,input,select,textarea{overflow-wrap:anywhere;}
+    button{font-family:inherit;}
+    :where(a,button,input,select,textarea):focus-visible{outline:3px solid #F59E0B!important;outline-offset:3px!important;box-shadow:0 0 0 2px #FFFFFF!important;}
+    :where(input,select,textarea)[aria-invalid="true"]{border-color:#B42318!important;box-shadow:0 0 0 1px #B42318;}
+    button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px rgba(255,255,255,.55);}
+    .ns-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+    .ns-skip-link{position:fixed;left:12px;top:12px;z-index:2147483647;background:#FFFFFF;color:#0B1F33;padding:10px 14px;border:2px solid #146CBE;border-radius:8px;font-weight:700;transform:translateY(-180%);}
+    .ns-skip-link:focus{transform:translateY(0);}
+    .ns-card-link{display:block;color:inherit;text-decoration:none;}
+    .ns-card-link:hover{color:inherit;border-color:#146CBE!important;transform:translateY(-2px);}
+    .ns-card-link:focus-visible{border-radius:14px;}
+    .ns-error{color:#B42318;font-size:13px;margin:8px 0 0;}
+    fieldset{min-width:0;}
     ::placeholder{color:#94A3B8;}
     .ns-mobile-menu{display:none !important;}
     @media (max-width:860px){
@@ -149,7 +176,7 @@
       </nav>
       <div style="display:flex;align-items:center;gap:10px;">
         <button style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
-        <button class="ns-desktop-nav" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</button>
+        <a class="ns-desktop-nav" href="{{ navHref.quotation }}" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
         <button class="ns-mobile-toggle" aria-label="{{ mobileMenuLabel }}" aria-expanded="{{ mobileMenuOpen }}" aria-controls="mobile-navigation" style="display:none;background:none;border:1px solid #D9E2EC;border-radius:8px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;" onClick="{{ toggleMobileMenu }}">{{ mobileMenuIcon }}</button>
       </div>
     </div>
@@ -166,7 +193,7 @@
     </sc-if>
   </header>
 
-  <main style="flex:1;">
+  <main id="main-content" style="flex:1;">
 
   <!-- ================= HOME ================= -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
@@ -177,7 +204,7 @@
           <h1 style="font-family:'Manrope',sans-serif;font-size:44px;line-height:1.15;color:#FFFFFF;font-weight:800;margin:0 0 18px;">{{ t.hero.title }}</h1>
           <p style="font-size:17px;line-height:1.6;color:#C9D6E5;margin:0 0 32px;max-width:560px;">{{ t.hero.subtitle }}</p>
           <div style="display:flex;gap:14px;flex-wrap:wrap;">
-            <button style="background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}</button>
+            <a href="{{ navHref.quotation }}" style="display:inline-flex;background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}</a>
             <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}</a>
           </div>
         </div>
@@ -201,16 +228,16 @@
         <p style="font-size:15.5px;color:#4B5768;margin:0;">{{ t.home.servicesSub }}</p>
       </div>
       <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-        <sc-for list="{{ t.services.list }}" as="svc" hint-placeholder-count="6">
-          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:26px;cursor:pointer;" onClick="{{ svc.goDetail }}">
+        <sc-for list="{{ serviceCards }}" as="svc" hint-placeholder-count="6">
+          <a class="ns-card-link" href="{{ svc.href }}" aria-label="{{ svc.linkLabel }}" style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:26px;cursor:pointer;transition:transform .2s,border-color .2s;" onClick="{{ svc.goDetail }}">
             <div style="width:44px;height:44px;border-radius:10px;background:#EAF4FF;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:800;color:#146CBE;font-size:17px;margin-bottom:14px;">{{ svc.icon }}</div>
             <h3 style="font-size:17px;font-weight:700;color:#0B1F33;margin:0 0 8px;">{{ svc.title }}</h3>
             <p style="font-size:14px;color:#5B6675;line-height:1.55;margin:0;">{{ svc.desc }}</p>
-          </div>
+          </a>
         </sc-for>
       </div>
       <div style="text-align:center;margin-top:32px;">
-        <button style="background:none;border:1.5px solid #146CBE;border-radius:9px;padding:12px 24px;font-size:14.5px;font-weight:700;color:#146CBE;cursor:pointer;" onClick="{{ nav.services }}">{{ t.common.viewMore }}</button>
+        <a href="{{ navHref.services }}" style="display:inline-flex;background:none;border:1.5px solid #146CBE;border-radius:9px;padding:12px 24px;font-size:14.5px;font-weight:700;color:#146CBE;cursor:pointer;text-decoration:none;" onClick="{{ nav.services }}">{{ t.common.viewMore }}</a>
       </div>
     </section>
 
@@ -284,29 +311,33 @@
           </div>
         </sc-if>
         <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
-            <input placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" autocomplete="name" maxlength="100" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
-            <input placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" autocomplete="tel" inputmode="tel" maxlength="24" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
-            <select value="{{ quickForm.service }}" onChange="{{ qkh.service }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
+          <form aria-label="{{ quickFormLabel }}" onSubmit="{{ submitQuick }}" novalidate style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
+            <label class="ns-sr-only" for="quick-name">{{ t.quotation.fullName }}</label>
+            <input id="quick-name" name="name" placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" autocomplete="name" maxlength="100" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <label class="ns-sr-only" for="quick-phone">{{ t.quotation.phone }}</label>
+            <input id="quick-phone" name="phone" placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" autocomplete="tel" inputmode="tel" maxlength="24" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
+            <label class="ns-sr-only" for="quick-service">{{ t.quotation.serviceRequired }}</label>
+            <select id="quick-service" name="service" value="{{ quickForm.service }}" onChange="{{ qkh.service }}" aria-describedby="{{ quickErrorId }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
               <option value="">{{ t.quotation.serviceRequired }}</option>
               <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
                 <option value="{{ opt.value }}">{{ opt.label }}</option>
               </sc-for>
             </select>
-            <textarea placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" maxlength="1000" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
+            <label class="ns-sr-only" for="quick-message">{{ t.quotation.description }}</label>
+            <textarea id="quick-message" name="message" placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" maxlength="1000" aria-describedby="{{ quickErrorId }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
             <label style="grid-column:span 2;display:flex;align-items:flex-start;gap:9px;color:#5B6675;font-size:12.5px;line-height:1.45;">
-              <input type="checkbox" checked="{{ quickAgree }}" onChange="{{ toggleQuickAgree }}" style="margin-top:2px;"/>
+              <input id="quick-consent" type="checkbox" checked="{{ quickAgree }}" onChange="{{ toggleQuickAgree }}" required aria-describedby="{{ quickErrorId }}" style="margin-top:2px;"/>
               <span>{{ quickConsentLabel }}</span>
             </label>
             <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
-              <p role="alert" style="grid-column:span 2;color:#B42318;font-size:13px;margin:0;">{{ quickError }}</p>
+              <p id="quick-form-error" class="ns-error" role="alert" aria-live="assertive" style="grid-column:span 2;margin:0;">{{ quickError }}</p>
             </sc-if>
             <div style="grid-column:span 2;width:100%;">
               <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
-              <sc-if value="{{ turnstileError }}"><p role="alert" style="color:#B42318;font-size:13px;margin:8px 0 0;">{{ turnstileError }}</p></sc-if>
+              <sc-if value="{{ turnstileError }}"><p class="ns-error" role="alert" aria-live="assertive">{{ turnstileError }}</p></sc-if>
             </div>
-            <button disabled="{{ quickSending }}" style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quickSubmitOpacity }};" onClick="{{ submitQuick }}">{{ quickSubmitLabel }}</button>
-          </div>
+            <button type="submit" disabled="{{ quickSending }}" aria-busy="{{ quickSending }}" style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quickSubmitOpacity }};">{{ quickSubmitLabel }}</button>
+          </form>
         </sc-if>
       </div>
     </section>
@@ -432,7 +463,7 @@
         <p style="font-size:15px;color:#0B1F33;font-weight:600;margin:0 0 16px;">{{ t.products.enquiryPrompt }}</p>
         <div class="ns-product-cta-actions" style="display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;">
           <a href="{{ waGeneralLink }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.common.whatsappUs }}</a>
-          <button style="background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</button>
+          <a href="{{ navHref.quotation }}" style="background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</a>
         </div>
       </div>
     </section>
@@ -456,115 +487,115 @@
           <div style="display:inline-block;background:#EAF4FF;border-radius:10px;padding:12px 22px;font-family:monospace;font-size:16px;font-weight:700;color:#146CBE;margin-bottom:22px;">{{ quoteRef }}</div>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
             <a href="{{ quoteWaLink }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
-            <button style="background:none;border:1px solid #C9D6E5;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.common.backHome }}</button>
+            <a href="{{ navHref.home }}" style="background:none;border:1px solid #C9D6E5;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.home }}">{{ t.common.backHome }}</a>
           </div>
         </div>
       </sc-if>
       <sc-if value="{{ quoteNotSubmitted }}" hint-placeholder-val="{{ true }}">
-        <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:32px;">
+        <form aria-label="{{ quoteFormLabel }}" onSubmit="{{ submitQuote }}" novalidate style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:32px;">
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.fullName }} *</label>
-              <input value="{{ quoteForm.fullName }}" onChange="{{ qh.fullName }}" autocomplete="name" maxlength="100" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-full-name" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.fullName }} *</label>
+              <input id="quote-full-name" name="fullName" value="{{ quoteForm.fullName }}" onChange="{{ qh.fullName }}" autocomplete="name" maxlength="100" required aria-invalid="{{ quoteInvalid }}" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.companyName }}</label>
-              <input value="{{ quoteForm.company }}" onChange="{{ qh.company }}" autocomplete="organization" maxlength="120" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-company" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.companyName }}</label>
+              <input id="quote-company" name="company" value="{{ quoteForm.company }}" onChange="{{ qh.company }}" autocomplete="organization" maxlength="120" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.phone }} *</label>
-              <input value="{{ quoteForm.phone }}" onChange="{{ qh.phone }}" placeholder="01x-xxx xxxx" autocomplete="tel" inputmode="tel" maxlength="24" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-phone" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.phone }} *</label>
+              <input id="quote-phone" name="phone" value="{{ quoteForm.phone }}" onChange="{{ qh.phone }}" placeholder="01x-xxx xxxx" autocomplete="tel" inputmode="tel" maxlength="24" required aria-invalid="{{ quoteInvalid }}" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.email }}</label>
-              <input type="email" value="{{ quoteForm.email }}" onChange="{{ qh.email }}" autocomplete="email" maxlength="254" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-email" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.email }}</label>
+              <input id="quote-email" name="email" type="email" value="{{ quoteForm.email }}" onChange="{{ qh.email }}" autocomplete="email" maxlength="254" aria-invalid="{{ quoteInvalid }}" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
           </div>
 
-          <div style="margin-top:20px;">
-            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.customerType }}</label>
+          <fieldset style="border:0;padding:0;margin:20px 0 0;">
+            <legend style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.customerType }}</legend>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
               <sc-for list="{{ customerTypeOptions }}" as="ct" hint-placeholder-count="5">
-                <button style="background:{{ ct.bg }};border:1px solid {{ ct.border }};color:{{ ct.color }};border-radius:100px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ ct.select }}">{{ ct.label }}</button>
+                <button type="button" aria-pressed="{{ ct.selected }}" style="background:{{ ct.bg }};border:1px solid {{ ct.border }};color:{{ ct.color }};border-radius:100px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ ct.select }}">{{ ct.label }}</button>
               </sc-for>
             </div>
-          </div>
+          </fieldset>
 
-          <div style="margin-top:20px;">
-            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.serviceRequired }}</label>
+          <fieldset style="border:0;padding:0;margin:20px 0 0;">
+            <legend style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.serviceRequired }}</legend>
             <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
               <sc-for list="{{ serviceCheckOptions }}" as="sc" hint-placeholder-count="8">
                 <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:#374357;background:#F5F7FA;border-radius:8px;padding:10px 12px;cursor:pointer;">
-                  <input type="checkbox" checked="{{ sc.checked }}" onChange="{{ sc.toggle }}"/>{{ sc.label }}
+                  <input type="checkbox" name="services" value="{{ sc.value }}" checked="{{ sc.checked }}" onChange="{{ sc.toggle }}"/><span>{{ sc.label }}</span>
                 </label>
               </sc-for>
             </div>
-          </div>
+          </fieldset>
 
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.location }}</label>
-              <input value="{{ quoteForm.location }}" onChange="{{ qh.location }}" autocomplete="street-address" maxlength="250" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-location" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.location }}</label>
+              <input id="quote-location" name="location" value="{{ quoteForm.location }}" onChange="{{ qh.location }}" autocomplete="street-address" maxlength="250" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.visitDate }}</label>
-              <input type="date" value="{{ quoteForm.visitDate }}" onChange="{{ qh.visitDate }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
+              <label for="quote-visit-date" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.visitDate }}</label>
+              <input id="quote-visit-date" name="visitDate" type="date" value="{{ quoteForm.visitDate }}" onChange="{{ qh.visitDate }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;"/>
             </div>
           </div>
 
-          <div style="margin-top:20px;">
-            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.preferredContact }}</label>
+          <fieldset style="border:0;padding:0;margin:20px 0 0;">
+            <legend style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.preferredContact }}</legend>
             <div style="display:flex;gap:8px;margin-top:8px;">
               <sc-for list="{{ contactMethodOptions }}" as="cm" hint-placeholder-count="3">
-                <button style="flex:1;background:{{ cm.bg }};border:1px solid {{ cm.border }};color:{{ cm.color }};border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ cm.select }}">{{ cm.label }}</button>
+                <button type="button" aria-pressed="{{ cm.selected }}" style="flex:1;background:{{ cm.bg }};border:1px solid {{ cm.border }};color:{{ cm.color }};border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onClick="{{ cm.select }}">{{ cm.label }}</button>
               </sc-for>
             </div>
-          </div>
+          </fieldset>
 
           <div style="margin-top:20px;">
-            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.description }}</label>
-            <textarea value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" maxlength="2000" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
+            <label for="quote-description" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.description }}</label>
+            <textarea id="quote-description" name="description" value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" maxlength="2000" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
           </div>
 
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
             <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.budget }}</label>
-              <select value="{{ quoteForm.budget }}" onChange="{{ qh.budget }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;color:#0B1F33;">
+              <label for="quote-budget" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.budget }}</label>
+              <select id="quote-budget" name="budget" value="{{ quoteForm.budget }}" onChange="{{ qh.budget }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;color:#0B1F33;">
                 <sc-for list="{{ t.quotation.budgetOptions }}" as="bo" hint-placeholder-count="5"><option value="{{ bo }}">{{ bo }}</option></sc-for>
               </select>
             </div>
-            <div>
-              <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.urgency }}</label>
+            <fieldset style="border:0;padding:0;margin:0;">
+              <legend style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.urgency }}</legend>
               <div style="display:flex;gap:8px;margin-top:6px;">
                 <sc-for list="{{ urgencyOptions }}" as="u" hint-placeholder-count="3">
-                  <button style="flex:1;background:{{ u.bg }};border:1px solid {{ u.border }};color:{{ u.color }};border-radius:8px;padding:10px;font-size:12.5px;font-weight:600;cursor:pointer;" onClick="{{ u.select }}">{{ u.label }}</button>
+                  <button type="button" aria-pressed="{{ u.selected }}" style="flex:1;background:{{ u.bg }};border:1px solid {{ u.border }};color:{{ u.color }};border-radius:8px;padding:10px;font-size:12.5px;font-weight:600;cursor:pointer;" onClick="{{ u.select }}">{{ u.label }}</button>
                 </sc-for>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           <div style="margin-top:20px;">
-            <label style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.uploadPhotos }}</label>
-            <input type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" onChange="{{ onFileUpload }}" style="width:100%;margin-top:6px;font-size:13px;"/>
+            <label for="quote-files" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.uploadPhotos }}</label>
+            <input id="quote-files" name="files" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" onChange="{{ onFileUpload }}" style="width:100%;margin-top:6px;font-size:13px;"/>
             <sc-if value="{{ hasUploadedFiles }}">
               <div style="font-size:12px;color:#5B6675;margin-top:6px;">{{ uploadedFilesLabel }}</div>
             </sc-if>
           </div>
 
           <label style="display:flex;align-items:flex-start;gap:10px;margin-top:22px;font-size:13px;color:#5B6675;line-height:1.5;">
-            <input type="checkbox" checked="{{ quoteForm.agree }}" onChange="{{ qh.agree }}" style="margin-top:2px;"/>
+            <input id="quote-consent" type="checkbox" checked="{{ quoteForm.agree }}" onChange="{{ qh.agree }}" required aria-describedby="{{ quoteErrorId }}" style="margin-top:2px;"/>
             {{ t.quotation.agreement }}
           </label>
 
           <div style="width:100%;margin-top:18px;">
             <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
-            <sc-if value="{{ turnstileError }}"><p role="alert" style="color:#B42318;font-size:13px;margin:8px 0 0;">{{ turnstileError }}</p></sc-if>
+            <sc-if value="{{ turnstileError }}"><p class="ns-error" role="alert" aria-live="assertive">{{ turnstileError }}</p></sc-if>
           </div>
-          <button disabled="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quoteSubmitOpacity }};" onClick="{{ submitQuote }}">{{ quoteSubmitLabel }}</button>
+          <button type="submit" disabled="{{ quoteSending }}" aria-busy="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quoteSubmitOpacity }};">{{ quoteSubmitLabel }}</button>
           <sc-if value="{{ quoteError }}">
-            <p style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center;">{{ quoteError }}</p>
+            <p id="quote-form-error" class="ns-error" role="alert" aria-live="assertive" style="text-align:center;">{{ quoteError }}</p>
           </sc-if>
-        </div>
+        </form>
       </sc-if>
     </section>
   </sc-if>
@@ -598,7 +629,7 @@
         </div>
       </div>
       <div style="display:flex;gap:12px;justify-content:center;margin-bottom:40px;flex-wrap:wrap;">
-        <button style="background:#F59E0B;border:none;border-radius:9px;padding:14px 24px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</button>
+        <a href="{{ navHref.quotation }}" style="display:inline-flex;background:#F59E0B;border:none;border-radius:9px;padding:14px 24px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
       </div>
       <div style="background:#F5F7FA;border-radius:14px;padding:24px;max-width:520px;margin:0 auto;">
         <h4 style="font-size:14px;font-weight:700;color:#0B1F33;margin:0 0 6px;">{{ t.contact.addressLabel }}</h4>
@@ -623,12 +654,14 @@
     <section style="max-width:760px;margin:0 auto;padding:48px 24px 80px;">
       <sc-for list="{{ faqs }}" as="item" hint-placeholder-count="14">
         <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:12px;margin-bottom:10px;overflow:hidden;">
-          <div style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onClick="{{ item.toggle }}">
+          <button type="button" aria-expanded="{{ item.open }}" aria-controls="{{ item.panelId }}" id="{{ item.buttonId }}" style="width:100%;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#FFFFFF;border:0;text-align:left;" onClick="{{ item.toggle }}">
             <span style="font-size:14.5px;font-weight:700;color:#0B1F33;">{{ item.q }}</span>
-            <span style="color:#146CBE;font-weight:800;">{{ item.symbol }}</span>
-          </div>
+            <span aria-hidden="true" style="color:#146CBE;font-weight:800;">{{ item.symbol }}</span>
+          </button>
           <sc-if value="{{ item.open }}">
-            <p style="padding:0 20px 18px;font-size:14px;color:#5B6675;line-height:1.6;margin:0;">{{ item.a }}</p>
+            <div id="{{ item.panelId }}" role="region" aria-labelledby="{{ item.buttonId }}">
+              <p style="padding:0 20px 18px;font-size:14px;color:#5B6675;line-height:1.6;margin:0;">{{ item.a }}</p>
+            </div>
           </sc-if>
         </div>
       </sc-for>
@@ -1211,6 +1244,46 @@ class Component extends DCLogic {
       document.head.appendChild(canonical);
     }
     canonical.href = `https://nssmartfixsolution.com${routePath(page, legalTab)}`;
+    const routeDescriptions = isBm
+      ? {
+          home:'Perkhidmatan pendawaian elektrik, rangkaian, server, bekalan produk IT dan pemasangan di Kuala Lumpur serta seluruh Semenanjung Malaysia.',
+          about:'Kenali NS Smart Fix Solution, penyedia perkhidmatan elektrik, rangkaian dan infrastruktur IT yang berpangkalan di Bangsar, Kuala Lumpur.',
+          services:'Perkhidmatan elektrik, kabel rangkaian, server, pembekalan IT, pemasangan pendakap TV dan penyelesaian masalah di Semenanjung Malaysia.',
+          products:'Bekalan produk IT, rangkaian, keselamatan dan infrastruktur daripada jenama dipercayai untuk rumah dan perniagaan.',
+          quotation:'Mohon sebut harga untuk perkhidmatan elektrik, rangkaian, server atau pemasangan daripada NS Smart Fix Solution.',
+          contact:'Hubungi NS Smart Fix Solution di Bangsar, Kuala Lumpur melalui telefon atau WhatsApp untuk pertanyaan dan sebut harga.',
+          faq:'Jawapan kepada soalan lazim mengenai liputan, sebut harga, pemasangan, penghantaran dan perkhidmatan NS Smart Fix Solution.'
+        }
+      : {
+          home:'Electrical wiring, networking, server, IT product supply and installation services in Kuala Lumpur and across Peninsular Malaysia.',
+          about:'Meet NS Smart Fix Solution, an electrical, networking and IT infrastructure service provider based in Bangsar, Kuala Lumpur.',
+          services:'Electrical, network cabling, server, IT supply, TV mounting and troubleshooting services across Peninsular Malaysia.',
+          products:'IT, networking, security and infrastructure products from trusted brands for homes and businesses.',
+          quotation:'Request a quotation for electrical, networking, server or installation services from NS Smart Fix Solution.',
+          contact:'Contact NS Smart Fix Solution in Bangsar, Kuala Lumpur by phone or WhatsApp for enquiries and quotations.',
+          faq:'Answers about coverage, quotations, installation, delivery and NS Smart Fix Solution services.'
+        };
+    const legalDescriptions = isBm
+      ? {privacy:'Notis privasi NS Smart Fix Solution dan cara kami mengurus maklumat pelanggan.',terms:'Terma dan syarat produk serta perkhidmatan NS Smart Fix Solution.',warranty:'Maklumat waranti produk, mutu kerja dan sokongan selepas perkhidmatan.'}
+      : {privacy:'NS Smart Fix Solution privacy notice and how customer information is handled.',terms:'Terms and conditions for NS Smart Fix Solution products and services.',warranty:'Product warranty, workmanship and after-service support information.'};
+    const description = page === 'legal' ? legalDescriptions[legalTab] : routeDescriptions[page];
+    const setMeta = (selector, attribute, value) => {
+      let element = document.querySelector(selector);
+      if (!element) {
+        element = document.createElement('meta');
+        const propertyMatch = selector.match(/meta\[property="([^"]+)"\]/);
+        const nameMatch = selector.match(/meta\[name="([^"]+)"\]/);
+        if (propertyMatch) element.setAttribute('property', propertyMatch[1]);
+        if (nameMatch) element.setAttribute('name', nameMatch[1]);
+        document.head.appendChild(element);
+      }
+      element.setAttribute(attribute, value);
+    };
+    setMeta('meta[name="description"]','content',description);
+    setMeta('meta[property="og:title"]','content',document.title);
+    setMeta('meta[property="og:description"]','content',description);
+    setMeta('meta[property="og:url"]','content',canonical.href);
+    setMeta('meta[property="og:locale"]','content',isBm ? 'ms_MY' : 'en_MY');
   }
   navigate(page, legalTab=this.state.legalTab){
     const nextLegalTab = page === 'legal' ? legalTab : this.state.legalTab;
@@ -1335,7 +1408,8 @@ class Component extends DCLogic {
     return this.errorText('The email could not be sent. Please try again or contact us through WhatsApp.','E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.');
   }
 
-  submitQuick = async () => {
+  submitQuick = async (event) => {
+    if (event?.preventDefault) event.preventDefault();
     if (this.state.quickSending) return;
     const f = this.state.quickForm;
     if (!this.validName(f.name) || !this.validPhone(f.phone)) {
@@ -1382,7 +1456,8 @@ class Component extends DCLogic {
       });
     }
   };
-  submitQuote = async () => {
+  submitQuote = async (event) => {
+    if (event?.preventDefault) event.preventDefault();
     if (this.state.quoteSending) return;
     const f = this.state.quoteForm;
     const isBm = this.state.lang === 'bm';
@@ -1500,7 +1575,9 @@ class Component extends DCLogic {
       bullets: isEn ? SERVICE_BULLETS_EN[i] : SERVICE_BULLETS_BM[i],
       note: isEn ? SERVICE_NOTE_EN[i] : SERVICE_NOTE_BM[i],
       request: this.goQuoteFor(key),
-      goDetail: this.go('services')
+      goDetail: this.go('services'),
+      href: ROUTE_PATHS.services,
+      linkLabel: isEn ? `View ${SERVICE_TITLES_EN[i]} service details` : `Lihat butiran perkhidmatan ${SERVICE_TITLES_BM[i]}`
     }));
 
     const heroStats = [
@@ -1528,20 +1605,23 @@ class Component extends DCLogic {
     const custTypesBm = ["Rumah","Pejabat","Kedai","Premis Komersial","Lain-lain"];
     const customerTypeOptions = (isEn?custTypesEn:custTypesBm).map((label,i) => ({
       label, bg: s.quoteCustomerType===label?'#0B1F33':'#FFFFFF', color:s.quoteCustomerType===label?'#FFFFFF':'#0B1F33', border:s.quoteCustomerType===label?'#0B1F33':'#E5E9EF',
+      selected:s.quoteCustomerType===label,
       select: () => this.setState({quoteCustomerType:label})
     }));
     const serviceCheckOptions = t.quotation.serviceOptions.map(opt => ({
-      label: opt.label, checked: !!s.quoteServices[opt.value],
+      label: opt.label, value:opt.value, checked: !!s.quoteServices[opt.value],
       toggle: () => this.setState(st => ({quoteServices: {...st.quoteServices, [opt.value]: !st.quoteServices[opt.value]}}))
     }));
     const contactMethodsEn=["Phone Call","WhatsApp","Email"], contactMethodsBm=["Panggilan Telefon","WhatsApp","E-mel"];
     const contactMethodOptions = (isEn?contactMethodsEn:contactMethodsBm).map(label => ({
       label, bg: s.quoteContactMethod===label?'#0B1F33':'#FFFFFF', color:s.quoteContactMethod===label?'#FFFFFF':'#0B1F33', border:s.quoteContactMethod===label?'#0B1F33':'#E5E9EF',
+      selected:s.quoteContactMethod===label,
       select: () => this.setState({quoteContactMethod:label})
     }));
     const urgencyEn=["Standard","Urgent","Emergency Assessment"], urgencyBm=["Standard","Segera","Penilaian Kecemasan"];
     const urgencyOptions = (isEn?urgencyEn:urgencyBm).map(label => ({
       label, bg: s.quoteUrgency===label?'#0B1F33':'#FFFFFF', color:s.quoteUrgency===label?'#FFFFFF':'#0B1F33', border:s.quoteUrgency===label?'#0B1F33':'#E5E9EF',
+      selected:s.quoteUrgency===label,
       select: () => this.setState({quoteUrgency:label})
     }));
 
@@ -1599,7 +1679,7 @@ class Component extends DCLogic {
         ].join('\n');
     const quoteWaLink = this.waLink('60164110681', quoteWaMsg);
 
-    const faqs = t.faq.items.map((item,i) => ({ q:item.q, a:item.a, open: s.openFaq===i, symbol: s.openFaq===i?'−':'+', toggle: () => this.toggleFaq(i) }));
+    const faqs = t.faq.items.map((item,i) => ({ q:item.q, a:item.a, open: s.openFaq===i, symbol: s.openFaq===i?'−':'+', buttonId:`faq-button-${i}`, panelId:`faq-panel-${i}`, toggle: () => this.toggleFaq(i) }));
 
     const activeTabStyle = { border:'#146CBE', bg:'#EAF4FF', color:'#0B1F33' };
     const inactiveTabStyle = { border:'#E5E9EF', bg:'#FFFFFF', color:'#5B6675' };
@@ -1654,6 +1734,9 @@ class Component extends DCLogic {
       serviceCards, heroStats, featuredBrands,
       quickForm: s.quickForm, quickAgree:s.quickAgree, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickSending:s.quickSending, quickRef: s.quickRef,
       quickError: s.quickError, hasQuickError: !!s.quickError, quickWaLink, submitQuick: this.submitQuick,
+      quickFormLabel:isEn ? 'Quick enquiry form' : 'Borang pertanyaan ringkas',
+      quickInvalid:!!s.quickError,
+      quickErrorId:s.quickError ? 'quick-form-error' : undefined,
       quickConsentLabel: isEn ? 'I agree that NS Smart Fix Solution may use these details to process my enquiry, in line with the Privacy Notice.' : 'Saya bersetuju bahawa NS Smart Fix Solution boleh menggunakan maklumat ini untuk memproses pertanyaan saya, selaras dengan Notis Privasi.',
       toggleQuickAgree:(e)=>this.setState({quickAgree:e.target.checked}),
       quickSubmitLabel:s.quickSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
@@ -1667,6 +1750,9 @@ class Component extends DCLogic {
       quoteSubmitLabel: s.quoteSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
       quoteSubmitOpacity: s.quoteSending ? '0.65' : '1',
       quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
+      quoteFormLabel:isEn ? 'Quotation request form' : 'Borang permohonan sebut harga',
+      quoteInvalid:!!s.quoteError,
+      quoteErrorId:s.quoteError ? 'quote-form-error' : undefined,
       onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
       faqs, legalTab:s.legalTab, legalHandlers, legalHref, legalCurrent, legalBlocks, tabStyle, legalPageTitle, legalMeta, legalTocLabel, tocItems, hasToc:tocItems.length > 0, legalGridCols:tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
     };
