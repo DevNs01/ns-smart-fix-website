@@ -39,7 +39,7 @@ const requiredPatterns = [
   ['Quotation privacy validation', /if \(!f\.agree\)/],
   ['Quick WhatsApp handoff', /quickWaLink/],
   ['Quotation WhatsApp handoff', /quoteWaLink/],
-  ['BM WhatsApp labels', /isEn \? "Name: " : "Nama: "/],
+  ['BM WhatsApp labels', /\*NAMA PENUH:\*|\*Nama Penuh:\*/i],
   ['BM legal metadata', /Tarikh Berkuat Kuasa\|Tarikh Kemas Kini/],
   ['BM quick enquiry confirmation', /Pertanyaan anda sedia untuk dihantar\./],
   ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],
