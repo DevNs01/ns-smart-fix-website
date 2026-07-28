@@ -4,6 +4,7 @@ import { join } from 'node:path';
 const root = process.cwd();
 const source = readFileSync(join(root, 'index.html'), 'utf8');
 const entrySource = readFileSync(join(root, 'src', 'main.js'), 'utf8');
+const emailApiSource = readFileSync(join(root, 'api', 'quotation.js'), 'utf8');
 const failures = [];
 
 const bmTerms = /const BM_TERMS_FULL = `([\s\S]*?)`;/.exec(source)?.[1];
@@ -71,6 +72,9 @@ if (!/function revealWebsite\(\)[\s\S]*root\?\.firstElementChild/.test(entrySour
 }
 if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: true \}\)/.test(entrySource)) {
   failures.push('Missing render observer for first-paint loader');
+}
+if (!/to: \[RECIPIENT\]/.test(emailApiSource) || !/html: email\.html, text: email\.plain/.test(emailApiSource)) {
+  failures.push('Missing formatted quotation email delivery');
 }
 
 if (failures.length) {
