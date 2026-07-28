@@ -45,6 +45,10 @@ Configure these server-only variables in Vercel:
 - `QUOTATION_TO_EMAIL` — recipient; defaults to `admin@nssmartfixsolution.com`
 - `TURNSTILE_SITE_KEY` — public site key from the Cloudflare Turnstile widget
 - `TURNSTILE_SECRET_KEY` — secret used only by `/api/quotation` for server-side verification
+- `MONITORING_ALERT_EMAIL` — operational alert recipient; defaults to `admin@nssmartfixsolution.com`
+- `CRON_SECRET` — long random secret used by Vercel Cron to authorize uptime checks
+- `MONITORING_SLOW_API_MS` — optional slow-response threshold in milliseconds; defaults to `3000`
+- `MONITORING_ALERT_COOLDOWN_MS` — optional duplicate alert cooldown; defaults to 15 minutes
 
 Verify `nssmartfixsolution.com` in Resend before using the production sender. Store local values in `.env.local`; environment files are excluded by `.gitignore`. Never prefix secrets with `VITE_`.
 
@@ -60,6 +64,14 @@ Verify `nssmartfixsolution.com` in Resend before using the production sender. St
 8. Deploy.
 
 The checked-in `vercel.json` contains the same build and output settings.
+
+## Production monitoring and recovery
+
+The production deployment exposes `/api/health` and runs an authenticated Vercel Cron check every 10 minutes. Monitoring covers website availability, unexpected quotation failures, Resend delivery failures, slow API responses, browser JavaScript errors, unhandled promise rejections and application boot timeouts.
+
+Operational alerts are sent to `MONITORING_ALERT_EMAIL` and also recorded as structured Vercel Function logs. Alerts deliberately contain only the event category, route, status, timing, stage and deployment identifier. Customer names, email addresses, phone numbers, IP addresses, quotation descriptions and uploaded file names are never included.
+
+If Resend itself is unavailable, the email alert cannot use that same provider; the redacted structured event remains available in Vercel logs for recovery investigation. The health endpoint reports only service readiness and never returns environment-variable values.
 
 ## Security
 
