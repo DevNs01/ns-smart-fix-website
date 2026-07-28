@@ -30,6 +30,12 @@ for (const match of source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) {
 const requiredPatterns = [
   ['Vite entry point', /<script type="module" src="\/src\/main\.js"><\/script>/],
   ['English navigation handlers', /const nav = \{ home:this\.go\('home'\).*faq:this\.go\('faq'\)/],
+  ['Real route map', /const ROUTE_PATHS = Object\.freeze\(\{[\s\S]*about:'\/about'[\s\S]*quotation:'\/quotation'[\s\S]*terms:'\/terms'/],
+  ['Direct route resolver', /function routeStateFromPath\(pathname\)/],
+  ['History API navigation', /window\.history\.pushState\(\{page,legalTab:nextLegalTab\},'',path\)/],
+  ['Browser back and forward navigation', /window\.addEventListener\('popstate',this\.handlePopState\)/],
+  ['Canonical URL synchronisation', /canonical\.href = `https:\/\/nssmartfixsolution\.com\$\{routePath\(page, legalTab\)\}`/],
+  ['Semantic navigation URLs', /href="\{\{ navHref\.about \}\}"[\s\S]*href="\{\{ navHref\.services \}\}"[\s\S]*href="\{\{ navHref\.products \}\}"/],
   ['WhatsApp contact 1', /this\.waLink\('60164110681'/],
   ['WhatsApp contact 2', /this\.waLink\('60128851681'/],
   ['Phone contact 1', /href="tel:\+60164110681"/],
