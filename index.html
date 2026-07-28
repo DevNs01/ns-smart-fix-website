@@ -31,6 +31,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <meta name="description" content="{{ t.seo.desc }}">
   <style>
+    html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
     html,body{max-width:100%;overflow-x:hidden;}
     body{margin:0;background:#F5F7FA;color:#1F2937;font-family:'Work Sans',sans-serif;}
     *{box-sizing:border-box;}
@@ -40,6 +41,7 @@
     input,select,textarea{font-family:'Work Sans',sans-serif;}
     button,a,input,select,textarea{overflow-wrap:anywhere;}
     ::placeholder{color:#94A3B8;}
+    .ns-mobile-menu{display:none !important;}
     @media (max-width:860px){
       .ns-desktop-nav{display:none !important;}
       .ns-mobile-toggle{display:flex !important;}
@@ -50,11 +52,14 @@
       .ns-grid-2{display:flex !important;flex-direction:column !important;width:100% !important;min-width:0 !important;}
       .ns-grid-2 > *{grid-column:auto !important;width:100% !important;min-width:0 !important;max-width:100% !important;}
       .ns-hero-row{flex-direction:column !important;}
+      .ns-hero-row > *{min-width:0 !important;width:100% !important;}
       .ns-footer-grid{grid-template-columns:1fr 1fr !important;}
       .ns-body-pad{padding-bottom:76px !important;}
       .ns-header-inner{padding:8px 16px !important;}
       .ns-header-logo{height:48px !important;}
       .ns-mobile-toggle{width:44px !important;height:44px !important;}
+      .ns-mobile-menu{display:flex !important;width:100% !important;height:auto !important;min-width:0 !important;min-height:0 !important;}
+      .ns-mobile-menu a{display:flex !important;align-items:center !important;width:100% !important;min-height:44px !important;white-space:normal !important;}
       .ns-quick-section{width:100% !important;max-width:100% !important;padding:40px 16px 56px !important;}
       .ns-quick-card{width:100% !important;max-width:100% !important;padding:28px 18px !important;overflow:hidden !important;}
       input,select,textarea{font-size:16px !important;}
@@ -68,9 +73,29 @@
       .ns-sticky-bar{padding-bottom:env(safe-area-inset-bottom) !important;}
       .ns-sticky-bar > *{min-width:0 !important;min-height:52px !important;padding:10px 6px !important;display:flex !important;align-items:center !important;justify-content:center !important;line-height:1.25 !important;white-space:normal !important;}
     }
+    @media (min-width:600px) and (max-width:860px){
+      .ns-grid-3{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+      .ns-footer-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+      .ns-hero-image{height:320px !important;}
+    }
     @media (max-width:480px){
+      main > section{padding-left:16px !important;padding-right:16px !important;}
       .ns-footer-grid{grid-template-columns:1fr !important;}
       .ns-header-inner{gap:10px !important;}
+      .ns-hero-image{height:240px !important;}
+      .ns-feature-image{height:220px !important;}
+      .ns-banner-image{height:210px !important;}
+      main h1{font-size:clamp(28px,9vw,34px) !important;line-height:1.18 !important;}
+      main h2{font-size:clamp(24px,8vw,30px) !important;line-height:1.22 !important;}
+      .ns-grid-3,.ns-grid-4{gap:14px !important;}
+    }
+    @media (max-width:380px){
+      main > section{padding-left:14px !important;padding-right:14px !important;}
+      .ns-header-inner{padding-left:12px !important;padding-right:12px !important;gap:6px !important;}
+      .ns-header-logo{height:44px !important;}
+      .ns-mobile-menu{padding-left:16px !important;padding-right:16px !important;}
+      .ns-sticky-bar > *{min-height:56px !important;font-size:13px !important;padding-left:4px !important;padding-right:4px !important;}
+      .ns-quick-card{padding-left:16px !important;padding-right:16px !important;}
     }
   </style>
 </helmet>
@@ -94,11 +119,11 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <button style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
         <button class="ns-desktop-nav" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</button>
-        <button class="ns-mobile-toggle" style="display:none;background:none;border:1px solid #D9E2EC;border-radius:8px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;" onClick="{{ toggleMobileMenu }}">☰</button>
+        <button class="ns-mobile-toggle" aria-label="{{ mobileMenuLabel }}" aria-expanded="{{ mobileMenuOpen }}" aria-controls="mobile-navigation" style="display:none;background:none;border:1px solid #D9E2EC;border-radius:8px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;" onClick="{{ toggleMobileMenu }}">{{ mobileMenuIcon }}</button>
       </div>
     </div>
     <sc-if value="{{ mobileMenuOpen }}">
-      <div class="ns-mobile-toggle" style="display:flex;flex-direction:column;padding:8px 24px 16px;gap:2px;border-top:1px solid #E5E9EF;">
+      <nav id="mobile-navigation" class="ns-mobile-menu" aria-label="{{ mobileNavigationLabel }}" style="flex-direction:column;padding:8px 24px 16px;gap:2px;border-top:1px solid #E5E9EF;background:#FFFFFF;">
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
@@ -106,7 +131,7 @@
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.quotation }}</a>
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
         <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
-      </div>
+      </nav>
     </sc-if>
   </header>
 
@@ -126,7 +151,7 @@
           </div>
         </div>
         <div style="flex:1;min-width:280px;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
-          <img src="assets/photo-db-testing.jpg" alt="Electrician testing a distribution board with a voltage tester" style="width:100%;height:360px;object-fit:cover;display:block;">
+          <img class="ns-hero-image" src="assets/photo-db-testing.jpg" alt="Electrician testing a distribution board with a voltage tester" style="width:100%;height:360px;object-fit:cover;display:block;">
           <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(11,31,51,0.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
               <div>
@@ -174,7 +199,7 @@
 
     <section style="max-width:1280px;margin:64px auto 0;padding:0 24px;">
       <div style="position:relative;border-radius:16px;overflow:hidden;">
-        <img src="assets/photo-datacenter.jpg" alt="Server room data hall with rows of illuminated network racks" style="width:100%;height:300px;object-fit:cover;display:block;">
+        <img class="ns-feature-image" src="assets/photo-datacenter.jpg" alt="Server room data hall with rows of illuminated network racks" style="width:100%;height:300px;object-fit:cover;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,31,51,0.85) 0%,rgba(11,31,51,0.15) 55%);display:flex;align-items:flex-end;padding:28px;">
           <p style="color:#FFFFFF;font-family:'Manrope',sans-serif;font-weight:700;font-size:19px;margin:0;max-width:520px;line-height:1.5;">Server rooms, racks and network infrastructure built to run reliably.</p>
         </div>
@@ -303,7 +328,7 @@
     </section>
     <section style="max-width:1280px;margin:24px auto 0;padding:0 24px;">
       <div style="position:relative;border-radius:16px;overflow:hidden;">
-        <img src="assets/photo-control-panel.jpg" alt="Technician wiring an industrial control panel and terminal blocks" style="width:100%;height:260px;object-fit:cover;display:block;">
+        <img class="ns-banner-image" src="assets/photo-control-panel.jpg" alt="Technician wiring an industrial control panel and terminal blocks" style="width:100%;height:260px;object-fit:cover;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,31,51,0.82) 0%,rgba(11,31,51,0.15) 60%);display:flex;align-items:center;">
           <p style="color:#FFFFFF;font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;max-width:380px;margin:0;padding:0 32px;line-height:1.5;">Certified technicians handling wiring, panels and structured cabling with care.</p>
         </div>
@@ -1255,7 +1280,11 @@ class Component extends DCLogic {
 
     return {
       t, lang:s.lang, langLabel: isEn ? 'BM' : 'EN', toggleLang: () => this.setState(st => ({lang: st.lang==='en'?'bm':'en'})),
-      mobileMenuOpen: s.mobileMenuOpen, toggleMobileMenu: () => this.setState(st=>({mobileMenuOpen:!st.mobileMenuOpen})),
+      mobileMenuOpen: s.mobileMenuOpen,
+      mobileMenuIcon: s.mobileMenuOpen ? '×' : '☰',
+      mobileMenuLabel: isEn ? (s.mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu') : (s.mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'),
+      mobileNavigationLabel: isEn ? 'Mobile navigation' : 'Navigasi mudah alih',
+      toggleMobileMenu: () => this.setState(st=>({mobileMenuOpen:!st.mobileMenuOpen})),
       goHome: this.go('home'),
       nav, navColor, waLinks,
       isHome: s.page==='home', isAbout: s.page==='about', isServices: s.page==='services', isProducts: s.page==='products',
