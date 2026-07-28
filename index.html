@@ -97,6 +97,17 @@
     .ns-card-link:hover{color:inherit;border-color:#146CBE!important;transform:translateY(-2px);}
     .ns-card-link:focus-visible{border-radius:14px;}
     .ns-error{color:#B42318;font-size:13px;margin:8px 0 0;}
+    .ns-quick-shell{display:grid;grid-template-columns:minmax(240px,.72fr) minmax(0,1.35fr);overflow:hidden;border:1px solid #D9E4F0;border-radius:24px;background:#FFFFFF;box-shadow:0 20px 55px rgba(11,31,51,.10);}
+    .ns-quick-intro{background:linear-gradient(155deg,#0B1F33 0%,#123E62 100%);padding:42px 34px;color:#FFFFFF;display:flex;flex-direction:column;justify-content:space-between;gap:32px;}
+    .ns-quick-form-panel{padding:42px;background:#FFFFFF;}
+    .ns-quick-field{display:flex;flex-direction:column;gap:7px;min-width:0;}
+    .ns-quick-field > label{font-size:12.5px;font-weight:700;color:#23384F;}
+    .ns-quick-field input,.ns-quick-field select,.ns-quick-field textarea{width:100%;min-height:50px;padding:13px 14px;border:1px solid #C9D6E5;border-radius:11px;background:#FFFFFF;color:#0B1F33;font-size:14px;transition:border-color .18s ease,box-shadow .18s ease;}
+    .ns-quick-field textarea{min-height:112px;resize:vertical;}
+    .ns-quick-field input:hover,.ns-quick-field select:hover,.ns-quick-field textarea:hover{border-color:#8FA9C3;}
+    .ns-quick-security{grid-column:span 2;background:#F7FAFD;border:1px solid #DCE6F0;border-radius:12px;padding:14px;}
+    .ns-quick-submit{grid-column:span 2;min-height:52px;background:#F59E0B;border:none;border-radius:11px;padding:14px 20px;font-size:15px;font-weight:800;color:#0B1F33;cursor:pointer;box-shadow:0 8px 20px rgba(245,158,11,.22);transition:transform .18s ease,box-shadow .18s ease;}
+    .ns-quick-submit:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(245,158,11,.30);}
     fieldset{min-width:0;}
     ::placeholder{color:#94A3B8;}
     .ns-mobile-menu{display:none !important;}
@@ -119,7 +130,11 @@
       .ns-mobile-menu{display:flex !important;width:100% !important;height:auto !important;min-width:0 !important;min-height:0 !important;}
       .ns-mobile-menu a{display:flex !important;align-items:center !important;width:100% !important;min-height:44px !important;white-space:normal !important;}
       .ns-quick-section{width:100% !important;max-width:100% !important;padding:40px 16px 56px !important;}
-      .ns-quick-card{width:100% !important;max-width:100% !important;padding:28px 18px !important;overflow:hidden !important;}
+      .ns-quick-card{width:100% !important;max-width:100% !important;overflow:hidden !important;}
+      .ns-quick-shell{display:flex !important;flex-direction:column !important;border-radius:18px !important;}
+      .ns-quick-intro{padding:30px 24px !important;gap:20px !important;}
+      .ns-quick-form-panel{padding:28px 22px !important;}
+      .ns-quick-security,.ns-quick-submit{grid-column:auto !important;width:100% !important;}
       input,select,textarea{font-size:16px !important;}
       .ns-product-cta-actions{flex-direction:column !important;align-items:stretch !important;gap:12px !important;}
       .ns-product-cta-actions > *{width:100% !important;min-height:48px !important;margin:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;}
@@ -153,7 +168,7 @@
       .ns-header-logo{height:44px !important;}
       .ns-mobile-menu{padding-left:16px !important;padding-right:16px !important;}
       .ns-sticky-bar > *{min-height:56px !important;font-size:13px !important;padding-left:4px !important;padding-right:4px !important;}
-      .ns-quick-card{padding-left:16px !important;padding-right:16px !important;}
+      .ns-quick-form-panel{padding-left:18px !important;padding-right:18px !important;}
     }
   </style>
 </helmet>
@@ -297,48 +312,83 @@
       </div>
     </section>
 
-    <section class="ns-quick-section" style="width:100%;max-width:900px;margin:0 auto;padding:64px 24px 80px;">
-      <div class="ns-quick-card" style="width:100%;background:#EAF4FF;border-radius:18px;padding:40px;">
-        <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 6px;text-align:center;">{{ t.home.enquiryTitle }}</h2>
-        <p style="font-size:14.5px;color:#3E5A78;text-align:center;margin:0 0 26px;">{{ t.home.enquirySub }}</p>
-        <sc-if value="{{ quickSubmitted }}" hint-placeholder-val="{{ false }}">
-          <div style="background:#FFFFFF;border-radius:12px;padding:24px;text-align:center;">
-            <div style="font-size:32px;">✅</div>
-            <p style="font-size:15px;color:#0B1F33;font-weight:700;margin:10px 0 4px;">{{ t.home.quickSuccessTitle }}</p>
-            <p style="font-size:13.5px;color:#5B6675;margin:0 0 8px;">{{ t.home.quickSuccessMsg }}</p>
-            <p style="font-size:13.5px;color:#5B6675;margin:0 0 14px;">{{ quickRef }}</p>
-            <a href="{{ quickWaLink }}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;background:#25D366;border-radius:9px;padding:12px 20px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
+    <section class="ns-quick-section" style="width:100%;max-width:1120px;margin:0 auto;padding:72px 24px 88px;">
+      <div class="ns-quick-card ns-quick-shell">
+        <div class="ns-quick-intro">
+          <div>
+            <span style="display:inline-flex;align-items:center;gap:7px;color:#FBBF24;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;">● {{ t.home.quickEyebrow }}</span>
+            <h2 style="font-family:'Manrope',sans-serif;font-size:clamp(26px,3vw,34px);line-height:1.16;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.home.enquiryTitle }}</h2>
+            <p style="font-size:14.5px;line-height:1.65;color:#C9D8E7;margin:0;">{{ t.home.enquirySub }}</p>
           </div>
-        </sc-if>
-        <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
-          <form aria-label="{{ quickFormLabel }}" onSubmit="{{ submitQuick }}" novalidate style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
-            <label class="ns-sr-only" for="quick-name">{{ t.quotation.fullName }}</label>
-            <input id="quick-name" name="name" placeholder="{{ t.quotation.fullName }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" autocomplete="name" maxlength="100" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}" style="grid-column:span 1;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
-            <label class="ns-sr-only" for="quick-phone">{{ t.quotation.phone }}</label>
-            <input id="quick-phone" name="phone" placeholder="{{ t.quotation.phone }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" autocomplete="tel" inputmode="tel" maxlength="24" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}" style="padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;"/>
-            <label class="ns-sr-only" for="quick-service">{{ t.quotation.serviceRequired }}</label>
-            <select id="quick-service" name="service" value="{{ quickForm.service }}" onChange="{{ qkh.service }}" aria-describedby="{{ quickErrorId }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;color:#0B1F33;">
-              <option value="">{{ t.quotation.serviceRequired }}</option>
-              <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
-                <option value="{{ opt.value }}">{{ opt.label }}</option>
-              </sc-for>
-            </select>
-            <label class="ns-sr-only" for="quick-message">{{ t.quotation.description }}</label>
-            <textarea id="quick-message" name="message" placeholder="{{ t.quotation.description }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="3" maxlength="1000" aria-describedby="{{ quickErrorId }}" style="grid-column:span 2;padding:13px 14px;border:1px solid #C9D6E5;border-radius:9px;font-size:14px;resize:vertical;"></textarea>
-            <label style="grid-column:span 2;display:flex;align-items:flex-start;gap:9px;color:#5B6675;font-size:12.5px;line-height:1.45;">
-              <input id="quick-consent" type="checkbox" checked="{{ quickAgree }}" onChange="{{ toggleQuickAgree }}" required aria-describedby="{{ quickErrorId }}" style="margin-top:2px;"/>
-              <span>{{ quickConsentLabel }}</span>
-            </label>
-            <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
-              <p id="quick-form-error" class="ns-error" role="alert" aria-live="assertive" style="grid-column:span 2;margin:0;">{{ quickError }}</p>
-            </sc-if>
-            <div style="grid-column:span 2;width:100%;">
-              <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
-              <sc-if value="{{ turnstileError }}"><p class="ns-error" role="alert" aria-live="assertive">{{ turnstileError }}</p></sc-if>
+          <div style="display:grid;gap:12px;">
+            <sc-for list="{{ t.home.quickBenefits }}" as="benefit" hint-placeholder-count="3">
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:13.5px;line-height:1.45;color:#EAF2F8;">
+                <span aria-hidden="true" style="width:22px;height:22px;flex:0 0 22px;border-radius:50%;background:rgba(37,211,102,.16);color:#55E88B;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">✓</span>
+                <span>{{ benefit }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <p style="font-size:12px;line-height:1.55;color:#9FB4C8;margin:0;">{{ t.home.quickPrivacy }}</p>
+        </div>
+        <div class="ns-quick-form-panel">
+          <sc-if value="{{ quickSubmitted }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 10px;">
+              <div style="width:64px;height:64px;border-radius:50%;background:#E8F8EE;color:#168A48;display:flex;align-items:center;justify-content:center;font-size:30px;">✓</div>
+              <p style="font-size:20px;color:#0B1F33;font-weight:800;margin:18px 0 6px;">{{ t.home.quickSuccessTitle }}</p>
+              <p style="font-size:14px;line-height:1.6;color:#5B6675;margin:0 0 10px;">{{ t.home.quickSuccessMsg }}</p>
+              <p style="background:#F4F7FA;border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:700;color:#23384F;margin:0 0 18px;">{{ quickRef }}</p>
+              <a href="{{ quickWaLink }}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;background:#25D366;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:800;color:#FFFFFF;text-decoration:none;">{{ t.quotation.sendWhatsapp }}</a>
             </div>
-            <button type="submit" disabled="{{ quickSending }}" aria-busy="{{ quickSending }}" style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quickSubmitOpacity }};">{{ quickSubmitLabel }}</button>
-          </form>
-        </sc-if>
+          </sc-if>
+          <sc-if value="{{ quickNotSubmitted }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-bottom:24px;">
+              <h3 style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;color:#0B1F33;margin:0 0 6px;">{{ t.home.quickFormTitle }}</h3>
+              <p style="font-size:13.5px;line-height:1.55;color:#64748B;margin:0;">{{ t.home.quickFormHint }}</p>
+            </div>
+            <form aria-label="{{ quickFormLabel }}" onSubmit="{{ submitQuick }}" novalidate style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;width:100%;min-width:0;" class="ns-grid-2 ns-quick-grid">
+              <div class="ns-quick-field">
+                <label for="quick-name">{{ t.quotation.fullName }} *</label>
+                <input id="quick-name" name="name" placeholder="{{ t.home.quickNamePlaceholder }}" value="{{ quickForm.name }}" onChange="{{ qkh.name }}" autocomplete="name" maxlength="100" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}"/>
+              </div>
+              <div class="ns-quick-field">
+                <label for="quick-phone">{{ t.quotation.phone }} *</label>
+                <input id="quick-phone" name="phone" placeholder="{{ t.home.quickPhonePlaceholder }}" value="{{ quickForm.phone }}" onChange="{{ qkh.phone }}" autocomplete="tel" inputmode="tel" maxlength="24" required aria-invalid="{{ quickInvalid }}" aria-describedby="{{ quickErrorId }}"/>
+              </div>
+              <div class="ns-quick-field" style="grid-column:span 2;">
+                <label for="quick-service">{{ t.quotation.serviceRequired }}</label>
+                <select id="quick-service" name="service" value="{{ quickForm.service }}" onChange="{{ qkh.service }}" aria-describedby="{{ quickErrorId }}">
+                  <option value="">{{ t.home.quickServicePlaceholder }}</option>
+                  <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
+                    <option value="{{ opt.value }}">{{ opt.label }}</option>
+                  </sc-for>
+                </select>
+              </div>
+              <div class="ns-quick-field" style="grid-column:span 2;">
+                <label for="quick-message">{{ t.quotation.description }}</label>
+                <textarea id="quick-message" name="message" placeholder="{{ t.home.quickMessagePlaceholder }}" value="{{ quickForm.message }}" onChange="{{ qkh.message }}" rows="4" maxlength="1000" aria-describedby="{{ quickErrorId }}"></textarea>
+              </div>
+              <label style="grid-column:span 2;display:flex;align-items:flex-start;gap:10px;color:#526273;font-size:12.5px;line-height:1.5;background:#F8FAFC;border-radius:10px;padding:12px;">
+              <input id="quick-consent" type="checkbox" checked="{{ quickAgree }}" onChange="{{ toggleQuickAgree }}" required aria-describedby="{{ quickErrorId }}" style="margin-top:2px;"/>
+              <span>
+                {{ consentPrefix }}
+                <a href="{{ legalHref.privacy }}" onClick="{{ legalHandlers.privacy }}" style="color:#146CBE;font-weight:700;text-decoration:underline;">{{ t.footer.privacy }}</a>
+                {{ consentAnd }}
+                <a href="{{ legalHref.terms }}" onClick="{{ legalHandlers.terms }}" style="color:#146CBE;font-weight:700;text-decoration:underline;">{{ t.footer.terms }}</a>.
+              </span>
+              </label>
+              <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
+                <p id="quick-form-error" class="ns-error" role="alert" aria-live="assertive" style="grid-column:span 2;margin:0;">{{ quickError }}</p>
+              </sc-if>
+              <div class="ns-quick-security">
+                <p style="font-size:12px;font-weight:700;color:#526273;margin:0 0 10px;">{{ t.home.quickSecurity }}</p>
+                <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
+                <sc-if value="{{ turnstileError }}"><p class="ns-error" role="alert" aria-live="assertive">{{ turnstileError }}</p></sc-if>
+              </div>
+              <button class="ns-quick-submit" type="submit" disabled="{{ quickSending }}" aria-busy="{{ quickSending }}" style="opacity:{{ quickSubmitOpacity }};">{{ quickSubmitLabel }}</button>
+              <p style="grid-column:span 2;text-align:center;font-size:11.5px;color:#7B8794;line-height:1.5;margin:-4px 0 0;">{{ t.home.quickResponse }}</p>
+            </form>
+          </sc-if>
+        </div>
       </div>
     </section>
   </sc-if>
@@ -584,7 +634,12 @@
 
           <label style="display:flex;align-items:flex-start;gap:10px;margin-top:22px;font-size:13px;color:#5B6675;line-height:1.5;">
             <input id="quote-consent" type="checkbox" checked="{{ quoteForm.agree }}" onChange="{{ qh.agree }}" required aria-describedby="{{ quoteErrorId }}" style="margin-top:2px;"/>
-            {{ t.quotation.agreement }}
+            <span>
+              {{ consentPrefix }}
+              <a href="{{ legalHref.privacy }}" onClick="{{ legalHandlers.privacy }}" style="color:#146CBE;font-weight:700;text-decoration:underline;">{{ t.footer.privacy }}</a>
+              {{ consentAnd }}
+              <a href="{{ legalHref.terms }}" onClick="{{ legalHandlers.terms }}" style="color:#146CBE;font-weight:700;text-decoration:underline;">{{ t.footer.terms }}</a>.
+            </span>
           </label>
 
           <div style="width:100%;margin-top:18px;">
@@ -789,8 +844,13 @@ en: {
       {step:"5", title:"Schedule & Work", desc:"Once approved, we schedule and complete the work."},
       {step:"6", title:"Confirmation", desc:"You confirm completion and receive handover notes."}
     ],
-    enquiryTitle:"Quick Enquiry", enquirySub:"Send us a short message and our team will get back to you.",
-    quickSuccessTitle:"Your enquiry is ready to send.", quickSuccessMsg:"Use the WhatsApp button below to send it to our team."
+    enquiryTitle:"Tell Us What You Need", enquirySub:"Share a few details and our technical team will review your request.",
+    quickEyebrow:"Quick Enquiry", quickFormTitle:"Request a callback", quickFormHint:"Complete the short form below. Required fields are marked with an asterisk.",
+    quickBenefits:["Sent directly to our technical team","Protected by secure verification","Optional WhatsApp follow-up after submission"],
+    quickPrivacy:"Your details are used only to respond to this enquiry and handled according to our Privacy Notice.",
+    quickNamePlaceholder:"e.g. Ahmad Firdaus", quickPhonePlaceholder:"e.g. 012-345 6789", quickServicePlaceholder:"Choose a service (optional)",
+    quickMessagePlaceholder:"Briefly describe the work, location or issue…", quickSecurity:"Security verification", quickResponse:"We normally respond within one business day.",
+    quickSuccessTitle:"Enquiry received successfully", quickSuccessMsg:"Our team has received your details. Keep this reference number for follow-up."
   },
   about: {
     title:"About NS Smart Fix Solution",
@@ -865,8 +925,13 @@ bm: {
       {step:"5", title:"Penjadualan & Pelaksanaan", desc:"Selepas diluluskan, kerja akan dijadualkan dan dilaksanakan."},
       {step:"6", title:"Pengesahan Siap Kerja", desc:"Anda mengesahkan kerja telah siap dan menerima dokumen serahan."}
     ],
-    enquiryTitle:"Pertanyaan Ringkas", enquirySub:"Hantar mesej ringkas dan pasukan kami akan menghubungi anda.",
-    quickSuccessTitle:"Pertanyaan anda sedia untuk dihantar.", quickSuccessMsg:"Gunakan butang WhatsApp di bawah untuk menghantarnya kepada pasukan kami."
+    enquiryTitle:"Beritahu Kami Keperluan Anda", enquirySub:"Kongsikan beberapa butiran dan pasukan teknikal kami akan menyemak permintaan anda.",
+    quickEyebrow:"Pertanyaan Ringkas", quickFormTitle:"Minta kami hubungi anda", quickFormHint:"Lengkapkan borang ringkas di bawah. Ruangan wajib ditandakan dengan asterisk.",
+    quickBenefits:["Dihantar terus kepada pasukan teknikal kami","Dilindungi oleh pengesahan keselamatan","Susulan WhatsApp pilihan selepas penghantaran"],
+    quickPrivacy:"Maklumat anda hanya digunakan untuk menjawab pertanyaan ini dan dikendalikan mengikut Notis Privasi kami.",
+    quickNamePlaceholder:"cth. Ahmad Firdaus", quickPhonePlaceholder:"cth. 012-345 6789", quickServicePlaceholder:"Pilih perkhidmatan (pilihan)",
+    quickMessagePlaceholder:"Terangkan secara ringkas kerja, lokasi atau masalah…", quickSecurity:"Pengesahan keselamatan", quickResponse:"Kami biasanya memberi respons dalam satu hari bekerja.",
+    quickSuccessTitle:"Pertanyaan berjaya diterima", quickSuccessMsg:"Pasukan kami telah menerima maklumat anda. Simpan nombor rujukan ini untuk tindakan susulan."
   },
   about: {
     title:"Tentang NS Smart Fix Solution",
@@ -1737,7 +1802,8 @@ class Component extends DCLogic {
       quickFormLabel:isEn ? 'Quick enquiry form' : 'Borang pertanyaan ringkas',
       quickInvalid:!!s.quickError,
       quickErrorId:s.quickError ? 'quick-form-error' : undefined,
-      quickConsentLabel: isEn ? 'I agree that NS Smart Fix Solution may use these details to process my enquiry, in line with the Privacy Notice.' : 'Saya bersetuju bahawa NS Smart Fix Solution boleh menggunakan maklumat ini untuk memproses pertanyaan saya, selaras dengan Notis Privasi.',
+      consentPrefix: isEn ? 'I agree that NS Smart Fix Solution may use these details to process my enquiry in accordance with the' : 'Saya bersetuju bahawa NS Smart Fix Solution boleh menggunakan maklumat ini untuk memproses pertanyaan saya mengikut',
+      consentAnd: isEn ? 'and' : 'dan',
       toggleQuickAgree:(e)=>this.setState({quickAgree:e.target.checked}),
       quickSubmitLabel:s.quickSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
       turnstileLabel:isEn ? 'Security verification' : 'Pengesahan keselamatan',

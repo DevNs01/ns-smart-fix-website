@@ -28,6 +28,11 @@ test('forms expose labels, groups, validation relationships and live errors', ()
   assert.match(source, /aria-describedby="\{\{ quoteErrorId \}\}"/);
 });
 
+test('form consent provides real privacy and terms destinations', () => {
+  assert.match(source, /id="quick-consent"[\s\S]*?href="\{\{ legalHref\.privacy \}\}"[\s\S]*?href="\{\{ legalHref\.terms \}\}"/);
+  assert.match(source, /id="quote-consent"[\s\S]*?href="\{\{ legalHref\.privacy \}\}"[\s\S]*?href="\{\{ legalHref\.terms \}\}"/);
+});
+
 test('FAQ disclosure buttons expose state and controlled regions', () => {
   assert.match(source, /<button type="button" aria-expanded="\{\{ item\.open \}\}" aria-controls="\{\{ item\.panelId \}\}"/);
   assert.match(source, /role="region" aria-labelledby="\{\{ item\.buttonId \}\}"/);
