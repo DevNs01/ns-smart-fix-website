@@ -4,9 +4,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NS Smart Fix Solution | Electrical, Networking &amp; IT Services</title>
+<style>
+  /* Critical first-paint guard: keep Design Canvas expressions hidden until React commits. */
+  x-dc{display:none!important;}
+  #ns-boot-loader{
+    position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;
+    padding:24px;background:#F5F7FA;color:#0B1F33;font-family:Arial,sans-serif;
+  }
+  #ns-boot-loader[hidden]{display:none!important;}
+  .ns-boot-card{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;}
+  .ns-boot-logo{width:150px;height:auto;}
+  .ns-boot-spinner{
+    width:34px;height:34px;border:3px solid #D6E5F3;border-top-color:#146CBE;border-radius:50%;
+    animation:ns-boot-spin .8s linear infinite;
+  }
+  .ns-boot-message{margin:0;font-size:15px;font-weight:600;}
+  @keyframes ns-boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){.ns-boot-spinner{animation:none;border-top-color:#F59E0B;}}
+</style>
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
+<div id="ns-boot-loader" role="status" aria-live="polite" aria-label="Loading website">
+  <div class="ns-boot-card">
+    <img class="ns-boot-logo" src="/assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution">
+    <span class="ns-boot-spinner" aria-hidden="true"></span>
+    <p class="ns-boot-message">Loading website / Sedang memuatkan laman web…</p>
+  </div>
+</div>
+<noscript>
+  <style>#ns-boot-loader{display:none!important;}</style>
+  <div style="padding:24px;text-align:center;font-family:Arial,sans-serif;color:#0B1F33;">
+    JavaScript is required to view this website. / JavaScript diperlukan untuk melihat laman web ini.
+  </div>
+</noscript>
 <x-dc>
 
 <helmet>

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 const root = process.cwd();
 const source = readFileSync(join(root, 'index.html'), 'utf8');
+const entrySource = readFileSync(join(root, 'src', 'main.js'), 'utf8');
 const failures = [];
 
 const bmTerms = /const BM_TERMS_FULL = `([\s\S]*?)`;/.exec(source)?.[1];
@@ -56,10 +57,20 @@ const requiredPatterns = [
   ['Two-column tablet cards', /@media \(min-width:600px\) and \(max-width:860px\)[\s\S]*\.ns-grid-3\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\) !important;/],
   ['Small-phone responsive typography', /main h1\{font-size:clamp\(28px,9vw,34px\) !important;/],
   ['Extra-small phone controls', /@media \(max-width:380px\)[\s\S]*\.ns-sticky-bar > \*\{min-height:56px !important;font-size:13px !important;/],
+  ['Critical raw-template guard', /<style>[\s\S]*x-dc\{display:none!important;\}/],
+  ['Accessible first-paint loader', /id="ns-boot-loader" role="status" aria-live="polite"/],
+  ['No-JavaScript fallback', /<noscript>[\s\S]*JavaScript is required/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {
   if (!pattern.test(source)) failures.push(`Missing ${name}`);
+}
+
+if (!/function revealWebsite\(\)[\s\S]*root\?\.firstElementChild/.test(entrySource)) {
+  failures.push('Missing render-completion guard');
+}
+if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: true \}\)/.test(entrySource)) {
+  failures.push('Missing render observer for first-paint loader');
 }
 
 if (failures.length) {
