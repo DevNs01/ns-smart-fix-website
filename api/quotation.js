@@ -5,6 +5,14 @@ const WEBSITE_URL = 'https://nssmartfixsolution.com';
 const WHATSAPP_URL = 'https://wa.me/60164110681';
 const PRIMARY_PHONE = '016-411 0681';
 const SECONDARY_PHONE = '012-885 1681';
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 5;
+const DUPLICATE_WINDOW_MS = 10 * 60 * 1000;
+const rateLimitStore = globalThis.__nsQuotationRateLimits || new Map();
+const duplicateStore = globalThis.__nsQuotationDuplicates || new Map();
+globalThis.__nsQuotationRateLimits = rateLimitStore;
+globalThis.__nsQuotationDuplicates = duplicateStore;
 const SERVICE_LABELS = {
   electrical: 'Electrical Wiring', network: 'Network Cabling', server: 'Server Setup',
   product: 'IT Product Supply', tv: 'TV Bracket Installation', renovation: 'Minor Renovation',
@@ -39,6 +47,94 @@ function makeReference() {
   return `NSQ-${stamp}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
 }
 
+function clientIp(request) {
+  const forwarded = String(request.headers?.['x-forwarded-for'] || '').split(',')[0].trim();
+  return forwarded || String(request.headers?.['x-real-ip'] || request.socket?.remoteAddress || 'unknown').slice(0, 80);
+}
+
+function cleanupProtectionStores(now = Date.now()) {
+  for (const [key, value] of rateLimitStore) {
+    if (value.resetAt <= now) rateLimitStore.delete(key);
+  }
+  for (const [key, expiresAt] of duplicateStore) {
+    if (expiresAt <= now) duplicateStore.delete(key);
+  }
+}
+
+export function checkRateLimit(ip, now = Date.now()) {
+  cleanupProtectionStores(now);
+  const key = clean(ip, 80) || 'unknown';
+  const current = rateLimitStore.get(key);
+  if (!current || current.resetAt <= now) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, retryAfter: 0 };
+  }
+  current.count += 1;
+  const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+  return {
+    allowed: current.count <= RATE_LIMIT_MAX_REQUESTS,
+    remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - current.count),
+    retryAfter
+  };
+}
+
+function duplicateFingerprint(input, ip) {
+  const normalized = [
+    clean(ip, 80).toLowerCase(),
+    clean(input.fullName, 100).toLowerCase(),
+    clean(input.phone, 24).replace(/\D/g, ''),
+    clean(input.email, 254).toLowerCase(),
+    [...(input.services || [])].sort().join(','),
+    clean(input.description, 2000).toLowerCase().replace(/\s+/g, ' ')
+  ].join('|');
+  let hash = 2166136261;
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+export function checkDuplicate(input, ip, now = Date.now()) {
+  cleanupProtectionStores(now);
+  const fingerprint = duplicateFingerprint(input, ip);
+  if ((duplicateStore.get(fingerprint) || 0) > now) return true;
+  duplicateStore.set(fingerprint, now + DUPLICATE_WINDOW_MS);
+  return false;
+}
+
+function releaseDuplicate(input, ip) {
+  duplicateStore.delete(duplicateFingerprint(input, ip));
+}
+
+export function resetProtectionStores() {
+  rateLimitStore.clear();
+  duplicateStore.clear();
+}
+
+export async function verifyTurnstile(token, ip, fetchImpl = fetch) {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return process.env.NODE_ENV !== 'production';
+  const body = new URLSearchParams({
+    secret,
+    response: clean(token, 2048),
+    remoteip: clean(ip, 80),
+    idempotency_key: crypto.randomUUID()
+  });
+  try {
+    const result = await fetchImpl(TURNSTILE_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    if (!result.ok) return false;
+    const verification = await result.json();
+    return verification.success === true;
+  } catch {
+    return false;
+  }
+}
+
 export function validatePayload(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return 'Invalid request.';
   const fullName = clean(input.fullName, 100);
@@ -52,6 +148,14 @@ export function validatePayload(input) {
   if (input.agree !== true) return 'Privacy consent is required.';
   if (input.services && (!Array.isArray(input.services) || input.services.some(key => !SERVICE_LABELS[key]))) return 'An invalid service was selected.';
   if (input.files && (!Array.isArray(input.files) || input.files.length > 5)) return 'An invalid file list was submitted.';
+  if (input.files?.some(name => clean(name, 120) !== String(name || '').trim() || !/\.(?:jpe?g|png|webp|pdf)$/i.test(name))) return 'An invalid file name was submitted.';
+  if (input.language && !['en', 'bm'].includes(input.language)) return 'An invalid language was selected.';
+  if (input.visitDate) {
+    const visitDate = new Date(`${clean(input.visitDate, 20)}T00:00:00+08:00`);
+    const today = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }) + 'T00:00:00+08:00');
+    if (Number.isNaN(visitDate.getTime()) || visitDate < today) return 'The preferred visit date is invalid.';
+  }
+  if (!clean(input.turnstileToken, 2048)) return 'Security verification is required.';
   return '';
 }
 
@@ -196,11 +300,28 @@ export default async function handler(request, response) {
     response.setHeader('Allow', 'POST');
     return response.status(405).json({ error: 'Method not allowed.' });
   }
+  const contentType = String(request.headers?.['content-type'] || '').toLowerCase();
+  if (!contentType.includes('application/json')) return response.status(415).json({ error: 'Content type must be application/json.' });
   if (!process.env.RESEND_API_KEY) return response.status(503).json({ error: 'Email service is not configured.' });
   if (Number(request.headers['content-length'] || 0) > MAX_BODY_BYTES) return response.status(413).json({ error: 'Request is too large.' });
+  response.setHeader('Cache-Control', 'no-store');
+  const ip = clientIp(request);
+  const rateLimit = checkRateLimit(ip);
+  response.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
+  response.setHeader('X-RateLimit-Remaining', String(rateLimit.remaining));
+  if (!rateLimit.allowed) {
+    response.setHeader('Retry-After', String(rateLimit.retryAfter));
+    return response.status(429).json({ error: 'Too many requests. Please wait before trying again.' });
+  }
   const payload = request.body;
   const validationError = validatePayload(payload);
   if (validationError) return response.status(400).json({ error: validationError });
+  if (!await verifyTurnstile(payload.turnstileToken, ip)) {
+    return response.status(403).json({ error: 'Security verification failed. Please try again.' });
+  }
+  if (checkDuplicate(payload, ip)) {
+    return response.status(409).json({ error: 'This request was already submitted. Please wait before sending it again.' });
+  }
 
   const reference = makeReference();
   const email = buildEmail(payload, reference);
@@ -215,6 +336,7 @@ export default async function handler(request, response) {
     })
   });
   if (!resendResponse.ok) {
+    releaseDuplicate(payload, ip);
     console.error('Quotation email delivery failed', resendResponse.status);
     return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
   }

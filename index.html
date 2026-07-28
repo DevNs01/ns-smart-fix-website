@@ -301,6 +301,10 @@
             <sc-if value="{{ hasQuickError }}" hint-placeholder-val="{{ false }}">
               <p role="alert" style="grid-column:span 2;color:#B42318;font-size:13px;margin:0;">{{ quickError }}</p>
             </sc-if>
+            <div style="grid-column:span 2;width:100%;">
+              <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
+              <sc-if value="{{ turnstileError }}"><p role="alert" style="color:#B42318;font-size:13px;margin:8px 0 0;">{{ turnstileError }}</p></sc-if>
+            </div>
             <button disabled="{{ quickSending }}" style="grid-column:span 2;background:#0B1F33;border:none;border-radius:9px;padding:14px;font-size:14.5px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quickSubmitOpacity }};" onClick="{{ submitQuick }}">{{ quickSubmitLabel }}</button>
           </div>
         </sc-if>
@@ -552,6 +556,10 @@
             {{ t.quotation.agreement }}
           </label>
 
+          <div style="width:100%;margin-top:18px;">
+            <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
+            <sc-if value="{{ turnstileError }}"><p role="alert" style="color:#B42318;font-size:13px;margin:8px 0 0;">{{ turnstileError }}</p></sc-if>
+          </div>
           <button disabled="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quoteSubmitOpacity }};" onClick="{{ submitQuote }}">{{ quoteSubmitLabel }}</button>
           <sc-if value="{{ quoteError }}">
             <p style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center;">{{ quoteError }}</p>
@@ -1171,6 +1179,7 @@ class Component extends DCLogic {
     quickForm:{name:'',phone:'',service:'',message:''}, quickAgree:false, quickSubmitted:false, quickSending:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
     quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteSending:false, quoteRef:'', quoteError:'', quoteFiles:[],
+    turnstileToken:'', turnstileReady:false, turnstileError:'',
     openFaq:-1, qtyCounter:1,
     ...routeStateFromPath(typeof window !== 'undefined' ? window.location.pathname : '/')
   };
@@ -1230,6 +1239,10 @@ class Component extends DCLogic {
     };
     window.addEventListener('popstate',this.handlePopState);
     this.syncRouteMetadata();
+    this.setupTurnstile();
+  }
+  componentDidUpdate(){
+    this.setupTurnstile();
   }
   componentWillUnmount(){
     if (typeof window !== 'undefined' && this.handlePopState) window.removeEventListener('popstate',this.handlePopState);
@@ -1244,6 +1257,83 @@ class Component extends DCLogic {
     };
   }
   setField(obj, field, value){ this.setState(s => ({ [obj]: { ...s[obj], [field]: value } })); }
+  async loadTurnstile(){
+    if (typeof window === 'undefined') return false;
+    if (window.turnstile) return true;
+    if (!this.turnstileLoader) {
+      this.turnstileLoader = (async () => {
+        const configResponse = await fetch('/api/security-config', {headers:{Accept:'application/json'}});
+        if (!configResponse.ok) throw new Error('turnstile_config');
+        const config = await configResponse.json();
+        if (!config.siteKey) throw new Error('turnstile_config');
+        this.turnstileSiteKey = config.siteKey;
+        await new Promise((resolve,reject) => {
+          const existing = document.querySelector('script[data-ns-turnstile]');
+          if (existing) {
+            existing.addEventListener('load',resolve,{once:true});
+            existing.addEventListener('error',reject,{once:true});
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+          script.async = true;
+          script.defer = true;
+          script.dataset.nsTurnstile = 'true';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+        return true;
+      })().catch(() => {
+        this.turnstileLoader = null;
+        this.turnstileRetryAfter = Date.now() + 30000;
+        this.setState({turnstileReady:false,turnstileError:this.errorText(
+          'Security verification could not load. Please refresh the page.',
+          'Pengesahan keselamatan tidak dapat dimuatkan. Sila muat semula halaman.'
+        )});
+        return false;
+      });
+    }
+    return this.turnstileLoader;
+  }
+  async setupTurnstile(){
+    if (typeof document === 'undefined' || this.turnstileSetupPending || (this.turnstileRetryAfter || 0) > Date.now()) return;
+    const containers = [...document.querySelectorAll('.ns-turnstile-widget:not([data-rendered])')];
+    if (!containers.length) return;
+    this.turnstileSetupPending = true;
+    const loaded = await this.loadTurnstile();
+    if (loaded && window.turnstile && this.turnstileSiteKey) {
+      for (const container of containers) {
+        if (!container.isConnected || container.dataset.rendered) continue;
+        const widgetId = window.turnstile.render(container,{
+          sitekey:this.turnstileSiteKey,theme:'light',size:'flexible',
+          callback:(token)=>this.setState({turnstileToken:token,turnstileReady:true,turnstileError:''}),
+          'expired-callback':()=>this.setState({turnstileToken:'',turnstileReady:false}),
+          'error-callback':()=>this.setState({
+            turnstileToken:'',turnstileReady:false,
+            turnstileError:this.errorText('Security verification failed. Please try again.','Pengesahan keselamatan gagal. Sila cuba lagi.')
+          })
+        });
+        container.dataset.rendered = 'true';
+        container.dataset.widgetId = String(widgetId);
+      }
+    }
+    this.turnstileSetupPending = false;
+  }
+  resetTurnstile(){
+    if (typeof window !== 'undefined' && window.turnstile) {
+      for (const container of document.querySelectorAll('.ns-turnstile-widget[data-widget-id]')) {
+        window.turnstile.reset(container.dataset.widgetId);
+      }
+    }
+    this.setState({turnstileToken:'',turnstileReady:false});
+  }
+  submissionError(result,status){
+    if (status === 429) return this.errorText('Too many attempts. Please wait a few minutes before trying again.','Terlalu banyak percubaan. Sila tunggu beberapa minit sebelum mencuba lagi.');
+    if (status === 409) return this.errorText('This request was already submitted. Please check your email or contact us through WhatsApp.','Permohonan ini telah dihantar. Sila semak e-mel anda atau hubungi kami melalui WhatsApp.');
+    if (status === 403 || /security/i.test(result?.error || '')) return this.errorText('Security verification failed. Please complete the check and try again.','Pengesahan keselamatan gagal. Sila lengkapkan semakan dan cuba lagi.');
+    return this.errorText('The email could not be sent. Please try again or contact us through WhatsApp.','E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.');
+  }
 
   submitQuick = async () => {
     if (this.state.quickSending) return;
@@ -1262,6 +1352,9 @@ class Component extends DCLogic {
     if (!this.state.quickAgree) {
       this.setState({quickError:this.errorText('Please accept the privacy notice before continuing.', 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.')}); return;
     }
+    if (!this.state.turnstileToken) {
+      this.setState({quickError:this.errorText('Please complete the security verification.', 'Sila lengkapkan pengesahan keselamatan.')}); return;
+    }
     this.setState({quickSending:true, quickError:''});
     try {
       const response = await fetch('/api/quotation', {
@@ -1271,16 +1364,21 @@ class Component extends DCLogic {
           fullName:f.name, phone:f.phone, email:'', company:'', customerType:'Quick Enquiry',
           services:f.service ? [f.service] : [], location:'', visitDate:'', contactMethod:'Not specified',
           description:f.message, budget:'Not specified', urgency:'Standard', files:[],
-          agree:true, language:this.state.lang
+          agree:true, language:this.state.lang, turnstileToken:this.state.turnstileToken
         })
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.reference) throw new Error('delivery_failed');
+      if (!response.ok || !result.reference) {
+        this.resetTurnstile();
+        this.setState({quickSending:false,quickError:this.submissionError(result,response.status)});
+        return;
+      }
       this.setState({quickSubmitted:true, quickSending:false, quickRef:result.reference, quickError:''});
     } catch {
+      this.resetTurnstile();
       this.setState({
         quickSending:false,
-        quickError:this.errorText('The email could not be sent. Please try again or contact us through WhatsApp.', 'E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.')
+        quickError:this.submissionError({},0)
       });
     }
   };
@@ -1297,6 +1395,7 @@ class Component extends DCLogic {
       if (Number.isNaN(selected.getTime()) || selected < today) { this.setState({quoteError:isBm ? 'Sila pilih tarikh lawatan hari ini atau selepasnya.' : 'Please choose today or a future visit date.'}); return; }
     }
     if (!f.agree) { this.setState({quoteError:isBm ? 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.' : 'Please accept the privacy notice before continuing.'}); return; }
+    if (!this.state.turnstileToken) { this.setState({quoteError:isBm ? 'Sila lengkapkan pengesahan keselamatan.' : 'Please complete the security verification.'}); return; }
     const services = Object.keys(this.state.quoteServices).filter(key => this.state.quoteServices[key]);
     this.setState({quoteSending:true, quoteError:''});
     try {
@@ -1310,16 +1409,22 @@ class Component extends DCLogic {
           contactMethod:this.state.quoteContactMethod,
           urgency:this.state.quoteUrgency,
           files:this.state.quoteFiles,
-          language:this.state.lang
+          language:this.state.lang,
+          turnstileToken:this.state.turnstileToken
         })
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.reference) throw new Error('delivery_failed');
+      if (!response.ok || !result.reference) {
+        this.resetTurnstile();
+        this.setState({quoteSending:false,quoteError:this.submissionError(result,response.status)});
+        return;
+      }
       this.setState({quoteSubmitted:true, quoteSending:false, quoteRef:result.reference, quoteError:''});
     } catch {
+      this.resetTurnstile();
       this.setState({
         quoteSending:false,
-        quoteError:isBm ? 'E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.' : 'The email could not be sent. Please try again or contact us through WhatsApp.'
+        quoteError:this.submissionError({},0)
       });
     }
   };
@@ -1552,6 +1657,8 @@ class Component extends DCLogic {
       quickConsentLabel: isEn ? 'I agree that NS Smart Fix Solution may use these details to process my enquiry, in line with the Privacy Notice.' : 'Saya bersetuju bahawa NS Smart Fix Solution boleh menggunakan maklumat ini untuk memproses pertanyaan saya, selaras dengan Notis Privasi.',
       toggleQuickAgree:(e)=>this.setState({quickAgree:e.target.checked}),
       quickSubmitLabel:s.quickSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
+      turnstileLabel:isEn ? 'Security verification' : 'Pengesahan keselamatan',
+      turnstileError:s.turnstileError,
       quickSubmitOpacity:s.quickSending ? '0.65' : '1',
       qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
       brandCards, waGeneralLink: waLinks.general,
