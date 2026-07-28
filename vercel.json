@@ -3,6 +3,9 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "crons": [
+    { "path": "/api/monitor", "schedule": "*/10 * * * *" }
+  ],
   "rewrites": [
     { "source": "/about", "destination": "/index.html" },
     { "source": "/services", "destination": "/index.html" },
