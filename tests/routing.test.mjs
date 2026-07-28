@@ -32,6 +32,11 @@ test('navigation uses history and handles browser back and forward', () => {
   assert.match(source, /window\.removeEventListener\('popstate'/);
 });
 
+test('initial route state is applied after defaults so legal deep links are preserved', () => {
+  assert.match(source, /openFaq:-1, qtyCounter:1,\s+\.\.\.routeStateFromPath/);
+  assert.doesNotMatch(source, /\.\.\.routeStateFromPath[^}]+legalTab:'privacy'/);
+});
+
 test('navigation links expose real href destinations', () => {
   for (const key of ['home', 'about', 'services', 'products', 'quotation', 'contact', 'faq']) {
     assert.match(source, new RegExp(`href="\\{\\{ navHref\\.${key} \\}\\}"`), `missing semantic href for ${key}`);
