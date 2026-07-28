@@ -1,10 +1,19 @@
 const MAX_BODY_BYTES = 24 * 1024;
 const RECIPIENT = process.env.QUOTATION_TO_EMAIL || 'admin@nssmartfixsolution.com';
 const SENDER = process.env.QUOTATION_FROM_EMAIL || 'NS Smart Fix Website <website@nssmartfixsolution.com>';
+const WEBSITE_URL = 'https://nssmartfixsolution.com';
+const WHATSAPP_URL = 'https://wa.me/60164110681';
+const PRIMARY_PHONE = '016-411 0681';
+const SECONDARY_PHONE = '012-885 1681';
 const SERVICE_LABELS = {
   electrical: 'Electrical Wiring', network: 'Network Cabling', server: 'Server Setup',
   product: 'IT Product Supply', tv: 'TV Bracket Installation', renovation: 'Minor Renovation',
   delivery: 'Delivery', troubleshoot: 'Troubleshooting'
+};
+const SERVICE_LABELS_BM = {
+  electrical:'Pendawaian Elektrik', network:'Kabel Rangkaian', server:'Pemasangan Server',
+  product:'Pembekalan Produk IT', tv:'Pemasangan Pendakap TV', renovation:'Pengubahsuaian Kecil',
+  delivery:'Penghantaran', troubleshoot:'Penyelesaian Masalah'
 };
 
 function clean(value, max = 500) {
@@ -85,6 +94,103 @@ export function buildEmail(input, reference) {
   return { html, plain };
 }
 
+function customerRow(label, value, fallback) {
+  return `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;background:#F5F7FA;border:1px solid #DDE5EE;width:190px;color:#0B1F33;">${escapeHtml(label)}</th><td style="padding:10px 12px;border:1px solid #DDE5EE;color:#374151;">${escapeHtml(value || fallback)}</td></tr>`;
+}
+
+export function buildCustomerEmail(input, reference) {
+  const isBm = input.language === 'bm';
+  const serviceLabels = isBm ? SERVICE_LABELS_BM : SERVICE_LABELS;
+  const services = (input.services || []).map(key => serviceLabels[key]).join(', ');
+  const files = (input.files || []).map(name => clean(name, 120)).join(', ');
+  const fallback = isBm ? 'Tidak diberikan' : 'Not provided';
+  const details = isBm
+    ? [
+        ['Nombor Rujukan', reference], ['Nama Penuh', clean(input.fullName, 100)],
+        ['Syarikat', clean(input.company, 120)], ['Telefon', clean(input.phone, 24)],
+        ['E-mel', clean(input.email, 254)], ['Jenis Pelanggan', clean(input.customerType, 60)],
+        ['Perkhidmatan Diperlukan', services], ['Lokasi Projek', clean(input.location, 250)],
+        ['Tarikh Lawatan Pilihan', clean(input.visitDate, 20)], ['Kaedah Hubungan Pilihan', clean(input.contactMethod, 40)],
+        ['Julat Bajet', clean(input.budget, 80)], ['Tahap Keutamaan', clean(input.urgency, 50)],
+        ['Nama Fail Dipilih', files]
+      ]
+    : [
+        ['Reference Number', reference], ['Full Name', clean(input.fullName, 100)],
+        ['Company', clean(input.company, 120)], ['Phone', clean(input.phone, 24)],
+        ['Email', clean(input.email, 254)], ['Customer Type', clean(input.customerType, 60)],
+        ['Services Required', services], ['Project Location', clean(input.location, 250)],
+        ['Preferred Site Visit', clean(input.visitDate, 20)], ['Preferred Contact Method', clean(input.contactMethod, 40)],
+        ['Budget Range', clean(input.budget, 80)], ['Urgency', clean(input.urgency, 50)],
+        ['Selected File Names', files]
+      ];
+  const copy = isBm
+    ? {
+        subject:`[${reference}] Pengesahan Permohonan Sebut Harga`,
+        eyebrow:'NS SMART FIX SOLUTION',
+        title:'Permohonan Anda Telah Diterima',
+        greeting:`Salam ${clean(input.fullName, 100)},`,
+        intro:'Terima kasih kerana menghubungi NS Smart Fix Solution. Kami telah menerima permohonan anda dan pasukan kami akan menyemak butiran yang diberikan.',
+        response:'Jangkaan masa respons: dalam tempoh 1 hari bekerja, pada waktu operasi Isnin hingga Sabtu, 9:00 pagi hingga 6:00 petang.',
+        summary:'Ringkasan Permohonan',
+        description:'Penerangan Keperluan',
+        contactTitle:'Perlu bantuan segera?',
+        contact:`Hubungi Nasarudin di ${PRIMARY_PHONE} atau Nazrin Shah di ${SECONDARY_PHONE}.`,
+        whatsapp:'Hubungi melalui WhatsApp',
+        website:'Layari Laman Web Kami',
+        fileNote:'Fail yang dipilih tidak dilampirkan secara automatik. Jika diperlukan, sila hantarkannya melalui WhatsApp.',
+        closing:'Sila simpan nombor rujukan ini untuk sebarang komunikasi lanjut.',
+        fallback
+      }
+    : {
+        subject:`[${reference}] Quotation Request Confirmation`,
+        eyebrow:'NS SMART FIX SOLUTION',
+        title:'We Have Received Your Request',
+        greeting:`Hello ${clean(input.fullName, 100)},`,
+        intro:'Thank you for contacting NS Smart Fix Solution. We have received your request and our team will review the submitted details.',
+        response:'Expected response time: within 1 business day during our operating hours, Monday to Saturday, 9:00 AM to 6:00 PM.',
+        summary:'Request Summary',
+        description:'Description of Requirement',
+        contactTitle:'Need urgent assistance?',
+        contact:`Call Nasarudin at ${PRIMARY_PHONE} or Nazrin Shah at ${SECONDARY_PHONE}.`,
+        whatsapp:'Contact Us on WhatsApp',
+        website:'Visit Our Website',
+        fileNote:'Selected files are not attached automatically. If required, please send them through WhatsApp.',
+        closing:'Please keep this reference number for any follow-up communication.',
+        fallback
+      };
+  const plain = [
+    copy.title.toUpperCase(), '', copy.greeting, copy.intro, '', copy.response, '',
+    ...details.map(([label, value]) => `${label}: ${value || copy.fallback}`),
+    '', `${copy.description}:`, clean(input.description, 2000) || copy.fallback, '',
+    copy.fileNote, '', copy.contactTitle, copy.contact,
+    `${copy.whatsapp}: ${WHATSAPP_URL}`, `${copy.website}: ${WEBSITE_URL}`, '', copy.closing
+  ].join('\n');
+  const html = `<!doctype html>
+<html lang="${isBm ? 'ms' : 'en'}"><body style="margin:0;background:#F5F7FA;font-family:Arial,sans-serif;color:#1F2937;">
+<div style="max-width:720px;margin:0 auto;padding:28px 16px;">
+<div style="background:#0B1F33;padding:24px;border-radius:14px 14px 0 0;">
+<div style="color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:.08em;">${copy.eyebrow}</div>
+<h1 style="margin:8px 0 0;color:#FFFFFF;font-size:24px;">${copy.title}</h1></div>
+<div style="background:#FFFFFF;padding:24px;border:1px solid #DDE5EE;border-top:0;border-radius:0 0 14px 14px;">
+<p style="font-size:15px;line-height:1.6;margin:0 0 8px;color:#0B1F33;font-weight:700;">${escapeHtml(copy.greeting)}</p>
+<p style="font-size:14px;line-height:1.6;margin:0 0 14px;color:#374151;">${copy.intro}</p>
+<div style="background:#EAF4FF;border-left:4px solid #146CBE;border-radius:8px;padding:14px;margin:0 0 24px;color:#0B1F33;font-size:14px;line-height:1.6;">${copy.response}</div>
+<h2 style="font-size:17px;color:#0B1F33;margin:0 0 10px;">${copy.summary}</h2>
+<table style="width:100%;border-collapse:collapse;font-size:14px;">${details.map(([label, value]) => customerRow(label, value, copy.fallback)).join('')}</table>
+<h2 style="font-size:16px;color:#0B1F33;margin:24px 0 8px;">${copy.description}</h2>
+<div style="white-space:pre-wrap;background:#F8FAFC;border:1px solid #DDE5EE;border-radius:8px;padding:14px;font-size:14px;line-height:1.6;">${escapeHtml(input.description || copy.fallback)}</div>
+<p style="margin:16px 0;color:#64748B;font-size:12px;line-height:1.5;">${copy.fileNote}</p>
+<div style="background:#F8FAFC;border-radius:10px;padding:16px;margin-top:20px;">
+<h2 style="font-size:15px;color:#0B1F33;margin:0 0 6px;">${copy.contactTitle}</h2>
+<p style="font-size:13px;color:#374151;line-height:1.6;margin:0 0 12px;">${copy.contact}</p>
+<a href="${WHATSAPP_URL}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;border-radius:8px;padding:11px 15px;font-size:13px;font-weight:700;margin:0 8px 8px 0;">${copy.whatsapp}</a>
+<a href="${WEBSITE_URL}" style="display:inline-block;background:#146CBE;color:#FFFFFF;text-decoration:none;border-radius:8px;padding:11px 15px;font-size:13px;font-weight:700;margin-bottom:8px;">${copy.website}</a>
+</div>
+<p style="margin:20px 0 0;color:#64748B;font-size:12px;line-height:1.5;">${copy.closing}</p>
+</div></div></body></html>`;
+  return { html, plain, subject:copy.subject };
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
@@ -112,5 +218,23 @@ export default async function handler(request, response) {
     console.error('Quotation email delivery failed', resendResponse.status);
     return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
   }
-  return response.status(200).json({ ok: true, reference });
+  let acknowledgementSent = false;
+  if (replyTo) {
+    const customerEmail = buildCustomerEmail(payload, reference);
+    try {
+      const acknowledgementResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from:SENDER, to:[replyTo], reply_to:RECIPIENT,
+          subject:customerEmail.subject, html:customerEmail.html, text:customerEmail.plain
+        })
+      });
+      acknowledgementSent = acknowledgementResponse.ok;
+      if (!acknowledgementResponse.ok) console.error('Customer acknowledgement delivery failed', acknowledgementResponse.status);
+    } catch (error) {
+      console.error('Customer acknowledgement delivery failed', error instanceof Error ? error.message : 'unknown error');
+    }
+  }
+  return response.status(200).json({ ok:true, reference, acknowledgementSent });
 }
