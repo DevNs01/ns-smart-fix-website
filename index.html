@@ -136,16 +136,16 @@
   <!-- HEADER -->
   <header style="position:sticky;top:0;z-index:50;background:#FFFFFF;border-bottom:1px solid #E5E9EF;box-shadow:0 1px 3px rgba(11,31,51,0.04);">
     <div class="ns-header-inner" style="max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onClick="{{ goHome }}">
+      <a href="{{ navHref.home }}" aria-label="{{ t.nav.home }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;" onClick="{{ goHome }}">
         <img class="ns-header-logo" src="assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
-      </div>
+      </a>
       <nav class="ns-desktop-nav" style="display:flex;align-items:center;gap:22px;">
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.home }};text-decoration:none;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.about }};text-decoration:none;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.services }};text-decoration:none;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.products }};text-decoration:none;cursor:pointer;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.contact }};text-decoration:none;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
-        <a style="font-size:14px;font-weight:600;color:{{ navColor.faq }};text-decoration:none;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
+        <a href="{{ navHref.home }}" aria-current="{{ navCurrent.home }}" style="font-size:14px;font-weight:600;color:{{ navColor.home }};text-decoration:none;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
+        <a href="{{ navHref.about }}" aria-current="{{ navCurrent.about }}" style="font-size:14px;font-weight:600;color:{{ navColor.about }};text-decoration:none;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
+        <a href="{{ navHref.services }}" aria-current="{{ navCurrent.services }}" style="font-size:14px;font-weight:600;color:{{ navColor.services }};text-decoration:none;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
+        <a href="{{ navHref.products }}" aria-current="{{ navCurrent.products }}" style="font-size:14px;font-weight:600;color:{{ navColor.products }};text-decoration:none;cursor:pointer;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
+        <a href="{{ navHref.contact }}" aria-current="{{ navCurrent.contact }}" style="font-size:14px;font-weight:600;color:{{ navColor.contact }};text-decoration:none;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
+        <a href="{{ navHref.faq }}" aria-current="{{ navCurrent.faq }}" style="font-size:14px;font-weight:600;color:{{ navColor.faq }};text-decoration:none;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;">
         <button style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
@@ -155,13 +155,13 @@
     </div>
     <sc-if value="{{ mobileMenuOpen }}">
       <nav id="mobile-navigation" class="ns-mobile-menu" aria-label="{{ mobileNavigationLabel }}" style="flex-direction:column;padding:8px 24px 16px;gap:2px;border-top:1px solid #E5E9EF;background:#FFFFFF;">
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.quotation }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
-        <a style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
+        <a href="{{ navHref.home }}" aria-current="{{ navCurrent.home }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
+        <a href="{{ navHref.about }}" aria-current="{{ navCurrent.about }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.about }}">{{ t.nav.about }}</a>
+        <a href="{{ navHref.services }}" aria-current="{{ navCurrent.services }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.services }}">{{ t.nav.services }}</a>
+        <a href="{{ navHref.products }}" aria-current="{{ navCurrent.products }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.products }}">{{ t.nav.products }}</a>
+        <a href="{{ navHref.quotation }}" aria-current="{{ navCurrent.quotation }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.quotation }}</a>
+        <a href="{{ navHref.contact }}" aria-current="{{ navCurrent.contact }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.contact }}">{{ t.nav.contact }}</a>
+        <a href="{{ navHref.faq }}" aria-current="{{ navCurrent.faq }}" style="padding:10px 0;font-size:15px;font-weight:600;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
       </nav>
     </sc-if>
   </header>
@@ -240,7 +240,7 @@
     <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:8px;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#0B1F33;margin:0;">{{ t.home.featuredTitle }}</h2>
-        <a style="font-size:14px;font-weight:700;cursor:pointer;" onClick="{{ nav.products }}">{{ t.common.viewMore }} →</a>
+          <a href="{{ navHref.products }}" style="font-size:14px;font-weight:700;cursor:pointer;" onClick="{{ nav.products }}">{{ t.common.viewMore }} →</a>
       </div>
       <div class="ns-grid-4" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
         <sc-for list="{{ featuredBrands }}" as="b" hint-placeholder-count="5">
@@ -639,9 +639,9 @@
     </section>
     <section class="ns-legal-section" style="max-width:1080px;margin:0 auto;padding:0 24px 80px;">
       <div class="ns-legal-tabs" style="display:flex;gap:10px;margin:-24px 0 28px;position:relative;z-index:1;">
-        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.privacy.border }};background:{{ tabStyle.privacy.bg }};color:{{ tabStyle.privacy.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</button>
-        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.terms.border }};background:{{ tabStyle.terms.bg }};color:{{ tabStyle.terms.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</button>
-        <button style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.warranty.border }};background:{{ tabStyle.warranty.bg }};color:{{ tabStyle.warranty.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</button>
+        <a href="{{ legalHref.privacy }}" aria-current="{{ legalCurrent.privacy }}" style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.privacy.border }};background:{{ tabStyle.privacy.bg }};color:{{ tabStyle.privacy.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);text-align:center;text-decoration:none;" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</a>
+        <a href="{{ legalHref.terms }}" aria-current="{{ legalCurrent.terms }}" style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.terms.border }};background:{{ tabStyle.terms.bg }};color:{{ tabStyle.terms.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);text-align:center;text-decoration:none;" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</a>
+        <a href="{{ legalHref.warranty }}" aria-current="{{ legalCurrent.warranty }}" style="flex:1;padding:14px;border-radius:10px;border:1px solid {{ tabStyle.warranty.border }};background:{{ tabStyle.warranty.bg }};color:{{ tabStyle.warranty.color }};font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(11,31,51,0.12);text-align:center;text-decoration:none;" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</a>
       </div>
       <div class="ns-grid-2" style="display:grid;grid-template-columns:{{ legalGridCols }};gap:28px;align-items:start;">
         <sc-if value="{{ hasToc }}">
@@ -685,7 +685,7 @@
         <h5 style="font-size:13px;font-weight:700;color:#FFFFFF;margin:0 0 14px;">{{ t.footer.servicesTitle }}</h5>
         <div style="display:flex;flex-direction:column;gap:9px;">
           <sc-for list="{{ footerServiceLinks }}" as="fl" hint-placeholder-count="5">
-            <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ fl.go }}">{{ fl.label }}</a>
+            <a href="{{ fl.href }}" style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ fl.go }}">{{ fl.label }}</a>
           </sc-for>
         </div>
       </div>
@@ -699,9 +699,9 @@
       <div>
         <h5 style="font-size:13px;font-weight:700;color:#FFFFFF;margin:0 0 14px;">{{ t.footer.legalTitle }}</h5>
         <div style="display:flex;flex-direction:column;gap:9px;">
-          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</a>
-          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</a>
-          <a style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</a>
+          <a href="{{ legalHref.privacy }}" style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.privacy }}">{{ t.footer.privacy }}</a>
+          <a href="{{ legalHref.terms }}" style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.terms }}">{{ t.footer.terms }}</a>
+          <a href="{{ legalHref.warranty }}" style="font-size:13px;color:#A9B8CB;text-decoration:none;cursor:pointer;" onClick="{{ legalHandlers.warranty }}">{{ t.footer.warranty }}</a>
         </div>
       </div>
     </div>
@@ -714,7 +714,7 @@
   <div class="ns-sticky-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid #E5E9EF;z-index:60;box-shadow:0 -2px 8px rgba(0,0,0,0.06);">
     <a href="tel:+60164110681" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;text-decoration:none;">📞 {{ t.contact.call }}</a>
     <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#FFFFFF;background:#25D366;text-decoration:none;">WhatsApp</a>
-    <a style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;background:#F59E0B;cursor:pointer;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
+    <a href="{{ navHref.quotation }}" style="flex:1;text-align:center;padding:12px 0;font-size:12px;font-weight:700;color:#0B1F33;background:#F59E0B;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
   </div>
 
 </div>
@@ -1102,6 +1102,50 @@ const PRODUCTS = [
 
 const FOOTER_SERVICE_KEYS_IDX = [0,1,2,4,5];
 
+const ROUTE_PATHS = Object.freeze({
+  home:'/',
+  about:'/about',
+  services:'/services',
+  products:'/products',
+  quotation:'/quotation',
+  contact:'/contact',
+  faq:'/faq',
+  privacy:'/privacy',
+  terms:'/terms',
+  warranty:'/warranty'
+});
+
+const PATH_ROUTES = Object.freeze({
+  '/':{page:'home'},
+  '/about':{page:'about'},
+  '/services':{page:'services'},
+  '/products':{page:'products'},
+  '/quotation':{page:'quotation'},
+  '/contact':{page:'contact'},
+  '/faq':{page:'faq'},
+  '/privacy':{page:'legal',legalTab:'privacy'},
+  '/privacy-notice':{page:'legal',legalTab:'privacy'},
+  '/terms':{page:'legal',legalTab:'terms'},
+  '/terms-and-conditions':{page:'legal',legalTab:'terms'},
+  '/warranty':{page:'legal',legalTab:'warranty'},
+  '/warranty-and-service-policy':{page:'legal',legalTab:'warranty'}
+});
+
+function normalizedPathname(pathname){
+  const cleaned = String(pathname || '/').replace(/\/+/g,'/').replace(/\/$/,'').toLowerCase();
+  return cleaned || '/';
+}
+
+function routeStateFromPath(pathname){
+  const route = PATH_ROUTES[normalizedPathname(pathname)] || PATH_ROUTES['/'];
+  return {page:route.page,legalTab:route.legalTab || 'privacy'};
+}
+
+function routePath(page, legalTab){
+  if (page === 'legal') return ROUTE_PATHS[legalTab] || ROUTE_PATHS.privacy;
+  return ROUTE_PATHS[page] || ROUTE_PATHS.home;
+}
+
 function resolveAsset(id, fallback){
   if (typeof window !== 'undefined' && window.__resources && window.__resources[id]) return window.__resources[id];
   return fallback;
@@ -1123,7 +1167,7 @@ const BRANDS = [
 
 class Component extends DCLogic {
   state = {
-    lang:'en', page:'home', mobileMenuOpen:false,
+    lang:'en', ...routeStateFromPath(typeof window !== 'undefined' ? window.location.pathname : '/'), mobileMenuOpen:false,
     quickForm:{name:'',phone:'',service:'',message:''}, quickAgree:false, quickSubmitted:false, quickSending:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
     quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteSending:false, quoteRef:'', quoteError:'', quoteFiles:[],
@@ -1136,12 +1180,66 @@ class Component extends DCLogic {
   validPhone(value){ const digits = String(value || '').replace(/\D/g, ''); return digits.length >= 8 && digits.length <= 15; }
   errorText(en, bm){ return this.state.lang === 'bm' ? bm : en; }
   scrollTop(){ if (typeof window !== 'undefined') window.scrollTo(0,0); }
-  go(page){ return () => { this.setState({page, mobileMenuOpen:false}); this.scrollTop(); }; }
+  shouldHandleLink(event){
+    if (!event) return true;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    return event.button === undefined || event.button === 0;
+  }
+  syncRouteMetadata(page=this.state.page, legalTab=this.state.legalTab, lang=this.state.lang){
+    if (typeof document === 'undefined') return;
+    const isBm = lang === 'bm';
+    const names = isBm
+      ? {home:'Laman Utama',about:'Tentang Kami',services:'Perkhidmatan',products:'Produk',quotation:'Permohonan Sebut Harga',contact:'Hubungi Kami',faq:'Soalan Lazim',privacy:'Notis Privasi',terms:'Terma dan Syarat',warranty:'Polisi Waranti dan Perkhidmatan'}
+      : {home:'Home',about:'About Us',services:'Services',products:'Products',quotation:'Request a Quotation',contact:'Contact Us',faq:'Frequently Asked Questions',privacy:'Privacy Notice',terms:'Terms and Conditions',warranty:'Warranty and Service Policy'};
+    const key = page === 'legal' ? legalTab : page;
+    document.title = `${names[key] || names.home} | NS Smart Fix Solution`;
+    document.documentElement.lang = isBm ? 'ms' : 'en';
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `https://nssmartfixsolution.com${routePath(page, legalTab)}`;
+  }
+  navigate(page, legalTab=this.state.legalTab){
+    const nextLegalTab = page === 'legal' ? legalTab : this.state.legalTab;
+    const path = routePath(page, nextLegalTab);
+    if (typeof window !== 'undefined' && normalizedPathname(window.location.pathname) !== path) {
+      window.history.pushState({page,legalTab:nextLegalTab},'',path);
+    }
+    this.setState({page,legalTab:nextLegalTab,mobileMenuOpen:false},()=>this.syncRouteMetadata(page,nextLegalTab));
+    this.scrollTop();
+  }
+  go(page){ return (event) => {
+    if (!this.shouldHandleLink(event)) return;
+    if (event?.preventDefault) event.preventDefault();
+    this.navigate(page);
+  }; }
+  goLegal(legalTab){ return (event) => {
+    if (!this.shouldHandleLink(event)) return;
+    if (event?.preventDefault) event.preventDefault();
+    this.navigate('legal',legalTab);
+  }; }
+  componentDidMount(){
+    this.handlePopState = () => {
+      const route = routeStateFromPath(window.location.pathname);
+      this.setState({...route,mobileMenuOpen:false},()=>this.syncRouteMetadata(route.page,route.legalTab));
+      this.scrollTop();
+    };
+    window.addEventListener('popstate',this.handlePopState);
+    this.syncRouteMetadata();
+  }
+  componentWillUnmount(){
+    if (typeof window !== 'undefined' && this.handlePopState) window.removeEventListener('popstate',this.handlePopState);
+  }
+  toggleLanguage = () => {
+    this.setState(st => ({lang:st.lang === 'en' ? 'bm' : 'en'}),()=>this.syncRouteMetadata());
+  };
   goQuoteFor(serviceKey){
     const key = serviceKey === 'itinfra' ? 'server' : serviceKey;
     return () => {
-      this.setState(s => ({ page:'quotation', mobileMenuOpen:false, quoteServices: { ...s.quoteServices, [key]: true } }));
-      this.scrollTop();
+      this.setState(s => ({ quoteServices: { ...s.quoteServices, [key]: true } }),()=>this.navigate('quotation'));
     };
   }
   setField(obj, field, value){ this.setState(s => ({ [obj]: { ...s[obj], [field]: value } })); }
@@ -1426,18 +1524,24 @@ class Component extends DCLogic {
     });
     const tocItems = legalBlocks.filter(b => b.isHeading).map(b => ({ href: '#' + b.id, text: b.num + '. ' + b.headingText }));
 
-    const legalHandlers = { privacy: () => this.setState({page:'legal', legalTab:'privacy'}), terms: () => this.setState({page:'legal', legalTab:'terms'}), warranty: () => this.setState({page:'legal', legalTab:'warranty'}) };
-    const footerServiceLinks = FOOTER_SERVICE_KEYS_IDX.map(i => ({ label: isEn?SERVICE_TITLES_EN[i]:SERVICE_TITLES_BM[i], go: this.go('services') }));
+    const navHref = {home:ROUTE_PATHS.home,about:ROUTE_PATHS.about,services:ROUTE_PATHS.services,products:ROUTE_PATHS.products,quotation:ROUTE_PATHS.quotation,contact:ROUTE_PATHS.contact,faq:ROUTE_PATHS.faq};
+    const navCurrent = {};
+    Object.keys(navHref).forEach(key => navCurrent[key] = s.page === key ? 'page' : undefined);
+    const legalHref = {privacy:ROUTE_PATHS.privacy,terms:ROUTE_PATHS.terms,warranty:ROUTE_PATHS.warranty};
+    const legalCurrent = {};
+    Object.keys(legalHref).forEach(key => legalCurrent[key] = s.page === 'legal' && s.legalTab === key ? 'page' : undefined);
+    const legalHandlers = { privacy:this.goLegal('privacy'), terms:this.goLegal('terms'), warranty:this.goLegal('warranty') };
+    const footerServiceLinks = FOOTER_SERVICE_KEYS_IDX.map(i => ({ label:isEn?SERVICE_TITLES_EN[i]:SERVICE_TITLES_BM[i], href:ROUTE_PATHS.services, go:this.go('services') }));
 
     return {
-      t, lang:s.lang, langLabel: isEn ? 'BM' : 'EN', toggleLang: () => this.setState(st => ({lang: st.lang==='en'?'bm':'en'})),
+      t, lang:s.lang, langLabel: isEn ? 'BM' : 'EN', toggleLang:this.toggleLanguage,
       mobileMenuOpen: s.mobileMenuOpen,
       mobileMenuIcon: s.mobileMenuOpen ? '×' : '☰',
       mobileMenuLabel: isEn ? (s.mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu') : (s.mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'),
       mobileNavigationLabel: isEn ? 'Mobile navigation' : 'Navigasi mudah alih',
       toggleMobileMenu: () => this.setState(st=>({mobileMenuOpen:!st.mobileMenuOpen})),
       goHome: this.go('home'),
-      nav, navColor, waLinks,
+      nav, navHref, navCurrent, navColor, waLinks,
       isHome: s.page==='home', isAbout: s.page==='about', isServices: s.page==='services', isProducts: s.page==='products',
       isQuotation: s.page==='quotation', isContact: s.page==='contact',
       isFaq: s.page==='faq', isLegal: s.page==='legal',
@@ -1456,7 +1560,7 @@ class Component extends DCLogic {
       quoteSubmitOpacity: s.quoteSending ? '0.65' : '1',
       quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
       onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
-      faqs, legalTab: s.legalTab, legalHandlers, legalBlocks, tabStyle, legalPageTitle, legalMeta, legalTocLabel, tocItems, hasToc: tocItems.length > 0, legalGridCols: tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
+      faqs, legalTab:s.legalTab, legalHandlers, legalHref, legalCurrent, legalBlocks, tabStyle, legalPageTitle, legalMeta, legalTocLabel, tocItems, hasToc:tocItems.length > 0, legalGridCols:tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
     };
   }
 }
