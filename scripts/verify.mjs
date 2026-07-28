@@ -49,6 +49,13 @@ const requiredPatterns = [
   ['Responsive legal tabs', /\.ns-legal-tabs\{flex-direction:column !important;/],
   ['Non-sticky mobile legal contents', /\.ns-legal-toc\{position:static !important;top:auto !important;max-height:none !important;overflow:visible !important;/],
   ['Accessible mobile legal links', /\.ns-legal-toc a\{display:flex !important;align-items:center !important;min-height:44px !important;/],
+  ['Full-width mobile navigation', /\.ns-mobile-menu\{display:flex !important;width:100% !important;height:auto !important;min-width:0 !important;min-height:0 !important;/],
+  ['Mobile navigation tap targets', /\.ns-mobile-menu a\{display:flex !important;align-items:center !important;width:100% !important;min-height:44px !important;/],
+  ['Separate mobile menu panel class', /id="mobile-navigation" class="ns-mobile-menu"/],
+  ['Flexible mobile hero columns', /\.ns-hero-row > \*\{min-width:0 !important;width:100% !important;/],
+  ['Two-column tablet cards', /@media \(min-width:600px\) and \(max-width:860px\)[\s\S]*\.ns-grid-3\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\) !important;/],
+  ['Small-phone responsive typography', /main h1\{font-size:clamp\(28px,9vw,34px\) !important;/],
+  ['Extra-small phone controls', /@media \(max-width:380px\)[\s\S]*\.ns-sticky-bar > \*\{min-height:56px !important;font-size:13px !important;/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {
