@@ -1,3 +1,5 @@
+import { emitMonitoringEvent, sendMonitoringAlert } from './monitoring.js';
+
 const MAX_BODY_BYTES = 24 * 1024;
 const RECIPIENT = process.env.QUOTATION_TO_EMAIL || 'admin@nssmartfixsolution.com';
 const SENDER = process.env.QUOTATION_FROM_EMAIL || 'NS Smart Fix Website <website@nssmartfixsolution.com>';
@@ -296,6 +298,19 @@ export function buildCustomerEmail(input, reference) {
 }
 
 export default async function handler(request, response) {
+  const startedAt = Date.now();
+  const monitorSlowResponse = async status => {
+    const durationMs = Date.now() - startedAt;
+    const threshold = Math.max(500, Number(process.env.MONITORING_SLOW_API_MS) || 3000);
+    if (durationMs >= threshold) {
+      await sendMonitoringAlert({
+        category: 'slow_api_response',
+        severity: 'warning',
+        details: { route: '/api/quotation', stage: 'submission', status, durationMs },
+        dedupeKey: `quotation-slow:${status}`
+      });
+    }
+  };
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
     return response.status(405).json({ error: 'Method not allowed.' });
@@ -326,18 +341,35 @@ export default async function handler(request, response) {
   const reference = makeReference();
   const email = buildEmail(payload, reference);
   const replyTo = clean(payload.email, 254);
-  const resendResponse = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: SENDER, to: [RECIPIENT],
-      subject: `[${reference}] Quotation Request — ${clean(payload.fullName, 100)}`,
-      html: email.html, text: email.plain, ...(replyTo ? { reply_to: replyTo } : {})
-    })
-  });
+  let resendResponse;
+  try {
+    resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: SENDER, to: [RECIPIENT],
+        subject: `[${reference}] Quotation Request — ${clean(payload.fullName, 100)}`,
+        html: email.html, text: email.plain, ...(replyTo ? { reply_to: replyTo } : {})
+      })
+    });
+  } catch {
+    releaseDuplicate(payload, ip);
+    await sendMonitoringAlert({
+      category: 'quotation_submission_failed',
+      severity: 'critical',
+      details: { route: '/api/quotation', stage: 'admin_email', status: 502, code: 'network_error' },
+      dedupeKey: 'quotation-admin-email-network'
+    });
+    return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
+  }
   if (!resendResponse.ok) {
     releaseDuplicate(payload, ip);
-    console.error('Quotation email delivery failed', resendResponse.status);
+    await sendMonitoringAlert({
+      category: 'email_delivery_failed',
+      severity: 'critical',
+      details: { route: '/api/quotation', stage: 'admin_email', status: resendResponse.status },
+      dedupeKey: `quotation-admin-email:${resendResponse.status}`
+    });
     return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
   }
   let acknowledgementSent = false;
@@ -353,10 +385,29 @@ export default async function handler(request, response) {
         })
       });
       acknowledgementSent = acknowledgementResponse.ok;
-      if (!acknowledgementResponse.ok) console.error('Customer acknowledgement delivery failed', acknowledgementResponse.status);
-    } catch (error) {
-      console.error('Customer acknowledgement delivery failed', error instanceof Error ? error.message : 'unknown error');
+      if (!acknowledgementResponse.ok) {
+        await sendMonitoringAlert({
+          category: 'email_delivery_failed',
+          severity: 'warning',
+          details: { route: '/api/quotation', stage: 'customer_acknowledgement', status: acknowledgementResponse.status },
+          dedupeKey: `quotation-customer-email:${acknowledgementResponse.status}`
+        });
+      }
+    } catch {
+      await sendMonitoringAlert({
+        category: 'email_delivery_failed',
+        severity: 'warning',
+        details: { route: '/api/quotation', stage: 'customer_acknowledgement', code: 'network_error' },
+        dedupeKey: 'quotation-customer-email-network'
+      });
     }
   }
+  emitMonitoringEvent('quotation_submission_completed', 'info', {
+    route: '/api/quotation',
+    stage: 'submission',
+    status: 200,
+    durationMs: Date.now() - startedAt
+  });
+  await monitorSlowResponse(200);
   return response.status(200).json({ ok:true, reference, acknowledgementSent });
 }
