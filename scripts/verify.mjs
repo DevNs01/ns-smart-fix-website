@@ -47,10 +47,10 @@ const requiredPatterns = [
   ['Quotation WhatsApp handoff', /quoteWaLink/],
   ['BM WhatsApp labels', /\*NAMA PENUH:\*|\*Nama Penuh:\*/i],
   ['BM legal metadata', /Tarikh Berkuat Kuasa\|Tarikh Kemas Kini/],
-  ['BM quick enquiry confirmation', /Pertanyaan anda sedia untuk dihantar\./],
+  ['BM quick enquiry confirmation', /Pertanyaan berjaya diterima/],
   ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],
   ['Mobile stacked form fields', /\.ns-grid-2\{display:flex !important;flex-direction:column !important;/],
-  ['Responsive quick enquiry card', /class="ns-quick-card"/],
+  ['Responsive quick enquiry card', /class="ns-quick-card ns-quick-shell"/],
   ['Stacked mobile product CTAs', /\.ns-product-cta-actions\{flex-direction:column !important;/],
   ['Mobile form zoom protection', /input,select,textarea\{font-size:16px !important;\}/],
   ['iOS safe-area support', /padding-bottom:env\(safe-area-inset-bottom\)/],
@@ -81,6 +81,15 @@ if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: tr
 }
 if (!/to: \[RECIPIENT\]/.test(emailApiSource) || !/html: email\.html, text: email\.plain/.test(emailApiSource)) {
   failures.push('Missing formatted quotation email delivery');
+}
+if (!/export function buildCustomerEmail\(input, reference\)/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement email builder');
+}
+if (!/to:\[replyTo\][\s\S]*subject:customerEmail\.subject/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement delivery');
+}
+if (!/acknowledgementSent/.test(emailApiSource) || !/within 1 business day/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement status or response-time guidance');
 }
 
 if (failures.length) {
