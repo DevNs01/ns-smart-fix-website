@@ -32,11 +32,19 @@ npm run preview
 
 ## Forms
 
-The quick enquiry and quotation forms run entirely in the browser. They validate required fields, create a reference number, and prepare an encoded WhatsApp message for the customer to send. No form data or selected files are uploaded to a server. Customers should attach any supporting files directly in WhatsApp.
+The quick enquiry form prepares an encoded WhatsApp message. The quotation form validates the submission and securely posts the details to `/api/quotation`, where a Vercel Function sends a formatted HTML and plain-text email to the configured official address. Email-service credentials remain server-side.
+
+Selected attachment names are included in the email, but the files themselves are not uploaded or attached. Customers should send supporting files directly through WhatsApp.
 
 ## Environment variables
 
-None are required. The project contains no API keys or server-side credentials. If environment variables are added later, store them in Vercel project settings or a local `.env` file; `.env` files are excluded by `.gitignore`.
+Configure these server-only variables in Vercel:
+
+- `RESEND_API_KEY` — API key created in Resend
+- `QUOTATION_FROM_EMAIL` — verified sender, for example `NS Smart Fix Website <website@nssmartfixsolution.com>`
+- `QUOTATION_TO_EMAIL` — recipient; defaults to `admin@nssmartfixsolution.com`
+
+Verify `nssmartfixsolution.com` in Resend before using the production sender. Store local values in `.env.local`; environment files are excluded by `.gitignore`. Never prefix secrets with `VITE_`.
 
 ## Deploy to Vercel
 
@@ -44,8 +52,9 @@ None are required. The project contains no API keys or server-side credentials. 
 2. Select the Vite framework preset if it is not detected automatically.
 3. Use `npm run build` as the build command.
 4. Use `dist` as the output directory.
-5. No environment variables are required.
-6. Deploy.
+5. Add the three server-only email variables described above.
+6. Verify the sending domain in Resend.
+7. Deploy.
 
 The checked-in `vercel.json` contains the same build and output settings.
 

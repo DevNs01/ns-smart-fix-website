@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 const root = process.cwd();
 const source = readFileSync(join(root, 'index.html'), 'utf8');
+const emailApi = readFileSync(join(root, 'api', 'quotation.js'), 'utf8');
 const vercel = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
 const failures = [];
 
@@ -19,6 +20,10 @@ if (csp.includes("default-src *")) failures.push('CSP uses a wildcard default so
 if (!/accept="\.jpg,\.jpeg,\.png,\.webp,\.pdf/.test(source)) failures.push('File chooser allowlist missing');
 if (!/files\.length > 5/.test(source) || !/5 \* 1024 \* 1024/.test(source)) failures.push('File count or size limit missing');
 if (!/validPhone\(value\)/.test(source) || !/validName\(value\)/.test(source)) failures.push('Form validation helpers missing');
+if (!/fetch\('\/api\/quotation'/.test(source)) failures.push('Quotation form does not use the same-origin email endpoint');
+if (!/process\.env\.RESEND_API_KEY/.test(emailApi)) failures.push('Email API does not use a server-only credential');
+if (!/escapeHtml\(input\.description/.test(emailApi)) failures.push('Email body escaping missing');
+if (/RESEND_API_KEY/.test(source)) failures.push('Server-only email credential referenced in browser source');
 if ([...source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].some(match => !/rel="[^"]*noopener[^"]*noreferrer[^"]*"/.test(match[0]))) failures.push('External blank-target link lacks noopener noreferrer');
 
 const forbiddenEnv = ['.env', '.env.local', '.env.production', '.env.preview'];
