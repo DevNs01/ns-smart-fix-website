@@ -548,7 +548,7 @@
             {{ t.quotation.agreement }}
           </label>
 
-          <button style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;" onClick="{{ submitQuote }}">{{ t.common.submit }}</button>
+          <button disabled="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quoteSubmitOpacity }};" onClick="{{ submitQuote }}">{{ quoteSubmitLabel }}</button>
           <sc-if value="{{ quoteError }}">
             <p style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center;">{{ quoteError }}</p>
           </sc-if>
@@ -766,7 +766,7 @@ en: {
     serviceRequired:"Service Required", location:"Project Location", visitDate:"Preferred Site Visit Date", preferredContact:"Preferred Contact Method",
     description:"Description of Requirement", budget:"Budget Range", urgency:"Urgency Level", uploadPhotos:"Upload Photos / Documents",
     agreement:"I agree that NS Smart Fix Solution may use the information above to process my enquiry, in line with the Privacy Notice.",
-    successTitle:"Your quotation request is ready to send.", successMsg:"Use the WhatsApp button below to send the details to our team for review.",
+    successTitle:"Your quotation request has been sent.", successMsg:"Our team received your details by email. You may also contact us through WhatsApp.",
     sendWhatsapp:"Send Details via WhatsApp",
     budgetOptions:["Below RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Above RM50,000 / To be discussed"],
     serviceOptions:[{value:"electrical",label:"Electrical Wiring"},{value:"network",label:"Network Cabling"},{value:"server",label:"Server Setup"},{value:"product",label:"IT Product Supply"},{value:"tv",label:"TV Bracket Installation"},{value:"renovation",label:"Minor Renovation"},{value:"delivery",label:"Delivery"},{value:"troubleshoot",label:"Troubleshooting"}]
@@ -842,7 +842,7 @@ bm: {
     serviceRequired:"Perkhidmatan Diperlukan", location:"Lokasi Projek", visitDate:"Tarikh Pilihan untuk Lawatan Tapak", preferredContact:"Kaedah Perhubungan Pilihan",
     description:"Penerangan Keperluan", budget:"Julat Bajet", urgency:"Tahap Kecemasan", uploadPhotos:"Muat Naik Gambar / Dokumen",
     agreement:"Saya bersetuju NS Smart Fix Solution menggunakan maklumat di atas untuk memproses pertanyaan saya, selaras dengan Notis Privasi.",
-    successTitle:"Permohonan sebut harga anda sedia untuk dihantar.", successMsg:"Gunakan butang WhatsApp di bawah untuk menghantar maklumat kepada pasukan kami untuk semakan.",
+    successTitle:"Permohonan sebut harga anda telah dihantar.", successMsg:"Pasukan kami telah menerima butiran anda melalui e-mel. Anda juga boleh menghubungi kami melalui WhatsApp.",
     sendWhatsapp:"Hantar Butiran melalui WhatsApp",
     budgetOptions:["Di bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Melebihi RM50,000 / Untuk dibincangkan"],
     serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Pemasangan Kabel Rangkaian"},{value:"server",label:"Pemasangan & Konfigurasi Server"},{value:"product",label:"Pembekalan Produk IT"},{value:"tv",label:"Pemasangan Pendakap TV"},{value:"renovation",label:"Pengubahsuaian Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
@@ -1122,7 +1122,7 @@ class Component extends DCLogic {
     lang:'en', page:'home', mobileMenuOpen:false,
     quickForm:{name:'',phone:'',service:'',message:''}, quickSubmitted:false, quickRef:'', quickError:'',
     quoteForm:{fullName:'',company:'',phone:'',email:'',location:'',visitDate:'',description:'',budget:'',agree:false},
-    quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteRef:'', quoteError:'', quoteFiles:[],
+    quoteCustomerType:'', quoteServices:{}, quoteContactMethod:'', quoteUrgency:'', quoteSubmitted:false, quoteSending:false, quoteRef:'', quoteError:'', quoteFiles:[],
     openFaq:-1, legalTab:'privacy', qtyCounter:1
   };
 
@@ -1159,7 +1159,8 @@ class Component extends DCLogic {
     const ref = "NSQ-2026-" + String(n).padStart(4,'0');
     this.setState({ quickSubmitted:true, quickRef: ref, quickError:'', qtyCounter: n+1 });
   };
-  submitQuote = () => {
+  submitQuote = async () => {
+    if (this.state.quoteSending) return;
     const f = this.state.quoteForm;
     const isBm = this.state.lang === 'bm';
     if (!this.validName(f.fullName) || !this.validPhone(f.phone)) { this.setState({quoteError:isBm ? 'Sila masukkan nama dan nombor telefon yang sah.' : 'Please enter a valid name and phone number.'}); return; }
@@ -1171,9 +1172,31 @@ class Component extends DCLogic {
       if (Number.isNaN(selected.getTime()) || selected < today) { this.setState({quoteError:isBm ? 'Sila pilih tarikh lawatan hari ini atau selepasnya.' : 'Please choose today or a future visit date.'}); return; }
     }
     if (!f.agree) { this.setState({quoteError:isBm ? 'Sila bersetuju dengan Notis Privasi sebelum meneruskan.' : 'Please accept the privacy notice before continuing.'}); return; }
-    const n = this.state.qtyCounter;
-    const ref = "NSQ-2026-" + String(n).padStart(4,'0');
-    this.setState({ quoteSubmitted:true, quoteRef: ref, qtyCounter:n+1, quoteError:'' });
+    const services = Object.keys(this.state.quoteServices).filter(key => this.state.quoteServices[key]);
+    this.setState({quoteSending:true, quoteError:''});
+    try {
+      const response = await fetch('/api/quotation', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          ...f,
+          customerType:this.state.quoteCustomerType,
+          services,
+          contactMethod:this.state.quoteContactMethod,
+          urgency:this.state.quoteUrgency,
+          files:this.state.quoteFiles,
+          language:this.state.lang
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.reference) throw new Error('delivery_failed');
+      this.setState({quoteSubmitted:true, quoteSending:false, quoteRef:result.reference, quoteError:''});
+    } catch {
+      this.setState({
+        quoteSending:false,
+        quoteError:isBm ? 'E-mel tidak dapat dihantar. Sila cuba lagi atau hubungi kami melalui WhatsApp.' : 'The email could not be sent. Please try again or contact us through WhatsApp.'
+      });
+    }
   };
   onFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -1327,7 +1350,10 @@ class Component extends DCLogic {
       qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
       brandCards, waGeneralLink: waLinks.general,
       quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,
-      submitQuote: this.submitQuote, quoteSubmitted: s.quoteSubmitted, quoteNotSubmitted: !s.quoteSubmitted, quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
+      submitQuote: this.submitQuote, quoteSubmitted: s.quoteSubmitted, quoteNotSubmitted: !s.quoteSubmitted, quoteSending:s.quoteSending,
+      quoteSubmitLabel: s.quoteSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
+      quoteSubmitOpacity: s.quoteSending ? '0.65' : '1',
+      quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
       onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
       faqs, legalTab: s.legalTab, legalHandlers, legalBlocks, tabStyle, legalPageTitle, legalMeta, legalTocLabel, tocItems, hasToc: tocItems.length > 0, legalGridCols: tocItems.length > 0 ? '230px 1fr' : '1fr', footerServiceLinks
     };

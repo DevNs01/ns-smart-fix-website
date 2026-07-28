@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-const files = ['index.html', 'src/main.js', 'support.js', 'scripts/verify.mjs', 'scripts/security-test.mjs'];
+const files = ['index.html', 'src/main.js', 'support.js', 'api/quotation.js', 'scripts/verify.mjs', 'scripts/security-test.mjs'];
 const failures = [];
 
 for (const file of files) {
