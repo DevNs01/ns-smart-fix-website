@@ -32,7 +32,7 @@ npm run preview
 
 ## Forms
 
-The quick enquiry form prepares an encoded WhatsApp message. The quotation form validates the submission and securely posts the details to `/api/quotation`, where a Vercel Function sends a formatted HTML and plain-text email to the configured official address. Email-service credentials remain server-side.
+The quick enquiry and quotation forms securely post their details to `/api/quotation`, where a Vercel Function validates the submission and sends formatted HTML and plain-text emails. Both forms are protected by Cloudflare Turnstile, per-IP request throttling and duplicate-submission detection. Email and Turnstile credentials remain server-side.
 
 Selected attachment names are included in the email, but the files themselves are not uploaded or attached. Customers should send supporting files directly through WhatsApp.
 
@@ -43,6 +43,8 @@ Configure these server-only variables in Vercel:
 - `RESEND_API_KEY` — API key created in Resend
 - `QUOTATION_FROM_EMAIL` — verified sender, for example `NS Smart Fix Website <website@nssmartfixsolution.com>`
 - `QUOTATION_TO_EMAIL` — recipient; defaults to `admin@nssmartfixsolution.com`
+- `TURNSTILE_SITE_KEY` — public site key from the Cloudflare Turnstile widget
+- `TURNSTILE_SECRET_KEY` — secret used only by `/api/quotation` for server-side verification
 
 Verify `nssmartfixsolution.com` in Resend before using the production sender. Store local values in `.env.local`; environment files are excluded by `.gitignore`. Never prefix secrets with `VITE_`.
 
@@ -52,9 +54,10 @@ Verify `nssmartfixsolution.com` in Resend before using the production sender. St
 2. Select the Vite framework preset if it is not detected automatically.
 3. Use `npm run build` as the build command.
 4. Use `dist` as the output directory.
-5. Add the three server-only email variables described above.
+5. Add the email and Turnstile variables described above.
 6. Verify the sending domain in Resend.
-7. Deploy.
+7. In Cloudflare Turnstile, allow `nssmartfixsolution.com` for the widget.
+8. Deploy.
 
 The checked-in `vercel.json` contains the same build and output settings.
 
