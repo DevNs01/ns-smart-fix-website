@@ -122,6 +122,12 @@
     .ns-quote-step-title{font-size:14px;font-weight:800;color:#0B1F33;}
     .ns-quote-trust{display:flex;align-items:flex-start;gap:10px;color:#DDEAF6;font-size:13px;line-height:1.45;}
     .ns-quote-trust-mark{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(37,211,102,.18);color:#45E58B;font-weight:800;flex:0 0 auto;}
+    .ns-brand-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
+    .ns-brand-card{min-height:142px;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(11,31,51,.035);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
+    .ns-brand-card:hover{transform:translateY(-3px);border-color:#B8CBE0;box-shadow:0 10px 24px rgba(11,31,51,.08);}
+    .ns-brand-card img{display:block;width:auto;max-width:82%;max-height:58px;object-fit:contain;}
+    .ns-brand-card--company img{max-height:78px;}
+    .ns-brand-cta{margin-top:34px;background:linear-gradient(135deg,#EAF4FF 0%,#F4F8FC 100%);border:1px solid #D9E7F5;border-radius:16px;padding:26px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;}
     fieldset{min-width:0;}
     ::placeholder{color:#94A3B8;}
     .ns-mobile-menu{display:none !important;}
@@ -157,6 +163,9 @@
       input,select,textarea{font-size:16px !important;}
       .ns-product-cta-actions{flex-direction:column !important;align-items:stretch !important;gap:12px !important;}
       .ns-product-cta-actions > *{width:100% !important;min-height:48px !important;margin:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;}
+      .ns-brand-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+      .ns-brand-card{min-height:126px;padding:20px 16px;}
+      .ns-brand-cta{flex-direction:column;text-align:center;padding:24px 20px;}
       .ns-legal-tabs{flex-direction:column !important;margin-top:-18px !important;}
       .ns-legal-section{padding-left:16px !important;padding-right:16px !important;}
       .ns-legal-toc{position:static !important;top:auto !important;max-height:none !important;overflow:visible !important;}
@@ -180,6 +189,10 @@
       main h1{font-size:clamp(28px,9vw,34px) !important;line-height:1.18 !important;}
       main h2{font-size:clamp(24px,8vw,30px) !important;line-height:1.22 !important;}
       .ns-grid-3,.ns-grid-4{gap:14px !important;}
+      .ns-brand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+      .ns-brand-card{min-height:112px;padding:18px 12px;border-radius:13px;}
+      .ns-brand-card img{max-width:86%;max-height:48px;}
+      .ns-brand-card--company img{max-height:62px;}
     }
     @media (max-width:380px){
       main > section{padding-left:14px !important;padding-right:14px !important;}
@@ -512,29 +525,17 @@
       </div>
     </section>
 
-    <section style="max-width:1100px;margin:0 auto;padding:0 24px 80px;">
-      <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+    <section style="max-width:1120px;margin:0 auto;padding:48px 24px 80px;">
+      <div class="ns-brand-grid" aria-label="{{ trustedBrandsLabel }}">
         <sc-for list="{{ brandCards }}" as="b" hint-placeholder-count="10">
-          <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:14px;padding:24px;text-align:center;">
-            <div style="height:52px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
-              <sc-if value="{{ b.hasLogo }}" hint-placeholder-val="{{ false }}">
-                <img src="{{ b.logo }}" alt="{{ b.name }} logo" style="max-height:{{ b.logoHeight }};max-width:80%;object-fit:contain;"/>
-              </sc-if>
-              <sc-if value="{{ b.noLogo }}">
-                <div style="font-family:'Manrope',sans-serif;font-size:19px;font-weight:800;color:#0B1F33;">{{ b.name }}</div>
-              </sc-if>
-            </div>
-            <p style="font-size:13px;color:#5B6675;margin:0 0 16px;line-height:1.5;">{{ b.category }}</p>
-            <a href="{{ b.waLink }}" target="_blank" rel="noopener noreferrer" style="display:block;background:#25D366;border-radius:8px;padding:10px;font-size:13px;font-weight:700;color:#FFFFFF;text-decoration:none;">WhatsApp</a>
+          <div class="ns-brand-card {{ b.cardClass }}" title="{{ b.name }}">
+            <img src="{{ b.logo }}" alt="{{ b.name }} logo" style="max-height:{{ b.logoHeight }};"/>
           </div>
         </sc-for>
       </div>
-      <div style="text-align:center;margin-top:36px;background:#EAF4FF;border-radius:14px;padding:28px;">
-        <p style="font-size:15px;color:#0B1F33;font-weight:600;margin:0 0 16px;">{{ t.products.enquiryPrompt }}</p>
-        <div class="ns-product-cta-actions" style="display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;">
-          <a href="{{ waGeneralLink }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;">{{ t.common.whatsappUs }}</a>
-          <a href="{{ navHref.quotation }}" style="background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</a>
-        </div>
+      <div class="ns-brand-cta">
+        <p style="font-size:15px;color:#0B1F33;font-weight:600;margin:0;line-height:1.55;">{{ t.products.enquiryPrompt }}</p>
+        <a href="{{ navHref.quotation }}" style="flex:0 0 auto;background:#0B1F33;border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;color:#FFFFFF;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.common.requestQuote }}</a>
       </div>
     </section>
   </sc-if>
@@ -1305,7 +1306,7 @@ const BRANDS = [
   {name:"Hikvision", logo:resolveAsset('brand-hikvision','assets/brand-hikvision.png'), catEn:"CCTV, NVR & Access Control", catBm:"CCTV, NVR & Kawalan Akses"},
   {name:"Fortinet", logo:resolveAsset('brand-fortinet','assets/brand-fortinet.png'), logoScale:1.8, catEn:"Firewalls & Network Security", catBm:"Firewall & Keselamatan Rangkaian"},
   {name:"Vertiv", logo:resolveAsset('brand-vertiv','assets/brand-vertiv.png'), catEn:"UPS & Power Infrastructure", catBm:"UPS & Infrastruktur Kuasa"},
-  {name:"NS Smart Fix", logo:null, catEn:"Networking & Server Equipment", catBm:"Peralatan Rangkaian & Server"}
+  {name:"NS Smart Fix", logo:resolveAsset('brand-logo','assets/ns-smart-fix-logo.png'), logoScale:1.65, company:true, catEn:"Networking & Server Equipment", catBm:"Peralatan Rangkaian & Server"}
 ];
 
 class Component extends DCLogic {
@@ -1690,9 +1691,8 @@ class Component extends DCLogic {
     ];
 
     const brandCards = BRANDS.map(b => ({
-      name: b.name, logo: b.logo, hasLogo: !!b.logo, noLogo: !b.logo, category: isEn ? b.catEn : b.catBm,
+      name: b.name, logo: b.logo, category: isEn ? b.catEn : b.catBm, cardClass: b.company ? 'ns-brand-card--company' : '',
       logoHeight: Math.round(36 * (b.logoScale || 1)) + 'px',
-      waLink: this.waLink('60164110681', (isEn ? "Hello NS Smart Fix Solution, I would like to enquire about products from: " : "Hello NS Smart Fix Solution, saya ingin bertanya tentang produk daripada: ") + b.name)
     }));
     const featuredBrands = brandCards.slice(0,5);
 
@@ -1847,7 +1847,7 @@ class Component extends DCLogic {
       turnstileError:s.turnstileError,
       quickSubmitOpacity:s.quickSending ? '0.65' : '1',
       qkh: { name:(e)=>this.setField('quickForm','name',e.target.value), phone:(e)=>this.setField('quickForm','phone',e.target.value), service:(e)=>this.setField('quickForm','service',e.target.value), message:(e)=>this.setField('quickForm','message',e.target.value) },
-      brandCards, waGeneralLink: waLinks.general,
+      brandCards, trustedBrandsLabel:isEn ? 'Trusted technology brands' : 'Jenama teknologi dipercayai', waGeneralLink: waLinks.general,
       quoteForm: s.quoteForm, qh, customerTypeOptions, serviceCheckOptions, contactMethodOptions, urgencyOptions,
       submitQuote: this.submitQuote, quoteSubmitted: s.quoteSubmitted, quoteNotSubmitted: !s.quoteSubmitted, quoteSending:s.quoteSending,
       quoteSubmitLabel: s.quoteSending ? (isEn ? 'Sending…' : 'Menghantar…') : t.common.submit,
