@@ -111,6 +111,17 @@
     .ns-quick-security{grid-column:span 2;background:#F7FAFD;border:1px solid #DCE6F0;border-radius:12px;padding:14px;}
     .ns-quick-submit{grid-column:span 2;min-height:52px;background:#F59E0B;border:none;border-radius:11px;padding:14px 20px;font-size:15px;font-weight:800;color:#0B1F33;cursor:pointer;box-shadow:0 8px 20px rgba(245,158,11,.22);transition:transform .18s ease,box-shadow .18s ease;}
     .ns-quick-submit:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(245,158,11,.30);}
+    .ns-quote-section{max-width:1180px;margin:0 auto;padding:56px 24px 88px;}
+    .ns-quote-shell{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.45fr);overflow:hidden;border:1px solid #D9E4F0;border-radius:24px;background:#FFFFFF;box-shadow:0 24px 64px rgba(11,31,51,.11);}
+    .ns-quote-intro{background:linear-gradient(155deg,#0B1F33 0%,#123E62 100%);padding:44px 36px;color:#FFFFFF;display:flex;flex-direction:column;justify-content:space-between;gap:42px;}
+    .ns-quote-form-panel{padding:42px;background:#FFFFFF;}
+    .ns-quote-form{margin-top:28px;}
+    .ns-quote-step{display:flex;align-items:center;gap:10px;margin:28px 0 14px;padding-top:24px;border-top:1px solid #E5E9EF;}
+    .ns-quote-step:first-child{margin-top:0;padding-top:0;border-top:0;}
+    .ns-quote-step-number{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#EAF4FF;color:#146CBE;font-size:12px;font-weight:800;flex:0 0 auto;}
+    .ns-quote-step-title{font-size:14px;font-weight:800;color:#0B1F33;}
+    .ns-quote-trust{display:flex;align-items:flex-start;gap:10px;color:#DDEAF6;font-size:13px;line-height:1.45;}
+    .ns-quote-trust-mark{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(37,211,102,.18);color:#45E58B;font-weight:800;flex:0 0 auto;}
     fieldset{min-width:0;}
     ::placeholder{color:#94A3B8;}
     .ns-mobile-menu{display:none !important;}
@@ -138,6 +149,11 @@
       .ns-quick-intro{padding:30px 24px !important;gap:20px !important;}
       .ns-quick-form-panel{padding:28px 22px !important;}
       .ns-quick-security,.ns-quick-submit{grid-column:auto !important;width:100% !important;}
+      .ns-quote-section{width:100% !important;max-width:100% !important;padding:36px 16px 72px !important;}
+      .ns-quote-shell{display:flex !important;flex-direction:column !important;border-radius:18px !important;}
+      .ns-quote-intro{padding:30px 24px !important;gap:24px !important;}
+      .ns-quote-form-panel{padding:28px 22px !important;}
+      .ns-quote-form{padding:0 !important;border:0 !important;border-radius:0 !important;}
       input,select,textarea{font-size:16px !important;}
       .ns-product-cta-actions{flex-direction:column !important;align-items:stretch !important;gap:12px !important;}
       .ns-product-cta-actions > *{width:100% !important;min-height:48px !important;margin:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;}
@@ -172,6 +188,7 @@
       .ns-mobile-menu{padding-left:16px !important;padding-right:16px !important;}
       .ns-sticky-bar > *{min-height:56px !important;font-size:13px !important;padding-left:4px !important;padding-right:4px !important;}
       .ns-quick-form-panel{padding-left:18px !important;padding-right:18px !important;}
+      .ns-quote-form-panel{padding-left:18px !important;padding-right:18px !important;}
     }
   </style>
 </helmet>
@@ -524,14 +541,7 @@
 
   <!-- ================= QUOTATION ================= -->
   <sc-if value="{{ isQuotation }}">
-    <section style="background:#0B1F33;position:relative;overflow:hidden;padding:56px 24px;">
-      <img src="assets/photo-wiring-closeup.jpg" alt="Electrician preparing and stripping wires during an installation" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.22;">
-      <div style="position:relative;max-width:900px;margin:0 auto;text-align:center;">
-        <h1 style="font-family:'Manrope',sans-serif;font-size:32px;font-weight:800;color:#FFFFFF;margin:0 0 10px;">{{ t.quotation.title }}</h1>
-        <p style="font-size:15.5px;color:#C9D6E5;margin:0;">{{ t.quotation.subtitle }}</p>
-      </div>
-    </section>
-    <section style="max-width:760px;margin:0 auto;padding:48px 24px 80px;">
+    <section class="ns-quote-section">
       <sc-if value="{{ quoteSubmitted }}">
         <div style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:40px;text-align:center;">
           <div style="font-size:40px;">✅</div>
@@ -545,7 +555,25 @@
         </div>
       </sc-if>
       <sc-if value="{{ quoteNotSubmitted }}" hint-placeholder-val="{{ true }}">
-        <form aria-label="{{ quoteFormLabel }}" onSubmit="{{ submitQuote }}" novalidate style="background:#FFFFFF;border:1px solid #E5E9EF;border-radius:16px;padding:32px;">
+        <div class="ns-quote-shell">
+          <aside class="ns-quote-intro">
+            <div>
+              <div style="display:inline-flex;align-items:center;gap:8px;color:#F59E0B;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;"><span style="width:7px;height:7px;border-radius:50%;background:#F59E0B;"></span>{{ quotePanelEyebrow }}</div>
+              <h1 style="font-family:'Manrope',sans-serif;font-size:34px;line-height:1.16;font-weight:800;color:#FFFFFF;margin:0 0 16px;">{{ t.quotation.title }}</h1>
+              <p style="font-size:14.5px;line-height:1.65;color:#C9D6E5;margin:0;">{{ t.quotation.subtitle }}</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:15px;">
+              <div class="ns-quote-trust"><span class="ns-quote-trust-mark">✓</span><span>{{ quoteTrustOne }}</span></div>
+              <div class="ns-quote-trust"><span class="ns-quote-trust-mark">✓</span><span>{{ quoteTrustTwo }}</span></div>
+              <div class="ns-quote-trust"><span class="ns-quote-trust-mark">✓</span><span>{{ quoteTrustThree }}</span></div>
+            </div>
+            <p style="font-size:12px;line-height:1.6;color:#AFC5D8;margin:0;">{{ quotePrivacyNote }}</p>
+          </aside>
+          <div class="ns-quote-form-panel">
+            <h2 style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:#0B1F33;margin:0 0 7px;">{{ quoteFormHeading }}</h2>
+            <p style="font-size:13.5px;line-height:1.55;color:#64748B;margin:0;">{{ quoteFormHelper }}</p>
+        <form class="ns-quote-form" aria-label="{{ quoteFormLabel }}" onSubmit="{{ submitQuote }}" novalidate>
+          <div class="ns-quote-step"><span class="ns-quote-step-number">1</span><span class="ns-quote-step-title">{{ quoteStepContact }}</span></div>
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label for="quote-full-name" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.fullName }} *</label>
@@ -565,6 +593,7 @@
             </div>
           </div>
 
+          <div class="ns-quote-step"><span class="ns-quote-step-number">2</span><span class="ns-quote-step-title">{{ quoteStepProject }}</span></div>
           <fieldset style="border:0;padding:0;margin:20px 0 0;">
             <legend style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.customerType }}</legend>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -585,6 +614,7 @@
             </div>
           </fieldset>
 
+          <div class="ns-quote-step"><span class="ns-quote-step-number">3</span><span class="ns-quote-step-title">{{ quoteStepSchedule }}</span></div>
           <div class="ns-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
             <div>
               <label for="quote-location" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.location }}</label>
@@ -605,6 +635,7 @@
             </div>
           </fieldset>
 
+          <div class="ns-quote-step"><span class="ns-quote-step-number">4</span><span class="ns-quote-step-title">{{ quoteStepReview }}</span></div>
           <div style="margin-top:20px;">
             <label for="quote-description" style="font-size:13px;font-weight:600;color:#0B1F33;">{{ t.quotation.description }}</label>
             <textarea id="quote-description" name="description" value="{{ quoteForm.description }}" onChange="{{ qh.description }}" rows="4" maxlength="2000" aria-describedby="{{ quoteErrorId }}" style="width:100%;margin-top:6px;padding:12px 14px;border:1px solid #C9D6E5;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
@@ -649,11 +680,14 @@
             <div class="ns-turnstile-widget" aria-label="{{ turnstileLabel }}"></div>
             <sc-if value="{{ turnstileError }}"><p class="ns-error" role="alert" aria-live="assertive">{{ turnstileError }}</p></sc-if>
           </div>
-          <button type="submit" disabled="{{ quoteSending }}" aria-busy="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#0B1F33;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;color:#FFFFFF;cursor:pointer;opacity:{{ quoteSubmitOpacity }};">{{ quoteSubmitLabel }}</button>
+          <button type="submit" disabled="{{ quoteSending }}" aria-busy="{{ quoteSending }}" style="width:100%;margin-top:22px;background:#F59E0B;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:800;color:#0B1F33;cursor:pointer;opacity:{{ quoteSubmitOpacity }};">{{ quoteSubmitLabel }}</button>
+          <p style="margin:12px 0 0;text-align:center;color:#64748B;font-size:12px;">{{ quoteResponseNote }}</p>
           <sc-if value="{{ quoteError }}">
             <p id="quote-form-error" class="ns-error" role="alert" aria-live="assertive" style="text-align:center;">{{ quoteError }}</p>
           </sc-if>
         </form>
+          </div>
+        </div>
       </sc-if>
     </section>
   </sc-if>
@@ -1820,6 +1854,18 @@ class Component extends DCLogic {
       quoteSubmitOpacity: s.quoteSending ? '0.65' : '1',
       quoteRef: s.quoteRef, quoteError: s.quoteError, quoteWaLink,
       quoteFormLabel:isEn ? 'Quotation request form' : 'Borang permohonan sebut harga',
+      quotePanelEyebrow:isEn ? 'Project quotation' : 'Sebut harga projek',
+      quoteTrustOne:isEn ? 'Sent directly to our technical team' : 'Dihantar terus kepada pasukan teknikal kami',
+      quoteTrustTwo:isEn ? 'Protected by secure verification' : 'Dilindungi oleh pengesahan keselamatan',
+      quoteTrustThree:isEn ? 'Professional acknowledgement by email' : 'Pengesahan profesional melalui e-mel',
+      quotePrivacyNote:isEn ? 'Your details are used only to review and respond to this request, in accordance with our Privacy Notice.' : 'Maklumat anda hanya digunakan untuk menyemak dan membalas permohonan ini, selaras dengan Notis Privasi kami.',
+      quoteFormHeading:isEn ? 'Tell us about your project' : 'Beritahu kami tentang projek anda',
+      quoteFormHelper:isEn ? 'Complete the form below. Required fields are marked with an asterisk.' : 'Lengkapkan borang di bawah. Ruangan wajib ditandakan dengan simbol asterisk.',
+      quoteStepContact:isEn ? 'Contact details' : 'Maklumat hubungan',
+      quoteStepProject:isEn ? 'Project requirements' : 'Keperluan projek',
+      quoteStepSchedule:isEn ? 'Location and preferences' : 'Lokasi dan pilihan',
+      quoteStepReview:isEn ? 'Description, budget and review' : 'Penerangan, bajet dan semakan',
+      quoteResponseNote:isEn ? 'We normally respond within one business day.' : 'Kami biasanya membalas dalam tempoh satu hari bekerja.',
       quoteInvalid:!!s.quoteError,
       quoteErrorId:s.quoteError ? 'quote-form-error' : undefined,
       onFileUpload: this.onFileUpload, hasUploadedFiles: s.quoteFiles.length>0, uploadedFilesLabel: s.quoteFiles.join(", "),
