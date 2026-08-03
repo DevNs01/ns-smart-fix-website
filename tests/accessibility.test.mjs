@@ -58,3 +58,12 @@ test('mobile browser dark mode cannot auto-recolour the light website theme', ()
   assert.match(source, /<meta name="supported-color-schemes" content="light">/);
   assert.match(source, /:root\{color-scheme:only light;supported-color-schemes:light;\}/);
 });
+
+test('quotation page uses the approved responsive split-panel workflow', () => {
+  assert.match(source, /class="ns-quote-shell"/);
+  assert.match(source, /class="ns-quote-intro"/);
+  assert.match(source, /class="ns-quote-form-panel"/);
+  assert.match(source, /quoteStepContact[\s\S]*quoteStepProject[\s\S]*quoteStepSchedule[\s\S]*quoteStepReview/);
+  assert.match(source, /@media \(max-width:860px\)\{[\s\S]*\.ns-quote-shell\{display:flex !important;flex-direction:column !important/);
+  assert.match(source, /quoteResponseNote:isEn \?/);
+});
