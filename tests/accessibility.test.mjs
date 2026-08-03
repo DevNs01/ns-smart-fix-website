@@ -52,3 +52,9 @@ test('raw crawler metadata never exposes template expressions', () => {
   assert.doesNotMatch(metadata, /\{\{/);
   assert.match(source, /<meta name="description" content="Electrical wiring, networking, server infrastructure, IT product supply and installation services across Peninsular Malaysia\.">/);
 });
+
+test('mobile browser dark mode cannot auto-recolour the light website theme', () => {
+  assert.match(source, /<meta name="color-scheme" content="only light">/);
+  assert.match(source, /<meta name="supported-color-schemes" content="light">/);
+  assert.match(source, /:root\{color-scheme:only light;supported-color-schemes:light;\}/);
+});
