@@ -5,9 +5,9 @@ const RECIPIENT = process.env.QUOTATION_TO_EMAIL || 'admin@nssmartfixsolution.co
 const SENDER = process.env.QUOTATION_FROM_EMAIL || 'NS Smart Fix Website <website@nssmartfixsolution.com>';
 const WEBSITE_URL = 'https://nssmartfixsolution.com';
 const LOGO_URL = `${WEBSITE_URL}/assets/ns-smart-fix-logo-transparent.png`;
-const WHATSAPP_URL = 'https://wa.me/60164110681';
-const PRIMARY_PHONE = '016-411 0681';
-const SECONDARY_PHONE = '012-885 1681';
+const WHATSAPP_URL = 'https://wa.me/60128851681';
+const CONTACT_NAME = 'Nazrin Shah';
+const CONTACT_PHONE = '012-885 1681';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 5;
@@ -252,7 +252,7 @@ export function buildCustomerEmail(input, reference) {
         summary:'Ringkasan Permohonan',
         description:'Penerangan Keperluan',
         contactTitle:'Perlu bantuan segera?',
-        contact:`Hubungi Nasarudin di ${PRIMARY_PHONE} atau Nazrin Shah di ${SECONDARY_PHONE}.`,
+        contact:`Hubungi ${CONTACT_NAME} di ${CONTACT_PHONE}.`,
         whatsapp:'Hubungi melalui WhatsApp',
         website:'Layari Laman Web Kami',
         fileNote:'Fail yang dipilih tidak dilampirkan secara automatik. Jika diperlukan, sila hantarkannya melalui WhatsApp.',
@@ -269,7 +269,7 @@ export function buildCustomerEmail(input, reference) {
         summary:'Request Summary',
         description:'Description of Requirement',
         contactTitle:'Need urgent assistance?',
-        contact:`Call Nasarudin at ${PRIMARY_PHONE} or Nazrin Shah at ${SECONDARY_PHONE}.`,
+        contact:`Call ${CONTACT_NAME} at ${CONTACT_PHONE}.`,
         whatsapp:'Contact Us on WhatsApp',
         website:'Visit Our Website',
         fileNote:'Selected files are not attached automatically. If required, please send them through WhatsApp.',
