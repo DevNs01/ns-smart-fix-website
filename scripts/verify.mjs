@@ -38,6 +38,7 @@ const requiredPatterns = [
   ['Semantic navigation URLs', /href="\{\{ navHref\.about \}\}"[\s\S]*href="\{\{ navHref\.services \}\}"[\s\S]*href="\{\{ navHref\.products \}\}"/],
   ['Primary WhatsApp contact', /this\.waLink\('60128851681'/],
   ['Primary phone contact', /href="tel:\+60128851681"/],
+  ['Web design service in English and BM', /Web Design & Development[\s\S]*Reka Bentuk & Pembangunan Laman Web/],
   ['Quick enquiry validation', /if \(!this\.validName\(f\.name\) \|\| !this\.validPhone\(f\.phone\)\)/],
   ['BM form validation', /Sila masukkan nama dan nombor telefon yang sah\./],
   ['Quotation privacy validation', /if \(!f\.agree\)/],
