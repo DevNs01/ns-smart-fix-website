@@ -82,6 +82,13 @@ test('formatted quotation email includes details and escapes customer HTML', () 
   assert.match(plain, /floor-plan\.pdf/);
 });
 
+test('web design is accepted and formatted as a quotation service', () => {
+  const payload = { ...validPayload, services: ['webdesign'] };
+  assert.equal(validatePayload(payload), '');
+  assert.match(buildEmail(payload, 'NSQ-WEB-001').html, /Web Design &amp; Development/);
+  assert.match(buildCustomerEmail({ ...payload, language:'bm' }, 'NSQ-WEB-002').html, /Reka Bentuk &amp; Pembangunan Laman Web/);
+});
+
 test('customer acknowledgement includes reference, submitted details, response time, contacts and website', () => {
   const { html, plain, subject } = buildCustomerEmail(validPayload, 'NSQ-TEST-456');
   assert.match(subject, /NSQ-TEST-456/);

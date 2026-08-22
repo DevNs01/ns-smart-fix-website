@@ -19,7 +19,7 @@
 <meta property="og:locale" content="en_MY">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"LocalBusiness","@id":"https://nssmartfixsolution.com/#business","name":"NS Smart Fix Solution","url":"https://nssmartfixsolution.com/","logo":"https://nssmartfixsolution.com/assets/ns-smart-fix-logo.png","image":"https://nssmartfixsolution.com/assets/photo-datacenter.jpg","email":"admin@nssmartfixsolution.com","telephone":"+60128851681","address":{"@type":"PostalAddress","streetAddress":"5, Jalan Bangsar Utama 1","addressLocality":"Bangsar","postalCode":"59000","addressRegion":"Kuala Lumpur","addressCountry":"MY"},"areaServed":{"@type":"AdministrativeArea","name":"Peninsular Malaysia"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"}],"sameAs":[],"knowsLanguage":["en","ms"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Electrical and IT Services","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Electrical Wiring"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Network Cabling"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Server and IT Infrastructure"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"IT Product Supply"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"TV Bracket Installation"}}]}}
+{"@context":"https://schema.org","@type":"LocalBusiness","@id":"https://nssmartfixsolution.com/#business","name":"NS Smart Fix Solution","url":"https://nssmartfixsolution.com/","logo":"https://nssmartfixsolution.com/assets/ns-smart-fix-logo.png","image":"https://nssmartfixsolution.com/assets/photo-datacenter.jpg","email":"admin@nssmartfixsolution.com","telephone":"+60128851681","address":{"@type":"PostalAddress","streetAddress":"5, Jalan Bangsar Utama 1","addressLocality":"Bangsar","postalCode":"59000","addressRegion":"Kuala Lumpur","addressCountry":"MY"},"areaServed":{"@type":"AdministrativeArea","name":"Peninsular Malaysia"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"}],"sameAs":[],"knowsLanguage":["en","ms"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Electrical, IT and Web Services","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Electrical Wiring"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Network Cabling"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Server and IT Infrastructure"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"IT Product Supply"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"TV Bracket Installation"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Web Design and Development"}}]}}
 </script>
 <style>
   /* Critical first-paint guard: keep Design Canvas expressions hidden until React commits. */
@@ -391,7 +391,7 @@
                 <label for="quick-service">{{ t.quotation.serviceRequired }}</label>
                 <select id="quick-service" name="service" value="{{ quickForm.service }}" onChange="{{ qkh.service }}" aria-describedby="{{ quickErrorId }}">
                   <option value="">{{ t.home.quickServicePlaceholder }}</option>
-                  <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="8">
+                  <sc-for list="{{ t.quotation.serviceOptions }}" as="opt" hint-placeholder-count="9">
                     <option value="{{ opt.value }}">{{ opt.label }}</option>
                   </sc-for>
                 </select>
@@ -902,7 +902,7 @@ en: {
     successTitle:"Your quotation request has been sent.", successMsg:"Our team received your details by email. You may also contact us through WhatsApp.",
     sendWhatsapp:"Send Details via WhatsApp",
     budgetOptions:["Below RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Above RM50,000 / To be discussed"],
-    serviceOptions:[{value:"electrical",label:"Electrical Wiring"},{value:"network",label:"Network Cabling"},{value:"server",label:"Server Setup"},{value:"product",label:"IT Product Supply"},{value:"tv",label:"TV Bracket Installation"},{value:"renovation",label:"Minor Renovation"},{value:"delivery",label:"Delivery"},{value:"troubleshoot",label:"Troubleshooting"}]
+    serviceOptions:[{value:"electrical",label:"Electrical Wiring"},{value:"network",label:"Network Cabling"},{value:"server",label:"Server Setup"},{value:"product",label:"IT Product Supply"},{value:"webdesign",label:"Web Design & Development"},{value:"tv",label:"TV Bracket Installation"},{value:"renovation",label:"Minor Renovation"},{value:"delivery",label:"Delivery"},{value:"troubleshoot",label:"Troubleshooting"}]
   },
   contact: { title:"Contact Us", call:"Call", addressLabel:"Office Address", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Business Hours", hours:"9:00 AM – 6:00 PM, Monday – Saturday", areaLabel:"Service Coverage", area:"Peninsular Malaysia — our team serves all regions.", brnLabel:"Business Registration Number (BRN)", brn:"202603189342 (PG0590711-T)" },
   faq: { title:"Frequently Asked Questions", items:[
@@ -983,7 +983,7 @@ bm: {
     successTitle:"Permohonan sebut harga anda telah dihantar.", successMsg:"Pasukan kami telah menerima butiran anda melalui e-mel. Anda juga boleh menghubungi kami melalui WhatsApp.",
     sendWhatsapp:"Hantar Butiran melalui WhatsApp",
     budgetOptions:["Di bawah RM1,000","RM1,000 – RM5,000","RM5,000 – RM20,000","RM20,000 – RM50,000","Melebihi RM50,000 / Untuk dibincangkan"],
-    serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Pemasangan Kabel Rangkaian"},{value:"server",label:"Pemasangan & Konfigurasi Server"},{value:"product",label:"Pembekalan Produk IT"},{value:"tv",label:"Pemasangan Pendakap TV"},{value:"renovation",label:"Pengubahsuaian Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
+    serviceOptions:[{value:"electrical",label:"Pendawaian Elektrik"},{value:"network",label:"Pemasangan Kabel Rangkaian"},{value:"server",label:"Pemasangan & Konfigurasi Server"},{value:"product",label:"Pembekalan Produk IT"},{value:"webdesign",label:"Reka Bentuk & Pembangunan Laman Web"},{value:"tv",label:"Pemasangan Pendakap TV"},{value:"renovation",label:"Pengubahsuaian Kecil"},{value:"delivery",label:"Penghantaran"},{value:"troubleshoot",label:"Penyelesaian Masalah"}]
   },
   contact: { title:"Hubungi Kami", call:"Telefon", addressLabel:"Alamat Pejabat", address:"5, Jalan Bangsar Utama 1, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur", hoursLabel:"Waktu Operasi", hours:"9:00 pagi – 6:00 petang, Isnin – Sabtu", areaLabel:"Liputan Perkhidmatan", area:"Seluruh Semenanjung Malaysia, tertakluk kepada ketersediaan pasukan di lokasi anda.", brnLabel:"Nombor Pendaftaran Perniagaan (BRN)", brn:"202603189342 (PG0590711-T)" },
   faq: { title:"Soalan Lazim", items:[
@@ -1162,16 +1162,17 @@ Dengan mengklik “Saya Bersetuju”, menerima sebut harga, membuat deposit, mem
 
 Versi Bahasa Melayu ini perlu disemak oleh penasihat undang-undang Malaysia yang berkelayakan sebelum digunakan sebagai dokumen undang-undang muktamad.`;
 
-const SERVICE_ICONS = ["⚡","🌐","🖥","🛠","💻","📺","🏗","🚚","🔧"];
-const SERVICE_KEYS = ["electrical","network","server","itinfra","product","tv","renovation","delivery","troubleshoot"];
-const SERVICE_TITLES_EN = ["Electrical Wiring","Network Cabling","Server & IT Infrastructure","IT Infrastructure Design","IT Product Supply","TV Bracket Installation","Minor Renovation","Delivery & Installation","Troubleshooting & Maintenance"];
-const SERVICE_TITLES_BM = ["Pendawaian Elektrik","Pemasangan Kabel Rangkaian","Server & Infrastruktur IT","Reka Bentuk Infrastruktur IT","Pembekalan Produk IT","Pemasangan Pendakap TV","Pengubahsuaian Kecil","Penghantaran & Pemasangan","Penyelesaian Masalah & Penyelenggaraan"];
+const SERVICE_ICONS = ["⚡","🌐","🖥","🛠","💻","🎨","📺","🏗","🚚","🔧"];
+const SERVICE_KEYS = ["electrical","network","server","itinfra","product","webdesign","tv","renovation","delivery","troubleshoot"];
+const SERVICE_TITLES_EN = ["Electrical Wiring","Network Cabling","Server & IT Infrastructure","IT Infrastructure Design","IT Product Supply","Web Design & Development","TV Bracket Installation","Minor Renovation","Delivery & Installation","Troubleshooting & Maintenance"];
+const SERVICE_TITLES_BM = ["Pendawaian Elektrik","Pemasangan Kabel Rangkaian","Server & Infrastruktur IT","Reka Bentuk Infrastruktur IT","Pembekalan Produk IT","Reka Bentuk & Pembangunan Laman Web","Pemasangan Pendakap TV","Pengubahsuaian Kecil","Penghantaran & Pemasangan","Penyelesaian Masalah & Penyelenggaraan"];
 const SERVICE_DESC_EN = [
   "New wiring, rewiring, power points, lighting and distribution board work for homes and offices.",
   "Structured cabling — CAT5e/6/6A, LAN points, patch panels, racks and testing.",
   "Server supply, rack setup, UPS, NAS, basic configuration and documentation.",
   "Network segmentation, VLAN and access-control planning for growing offices.",
   "Business laptops, desktops, monitors, networking gear and accessories from trusted brands.",
+  "Responsive business websites, landing pages and redesigns with clear user experience, basic SEO and reliable deployment.",
   "Fixed, tilting and full-motion brackets for homes, offices and meeting rooms.",
   "Electrical and network-related small renovation and office preparation work.",
   "Product delivery, installation, testing and handover documentation.",
@@ -1183,6 +1184,7 @@ const SERVICE_DESC_BM = [
   "Pembekalan server, pemasangan rak, UPS, NAS, konfigurasi asas dan dokumentasi.",
   "Perancangan segmentasi rangkaian, VLAN dan kawalan akses untuk pejabat yang sedang berkembang.",
   "Komputer riba perniagaan, desktop, monitor, peralatan rangkaian dan aksesori daripada jenama dipercayai.",
+  "Laman web perniagaan responsif, halaman pendaratan dan reka bentuk semula dengan pengalaman pengguna yang jelas, SEO asas dan pelancaran yang boleh dipercayai.",
   "Pendakap jenis tetap, condong dan gerakan penuh untuk kediaman, pejabat dan bilik mesyuarat.",
   "Kerja pengubahsuaian kecil dan persediaan pejabat yang berkaitan dengan sistem elektrik dan rangkaian.",
   "Penghantaran produk, pemasangan, pengujian dan dokumentasi serahan kerja.",
@@ -1194,6 +1196,7 @@ const SERVICE_BULLETS_EN = [
   ["Server supply & installation","Rack cabinet & UPS setup","NAS / backup storage setup","Windows Server & AD basics","Server documentation"],
   ["Network segmentation planning","VLAN preparation","Access control planning","Asset identification & labelling","Backup planning"],
   ["Business laptops & desktops","Monitors, keyboards, mouse","Docking stations & chargers","Printers & network switches","Servers, racks & UPS units"],
+  ["Responsive business websites","Landing pages & website redesigns","Mobile-friendly UI/UX","Basic on-page SEO setup","Deployment & maintenance support"],
   ["Fixed / tilting / full-motion","Ceiling mount options","Cable organisation","TV trolley / mobile stand","Meeting room & signage mounting"],
   ["Electrical layout improvement","Additional power points","Cable concealment / trunking","Network point relocation","Small office rearrangement"],
   ["Product delivery","Installation & testing","Equipment positioning","Handover documentation","Post-installation support"],
@@ -1205,13 +1208,14 @@ const SERVICE_BULLETS_BM = [
   ["Pembekalan & pemasangan server","Kabinet rak & pemasangan UPS","Pemasangan NAS / storan sandaran","Asas Windows Server & AD","Dokumentasi server"],
   ["Perancangan segmentasi rangkaian","Persediaan VLAN","Perancangan kawalan akses","Pengenalan & label aset","Perancangan sandaran"],
   ["Komputer riba & desktop perniagaan","Monitor, papan kekunci & tetikus","Stesen dok & pengecas","Pencetak & suis rangkaian","Server, rak & unit UPS"],
+  ["Laman web perniagaan responsif","Halaman pendaratan & reka bentuk semula","UI/UX mesra peranti mudah alih","Tetapan asas SEO pada halaman","Sokongan pelancaran & penyelenggaraan"],
   ["Jenis tetap / condong / gerakan penuh","Pilihan pemasangan siling","Pengurusan kabel","Troli TV / kaki mudah alih","Pemasangan untuk bilik mesyuarat & papan tanda"],
   ["Penambahbaikan susun atur elektrik","Soket kuasa tambahan","Penyembunyian kabel / sesalur kabel","Pemindahan titik rangkaian","Penyusunan semula pejabat kecil"],
   ["Penghantaran produk","Pemasangan & pengujian","Penempatan peralatan","Dokumentasi serahan kerja","Sokongan selepas pemasangan"],
   ["Pemeriksaan litar","Diagnosis masalah bekalan terputus","Pengesanan kerosakan rangkaian","Penggantian suis / soket","Penyelenggaraan pencegahan"]
 ];
-const SERVICE_NOTE_EN = ["Electrical work is subject to site inspection, safety requirements, applicable regulations and the agreed scope of work.","Cable labelling, testing, documentation and secure network design may be applied depending on the project.","Solutions can be planned with consideration for ISO/IEC 27001 information security principles — access control, asset management, network separation, backup planning and documentation.","","","","Every renovation project is subject to site inspection and an agreed quotation.","",""];
-const SERVICE_NOTE_BM = ["Kerja elektrik tertakluk kepada pemeriksaan tapak, keperluan keselamatan, peraturan yang berkenaan dan skop kerja yang dipersetujui.","Pelabelan kabel, pengujian, dokumentasi dan reka bentuk rangkaian selamat boleh dilaksanakan mengikut keperluan projek.","Penyelesaian boleh dirancang dengan mengambil kira prinsip keselamatan maklumat ISO/IEC 27001 — kawalan akses, pengurusan aset, pengasingan rangkaian, perancangan sandaran dan dokumentasi.","","","","Setiap projek pengubahsuaian tertakluk kepada pemeriksaan tapak dan sebut harga yang dipersetujui.","",""];
+const SERVICE_NOTE_EN = ["Electrical work is subject to site inspection, safety requirements, applicable regulations and the agreed scope of work.","Cable labelling, testing, documentation and secure network design may be applied depending on the project.","Solutions can be planned with consideration for ISO/IEC 27001 information security principles — access control, asset management, network separation, backup planning and documentation.","","","Website scope, content, integrations, hosting and maintenance will be confirmed in the agreed quotation.","","Every renovation project is subject to site inspection and an agreed quotation.","",""];
+const SERVICE_NOTE_BM = ["Kerja elektrik tertakluk kepada pemeriksaan tapak, keperluan keselamatan, peraturan yang berkenaan dan skop kerja yang dipersetujui.","Pelabelan kabel, pengujian, dokumentasi dan reka bentuk rangkaian selamat boleh dilaksanakan mengikut keperluan projek.","Penyelesaian boleh dirancang dengan mengambil kira prinsip keselamatan maklumat ISO/IEC 27001 — kawalan akses, pengurusan aset, pengasingan rangkaian, perancangan sandaran dan dokumentasi.","","","Skop laman web, kandungan, integrasi, pengehosan dan penyelenggaraan akan disahkan dalam sebut harga yang dipersetujui.","","Setiap projek pengubahsuaian tertakluk kepada pemeriksaan tapak dan sebut harga yang dipersetujui.","",""];
 
 const PRODUCTS = [
   {brand:"Lenovo", nameEn:"ThinkPad E14 Business Laptop", nameBm:"Komputer Riba Perniagaan ThinkPad E14", type:"Laptop", specsEn:"Intel Core i5, 16GB RAM, 512GB SSD", specsBm:"Intel Core i5, RAM 16GB, SSD 512GB", usageEn:"Office use", usageBm:"Kegunaan pejabat", stock:true},
@@ -1672,7 +1676,7 @@ class Component extends DCLogic {
     }));
 
     const heroStats = [
-      {value:"9+", label: isEn ? "Service Categories":"Kategori Perkhidmatan"},
+      {value:"10+", label: isEn ? "Service Categories":"Kategori Perkhidmatan"},
       {value:"11+", label: isEn ? "Trusted Brands":"Jenama Dipercayai"},
       {value:"1", label: isEn ? "Peninsular Coverage":"Liputan Semenanjung"},
       {value:"2", label: isEn ? "Direct Contacts":"Hubungan Terus"}

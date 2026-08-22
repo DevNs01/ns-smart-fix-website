@@ -18,12 +18,12 @@ globalThis.__nsQuotationRateLimits = rateLimitStore;
 globalThis.__nsQuotationDuplicates = duplicateStore;
 const SERVICE_LABELS = {
   electrical: 'Electrical Wiring', network: 'Network Cabling', server: 'Server Setup',
-  product: 'IT Product Supply', tv: 'TV Bracket Installation', renovation: 'Minor Renovation',
+  product: 'IT Product Supply', webdesign: 'Web Design & Development', tv: 'TV Bracket Installation', renovation: 'Minor Renovation',
   delivery: 'Delivery', troubleshoot: 'Troubleshooting'
 };
 const SERVICE_LABELS_BM = {
   electrical:'Pendawaian Elektrik', network:'Kabel Rangkaian', server:'Pemasangan Server',
-  product:'Pembekalan Produk IT', tv:'Pemasangan Pendakap TV', renovation:'Pengubahsuaian Kecil',
+  product:'Pembekalan Produk IT', webdesign:'Reka Bentuk & Pembangunan Laman Web', tv:'Pemasangan Pendakap TV', renovation:'Pengubahsuaian Kecil',
   delivery:'Penghantaran', troubleshoot:'Penyelesaian Masalah'
 };
 
