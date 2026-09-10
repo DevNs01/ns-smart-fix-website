@@ -42,3 +42,10 @@ test('admin frontend uses the same-origin authentication function without browse
   assert.doesNotMatch(adminSource, /localStorage|sessionStorage/);
   assert.doesNotMatch(adminSource, /SUPABASE_SERVICE_ROLE_KEY/);
 });
+
+test('admin password recovery removes URL fragments and does not persist recovery tokens', () => {
+  assert.match(adminSource, /history\.replaceState/);
+  assert.match(adminSource, /update-password/);
+  assert.match(adminSource, /recover/);
+  assert.doesNotMatch(adminSource, /localStorage|sessionStorage/);
+});
