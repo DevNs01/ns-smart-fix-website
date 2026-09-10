@@ -7,7 +7,7 @@ const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url
 
 test('WhatsApp destinations are fixed business numbers and messages are encoded', () => {
   assert.match(source, /waLink\(phone, msg\)\{ return "https:\/\/wa\.me\/" \+ phone \+ "\?text=" \+ encodeURIComponent\(msg\); \}/);
-  assert.match(source, /this\.waLink\('60128851681'/);
+  assert.match(source, /this\.waLink\('60162119969'/);
   assert.doesNotMatch(source, /60164110681|016-411 0681/);
 });
 
