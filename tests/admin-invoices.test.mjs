@@ -25,6 +25,14 @@ test('invoice UI supports line items, calculated totals and printing', () => {
   assert.match(invoices, /window\.print\(\)/);
 });
 
+test('saved invoices can be viewed and downloaded as PDFs', () => {
+  assert.match(invoices, /View PDF/);
+  assert.match(invoices, /Download PDF/);
+  assert.match(invoices, /action=invoice-pdf/);
+  assert.match(api, /route === '\/invoice-pdf'/);
+  assert.match(api, /buildInvoicePdf/);
+});
+
 test('invoice tables are granted only to authenticated users', () => {
   assert.match(migration, /grant select, insert, update on table public\.invoices to authenticated/);
   assert.doesNotMatch(migration, /\bto anon\b/);
