@@ -1,3 +1,6 @@
+import { buildQuotationPdf, quotationEmail } from './quotation-pdf.js';
+import { sendMonitoringAlert } from './monitoring.js';
+
 const ACCESS_COOKIE = 'ns_admin_access';
 const REFRESH_COOKIE = 'ns_admin_refresh';
 const MAX_BODY_BYTES = 32 * 1024;
@@ -156,6 +159,28 @@ async function audit(session, action, module, recordId = null, recordNumber = nu
   }, session.accessToken).catch(() => {});
 }
 
+async function quotationBundle(id, session) {
+  const quotations = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, session.accessToken);
+  const quotation = quotations[0];
+  if (!quotation) return null;
+  const [items, settingRows] = await Promise.all([
+    restJson(`/rest/v1/quotation_items?quotation_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
+    restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken)
+  ]);
+  const currentSettings = settingRows[0] || {};
+  const settings = quotation.sent_at && quotation.company_snapshot ? quotation.company_snapshot : currentSettings;
+  return { quotation, items, settings };
+}
+
+function pdfResponse(response, buffer, filename) {
+  response.statusCode = 200;
+  response.setHeader('Content-Type', 'application/pdf');
+  response.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+  response.setHeader('Cache-Control', 'private, no-store, max-age=0');
+  response.setHeader('Content-Length', String(buffer.length));
+  response.end(buffer);
+}
+
 export default async function handler(request, response) {
   const requestUrl = new URL(String(request.url || '/api/admin-auth'), 'http://localhost');
   const action = requestUrl.searchParams.get('action') || 'session';
@@ -273,7 +298,7 @@ export default async function handler(request, response) {
 
     if (route === '/quotations' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const quotations = await restJson('/rest/v1/quotations?select=id,quotation_number,quotation_date,expiry_date,status,project_title,grand_total,customer_snapshot,created_at&order=created_at.desc&limit=500', {}, session.accessToken);
+      const quotations = await restJson('/rest/v1/quotations?select=id,quotation_number,quotation_date,expiry_date,status,project_title,grand_total,customer_snapshot,sent_at,sent_to,created_at&order=created_at.desc&limit=500', {}, session.accessToken);
       const customers = await restJson('/rest/v1/customers?select=id,name,phone,email,contact_person&is_active=eq.true&order=name.asc&limit=500', {}, session.accessToken);
       return json(response, 200, { quotations, customers });
     }
@@ -291,6 +316,78 @@ export default async function handler(request, response) {
       await restJson('/rest/v1/quotation_items', { method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(items.map(item=>({...item,quotation_id:rows[0].id}))) }, session.accessToken);
       await audit(session,'create','quotations',rows[0].id,rows[0].quotation_number,{projectTitle,total});
       return json(response,201,{quotation:rows[0]});
+    }
+
+    if (route === '/quotation-pdf' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80);
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error: 'Invalid quotation.' });
+      const bundle = await quotationBundle(id, session);
+      if (!bundle) return json(response, 404, { error: 'Quotation was not found.' });
+      const pdf = buildQuotationPdf(bundle);
+      return pdfResponse(response, pdf, `${bundle.quotation.quotation_number}.pdf`);
+    }
+
+    if (route === '/quotation-send' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request);
+      const id = bounded(body.id, 80);
+      const recipientEmail = bounded(body.recipientEmail, 254).toLowerCase();
+      if (!body.confirmed || !/^[0-9a-f-]{36}$/i.test(id) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+        return json(response, 400, { error: 'Confirm a valid customer email address before sending.' });
+      }
+      if (!process.env.RESEND_API_KEY) return json(response, 503, { error: 'Email delivery is not configured.' });
+      const bundle = await quotationBundle(id, session);
+      if (!bundle) return json(response, 404, { error: 'Quotation was not found.' });
+      if (bundle.quotation.sent_at) return json(response, 409, { error: `This quotation was already sent to ${bundle.quotation.sent_to}.` });
+      if (bundle.quotation.status !== 'draft') return json(response, 409, { error: 'Only a draft quotation can be approved and sent.' });
+
+      const companySnapshot = {
+        company_name: bundle.settings.company_name, registration_number: bundle.settings.registration_number,
+        business_address: bundle.settings.business_address, phone: bundle.settings.phone, email: bundle.settings.email,
+        website: bundle.settings.website, logo_path: bundle.settings.logo_path, bank_name: bundle.settings.bank_name,
+        bank_account_name: bundle.settings.bank_account_name, bank_account_number: bundle.settings.bank_account_number,
+        default_terms: bundle.settings.default_terms, tax_enabled: bundle.settings.tax_enabled
+      };
+      const approvalStartedAt = new Date().toISOString();
+      const locked = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null&approved_at=is.null`, {
+        method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ company_snapshot: companySnapshot, approved_by:session.user.id, approved_at:approvalStartedAt })
+      }, session.accessToken);
+      if (!locked[0]) return json(response, 409, { error: 'This quotation is already being processed. Refresh before trying again.' });
+      bundle.quotation.company_snapshot = companySnapshot;
+      bundle.quotation.status = 'sent';
+      const pdf = buildQuotationPdf(bundle);
+      const email = quotationEmail(bundle);
+      let delivery;
+      try {
+        delivery = await fetch('https://api.resend.com/emails', {
+          method: 'POST', headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: process.env.QUOTATION_FROM_EMAIL || 'NS Smart Fix Solution <website@nssmartfixsolution.com>',
+            to: [recipientEmail], reply_to: bundle.settings.email || process.env.QUOTATION_TO_EMAIL,
+            subject: email.subject, html: email.html, text: email.text,
+            attachments: [{ filename: `${bundle.quotation.quotation_number}.pdf`, content: pdf.toString('base64') }]
+          })
+        });
+      } catch {
+        await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({approved_by:null,approved_at:null}) }, session.accessToken).catch(()=>{});
+        await sendMonitoringAlert({ category:'email_delivery_failed', severity:'critical', details:{route:'/api/admin-auth',stage:'quotation_send',code:'network_error'}, dedupeKey:'admin-quotation-send-network' });
+        return json(response, 502, { error: 'The quotation could not be delivered. Its status remains Draft.' });
+      }
+      if (!delivery.ok) {
+        await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({approved_by:null,approved_at:null}) }, session.accessToken).catch(()=>{});
+        await sendMonitoringAlert({ category:'email_delivery_failed', severity:'critical', details:{route:'/api/admin-auth',stage:'quotation_send',status:delivery.status}, dedupeKey:`admin-quotation-send:${delivery.status}` });
+        return json(response, 502, { error: 'The quotation could not be delivered. Its status remains Draft.' });
+      }
+      const deliveryBody = await delivery.json().catch(() => ({}));
+      const sentAt = new Date().toISOString();
+      const updated = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, {
+        method: 'PATCH', headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ status:'sent', sent_at:sentAt, sent_to:recipientEmail, email_provider_id:bounded(deliveryBody.id, 120) || null })
+      }, session.accessToken);
+      if (!updated[0]) return json(response, 409, { error: 'The email was delivered, but another session updated this quotation. Check its audit history before retrying.' });
+      await audit(session, 'approve_and_send', 'quotations', id, bundle.quotation.quotation_number, { sentTo:recipientEmail, sentAt, total:bundle.quotation.grand_total });
+      return json(response, 200, { quotation:updated[0], delivered:true });
     }
 
     if (route === '/document-status' && request.method === 'POST') {
@@ -331,7 +428,7 @@ export default async function handler(request, response) {
     }
 
     if (route === '/settings' && request.method === 'GET') { const session=await requireSession(request,response); if(!session)return; const rows=await restJson('/rest/v1/company_settings?select=*&limit=1',{},session.accessToken); return json(response,200,{settings:rows[0]||{}}); }
-    if (route === '/settings-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const payload={company_name:bounded(b.companyName,160),registration_number:bounded(b.registrationNumber,80)||null,business_address:bounded(b.businessAddress,1000)||null,phone:bounded(b.phone,30)||null,email:bounded(b.email,254)||null,website:bounded(b.website,300)||null,bank_name:bounded(b.bankName,120)||null,bank_account_name:bounded(b.bankAccountName,160)||null,bank_account_number:bounded(b.bankAccountNumber,80)||null,default_quotation_validity_days:Math.max(1,Math.min(365,Number(b.quotationDays)||14)),default_invoice_payment_days:Math.max(0,Math.min(365,Number(b.invoiceDays)||30)),default_terms:bounded(b.defaultTerms,5000)||null,tax_enabled:Boolean(b.taxEnabled),default_tax_percent:Math.max(0,Math.min(100,Number(b.taxPercent)||0)),updated_by:session.user.id}; if(payload.company_name.length<2)return json(response,400,{error:'Company name is required.'}); const rows=await restJson('/rest/v1/company_settings?id=eq.true',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)},session.accessToken); await audit(session,'update','settings',null,null,{companyName:payload.company_name}); return json(response,200,{settings:rows[0]}); }
+    if (route === '/settings-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const logoPath=bounded(b.logoPath,200)||'/assets/ns-smart-fix-logo.png'; if(!/^\/assets\/[a-z0-9._-]+\.png$/i.test(logoPath))return json(response,400,{error:'Select a valid website logo.'}); const payload={company_name:bounded(b.companyName,160),registration_number:bounded(b.registrationNumber,80)||null,business_address:bounded(b.businessAddress,1000)||null,phone:bounded(b.phone,30)||null,email:bounded(b.email,254)||null,website:bounded(b.website,300)||null,logo_path:logoPath,bank_name:bounded(b.bankName,120)||null,bank_account_name:bounded(b.bankAccountName,160)||null,bank_account_number:bounded(b.bankAccountNumber,80)||null,default_quotation_validity_days:Math.max(1,Math.min(365,Number(b.quotationDays)||14)),default_invoice_payment_days:Math.max(0,Math.min(365,Number(b.invoiceDays)||30)),default_terms:bounded(b.defaultTerms,5000)||null,tax_enabled:Boolean(b.taxEnabled),default_tax_percent:Math.max(0,Math.min(100,Number(b.defaultTaxPercent)||0)),updated_by:session.user.id}; if(payload.company_name.length<2)return json(response,400,{error:'Company name is required.'}); const rows=await restJson('/rest/v1/company_settings?id=eq.true',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)},session.accessToken); await audit(session,'update','settings',null,null,{companyName:payload.company_name}); return json(response,200,{settings:rows[0]}); }
 
     if (route === '/users' && request.method === 'GET') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const users=await restJson('/rest/v1/profiles?select=id,full_name,role,is_active,created_at,updated_at&order=created_at.asc&limit=100',{},session.accessToken); return json(response,200,{users}); }
     if (route === '/user-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const id=bounded(b.id,80); const roleValue=bounded(b.role,10); if(!/^[0-9a-f-]{36}$/i.test(id)||!['admin','staff'].includes(roleValue))return json(response,400,{error:'Invalid staff update.'}); if(id===session.user.id&&!b.isActive)return json(response,400,{error:'You cannot deactivate your own account.'}); const rows=await restJson(`/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({role:roleValue,is_active:Boolean(b.isActive)})},session.accessToken); await audit(session,'update','users',id,null,{role:roleValue,isActive:Boolean(b.isActive)}); return json(response,200,{user:rows[0]}); }
