@@ -65,6 +65,31 @@ Verify `nssmartfixsolution.com` in Resend before using the production sender. St
 
 The checked-in `vercel.json` contains the same build and output settings.
 
+## Admin portal foundation
+
+The repository includes the Phase 1 Supabase database foundation for the internal business portal. It adds normalized customer, quotation, invoice, payment and receipt records; protected audit logs; atomic monthly document numbering; server-validated invoice balances; Row Level Security; and a private payment-proof bucket.
+
+See [Admin Portal Architecture](docs/ADMIN_PORTAL_ARCHITECTURE.md) for the phased implementation plan and security boundary.
+
+To prepare a Supabase project locally:
+
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push --dry-run
+npx supabase db push
+```
+
+`supabase/seed.sql` contains non-sensitive defaults for local development and `supabase db reset`. Do not use `--include-seed` against production. The migration itself safely creates the production default settings row with tax disabled at 0%.
+
+Add these variables to `.env.local` for local work and to the appropriate Vercel environments for deployment:
+
+- `VITE_SUPABASE_URL` — public Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` — public anonymous/publishable key protected by RLS
+- `SUPABASE_SERVICE_ROLE_KEY` — server-only key for trusted Vercel Functions
+
+The service-role key must never use the `VITE_` prefix. Phase 1 does not change the public form or expose an `/admin` UI; authentication and the protected portal shell are delivered in Phase 2 after the Supabase project is configured.
+
 ## Production monitoring and recovery
 
 The production deployment exposes `/api/health` and runs an authenticated Vercel Cron check every 10 minutes. Monitoring covers website availability, unexpected quotation failures, Resend delivery failures, slow API responses, browser JavaScript errors, unhandled promise rejections and application boot timeouts.
