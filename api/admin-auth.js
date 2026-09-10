@@ -3,6 +3,7 @@ const REFRESH_COOKIE = 'ns_admin_refresh';
 const MAX_BODY_BYTES = 4 * 1024;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LIMIT = 8;
+const ADMIN_REDIRECT_URL = 'https://nssmartfixsolution.com/admin';
 const attempts = globalThis.__nsAdminLoginAttempts || new Map();
 globalThis.__nsAdminLoginAttempts = attempts;
 
@@ -143,6 +144,35 @@ export default async function handler(request, response) {
       const profile = await profileFor(session.access_token, session.user.id);
       if (!profile) return json(response, 403, { error: 'This account is not authorized for staff access.' }, { 'Set-Cookie': clearCookies() });
       return json(response, 200, { profile }, { 'Set-Cookie': sessionCookies(session) });
+    }
+
+    if (route === '/recover' && request.method === 'POST') {
+      if (!allowLogin(clientIp(request))) return json(response, 429, { error: 'Too many requests. Please try again later.' });
+      const body = await readBody(request);
+      const email = String(body.email || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json(response, 400, { error: 'Enter a valid email address.' });
+      }
+      const redirectTo = encodeURIComponent(process.env.ADMIN_REDIRECT_URL || ADMIN_REDIRECT_URL);
+      await supabaseFetch(`/auth/v1/recover?redirect_to=${redirectTo}`, {
+        method: 'POST', body: JSON.stringify({ email })
+      });
+      return json(response, 200, { ok: true });
+    }
+
+    if (route === '/update-password' && request.method === 'POST') {
+      const body = await readBody(request);
+      const accessToken = String(body.accessToken || '');
+      const password = String(body.password || '');
+      if (accessToken.length < 20 || accessToken.length > 4096 || password.length < 12 || password.length > 200) {
+        return json(response, 400, { error: 'Use a password of at least 12 characters.' });
+      }
+      const updateResponse = await supabaseFetch('/auth/v1/user', {
+        method: 'PUT', body: JSON.stringify({ password })
+      }, accessToken);
+      if (!updateResponse.ok) return json(response, 401, { error: 'This recovery link is invalid or has expired. Request a new one.' });
+      await supabaseFetch('/auth/v1/logout?scope=global', { method: 'POST' }, accessToken).catch(() => {});
+      return json(response, 200, { ok: true }, { 'Set-Cookie': clearCookies() });
     }
 
     if (route === '/session' && request.method === 'GET') {
