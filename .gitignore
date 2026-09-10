@@ -5,6 +5,8 @@ node_modules/
 # Production builds and Vercel state
 dist/
 .vercel/
+supabase/.temp/
+supabase/.branches/
 
 # Environment files (examples remain committable)
 .env
