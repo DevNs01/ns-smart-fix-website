@@ -110,6 +110,26 @@ function releaseDuplicate(input, ip) {
   duplicateStore.delete(duplicateFingerprint(input, ip));
 }
 
+async function storeQuotationRequest(input, reference) {
+  const url = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
+  const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+  if (!url || !key) return false;
+  const result = await fetch(`${url}/rest/v1/quotation_requests`, {
+    method: 'POST',
+    headers: { apikey:key, Authorization:`Bearer ${key}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+    body: JSON.stringify({
+      public_reference:reference, status:'new', customer_name:clean(input.fullName,100),
+      company_name:clean(input.company,120)||null, phone:clean(input.phone,24), email:clean(input.email,254)||null,
+      customer_type:clean(input.customerType,60)||null, services:(input.services||[]).map(key=>SERVICE_LABELS[key]),
+      project_location:clean(input.location,250)||null, preferred_visit_date:clean(input.visitDate,20)||null,
+      preferred_contact_method:clean(input.contactMethod,40)||null, budget_range:clean(input.budget,80)||null,
+      urgency:clean(input.urgency,50)||null, description:clean(input.description,2000)||null,
+      selected_file_names:(input.files||[]).map(name=>clean(name,120)), consented_at:new Date().toISOString(), source:'website'
+    })
+  });
+  return result.ok;
+}
+
 export function resetProtectionStores() {
   rateLimitStore.clear();
   duplicateStore.clear();
@@ -381,6 +401,12 @@ export default async function handler(request, response) {
       dedupeKey: `quotation-admin-email:${resendResponse.status}`
     });
     return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
+  }
+  try {
+    const stored = await storeQuotationRequest(payload, reference);
+    if (!stored && process.env.SUPABASE_SERVICE_ROLE_KEY) await sendMonitoringAlert({ category:'quotation_submission_failed', severity:'warning', details:{route:'/api/quotation',stage:'database_storage',status:502}, dedupeKey:'quotation-storage' });
+  } catch {
+    await sendMonitoringAlert({ category:'quotation_submission_failed', severity:'warning', details:{route:'/api/quotation',stage:'database_storage',code:'network_error'}, dedupeKey:'quotation-storage-network' });
   }
   let acknowledgementSent = false;
   if (replyTo) {

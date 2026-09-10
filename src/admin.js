@@ -1,4 +1,5 @@
 import { renderInvoices } from './admin-invoices.js';
+import { renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotations, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
 
 const root = document.getElementById('admin-app');
 
@@ -216,7 +217,7 @@ function renderPortal(profile) {
           </div>
         </header>
         <main class="portal-content" id="portal-content">
-          ${dashboardMarkup(profile)}
+          <section class="empty-state"><p>Loading dashboard…</p></section>
         </main>
       </div>
       <button type="button" class="sidebar-overlay" id="sidebar-overlay" aria-label="Close navigation"></button>
@@ -237,13 +238,8 @@ function renderPortal(profile) {
     button.classList.add('active');
     const label = button.querySelector('span:last-child').textContent;
     document.getElementById('page-title').textContent = label;
-    if (button.dataset.module === 'dashboard') {
-      document.getElementById('portal-content').innerHTML = dashboardMarkup(profile);
-    } else if (button.dataset.module === 'invoices') {
-      await renderInvoices(api);
-    } else {
-      document.getElementById('portal-content').innerHTML = emptyModuleMarkup(label);
-    }
+    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: () => renderQuotations(api), invoices: () => renderInvoices(api), payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
+    await renderers[button.dataset.module]();
     closeMenu();
   }));
 
@@ -253,6 +249,7 @@ function renderPortal(profile) {
     try { await api('logout', { method: 'POST', body: '{}' }); } catch {}
     renderLogin();
   });
+  renderDashboard(api, profile);
 }
 
 function dashboardMarkup(profile) {

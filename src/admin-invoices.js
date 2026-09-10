@@ -35,7 +35,7 @@ function invoiceForm(settings = {}) {
 
 function invoiceList(invoices) {
   return `<section class="invoice-workspace"><div class="module-toolbar"><div><span class="eyebrow">INVOICE MANAGEMENT</span><h1>Saved invoices</h1><p>${invoices.length} invoice${invoices.length === 1 ? '' : 's'} stored securely.</p></div><button class="primary-button compact" id="new-invoice" type="button">+ New invoice</button></div>
-    <div class="content-card invoice-list">${invoices.length ? `<div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th><th>Balance</th></tr></thead><tbody>${invoices.map(invoice => `<tr><td><strong>${esc(invoice.invoice_number)}</strong></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${esc(invoice.invoice_date)}</td><td><span class="status ${esc(invoice.status)}">${esc(invoice.status)}</span></td><td>${money(invoice.grand_total)}</td><td>${money(invoice.balance)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-module"><h2>No invoices yet</h2><p>Create the first invoice to begin your cloud invoice history.</p></div>'}</div></section>`;
+    <div class="content-card invoice-list">${invoices.length ? `<div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th><th>Balance</th></tr></thead><tbody>${invoices.map(invoice => `<tr><td><strong>${esc(invoice.invoice_number)}</strong></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${esc(invoice.invoice_date)}</td><td><select class="document-status status-select" data-kind="invoice" data-id="${esc(invoice.id)}" aria-label="Status for ${esc(invoice.invoice_number)}">${['draft','unpaid','partially_paid','paid','overdue','cancelled'].map(state => `<option value="${state}"${invoice.status === state ? ' selected' : ''}>${state.replaceAll('_',' ')}</option>`).join('')}</select></td><td>${money(invoice.grand_total)}</td><td>${money(invoice.balance)}</td></tr>`).join('')}</tbody></table></div><p id="document-message" class="inline-message" role="status"></p>` : '<div class="empty-module"><h2>No invoices yet</h2><p>Create the first invoice to begin your cloud invoice history.</p></div>'}</div></section>`;
 }
 
 function calculate(form) {
@@ -62,6 +62,7 @@ export async function renderInvoices(api) {
     const showList = () => {
       content.innerHTML = invoiceList(data.invoices || []);
       document.getElementById('new-invoice').addEventListener('click', showForm);
+      wireDocumentStatuses(api);
     };
     const showForm = () => {
       content.innerHTML = invoiceForm(data.settings || {});
@@ -102,3 +103,4 @@ export async function renderInvoices(api) {
     content.innerHTML = `<section class="empty-state"><h1>Invoices unavailable</h1><p>${esc(error.message)}</p></section>`;
   }
 }
+import { wireDocumentStatuses } from './admin-modules.js';

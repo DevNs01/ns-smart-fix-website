@@ -67,3 +67,13 @@ test('quotation page uses the approved responsive split-panel workflow', () => {
   assert.match(source, /@media \(max-width:860px\)\{[\s\S]*\.ns-quote-shell\{display:flex !important;flex-direction:column !important/);
   assert.match(source, /quoteResponseNote:isEn \?/);
 });
+
+test('product brands use a responsive logo-only grid with one quotation action', () => {
+  const productsSection = source.match(/<!-- ================= PRODUCTS ================= -->([\s\S]*?)<!-- ================= QUOTATION ================= -->/)?.[1] || '';
+  assert.match(productsSection, /class="ns-brand-grid"/);
+  assert.match(productsSection, /class="ns-brand-card \{\{ b\.cardClass \}\}"/);
+  assert.doesNotMatch(productsSection, /b\.waLink|>WhatsApp<|whatsappUs/);
+  assert.match(productsSection, /href="\{\{ navHref\.quotation \}\}"/);
+  assert.match(source, /\.ns-brand-grid\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(source, /@media \(max-width:480px\)\{[\s\S]*\.ns-brand-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});

@@ -9,7 +9,7 @@ const migration = readFileSync(new URL('../supabase/migrations/202609100003_invo
 
 test('invoice navigation opens the implemented module', () => {
   assert.match(admin, /renderInvoices\(api\)/);
-  assert.match(admin, /button\.dataset\.module === 'invoices'/);
+  assert.match(admin, /invoices: \(\) => renderInvoices\(api\)/);
 });
 
 test('invoice records use the secure API and never browser storage', () => {

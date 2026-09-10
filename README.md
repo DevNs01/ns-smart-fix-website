@@ -65,9 +65,9 @@ Verify `nssmartfixsolution.com` in Resend before using the production sender. St
 
 The checked-in `vercel.json` contains the same build and output settings.
 
-## Admin portal foundation
+## Admin business portal
 
-The repository includes the Phase 1 Supabase database foundation for the internal business portal. It adds normalized customer, quotation, invoice, payment and receipt records; protected audit logs; atomic monthly document numbering; server-validated invoice balances; Row Level Security; and a private payment-proof bucket.
+The `/admin` portal provides live dashboard reporting, customer records, website requests, quotations, invoices, payments, automatic receipts, company settings, staff permissions and an immutable audit log. It uses normalized Supabase records, atomic monthly document numbering, server-validated invoice balances, Row Level Security and a private payment-proof bucket.
 
 See [Admin Portal Architecture](docs/ADMIN_PORTAL_ARCHITECTURE.md) for the phased implementation plan and security boundary.
 
@@ -81,6 +81,8 @@ npx supabase db push
 ```
 
 `supabase/seed.sql` contains non-sensitive defaults for local development and `supabase db reset`. Do not use `--include-seed` against production. The migration itself safely creates the production default settings row with tax disabled at 0%.
+
+Apply every migration in filename order. The `202609100004_complete_admin_modules.sql` migration activates authenticated permissions for the complete portal. Public website requests are stored for the Requests module only when the server-only `SUPABASE_SERVICE_ROLE_KEY` is configured; email delivery continues independently if database storage is temporarily unavailable.
 
 Add these variables to `.env.local` for local work and to the appropriate Vercel environments for deployment:
 
@@ -124,6 +126,9 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability privately. The reposito
 ```text
 index.html        Design Canvas page template and bilingual content
 src/main.js       React/Vite runtime entry point
+src/admin.js      Secure portal authentication and navigation
+src/admin-modules.js Customer, request, quotation, payment, receipt, settings, staff and audit interfaces
+src/admin-invoices.js Invoice creation, totals, listing and printing
 support.js        Exported Design Canvas renderer
 public/assets/    Images copied unchanged into the production build
 scripts/verify.mjs Static production verification

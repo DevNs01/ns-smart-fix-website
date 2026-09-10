@@ -420,6 +420,8 @@ grant execute on function public.is_authorized_staff() to authenticated;
 grant execute on function public.is_admin() to authenticated;
 grant execute on function public.next_document_number(text, date) to authenticated;
 grant select on table public.profiles to authenticated;
+grant select, insert, update on table public.customers, public.invoices, public.invoice_items to authenticated;
+grant select on table public.company_settings to authenticated;
 
 insert into public.company_settings (
   id, company_name, email, website, default_quotation_validity_days,
