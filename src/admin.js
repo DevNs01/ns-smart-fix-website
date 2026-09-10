@@ -1,3 +1,5 @@
+import { renderInvoices } from './admin-invoices.js';
+
 const root = document.getElementById('admin-app');
 
 const modules = [
@@ -230,13 +232,18 @@ function renderPortal(profile) {
   });
   overlay.addEventListener('click', closeMenu);
 
-  document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => {
+  document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', async () => {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
     const label = button.querySelector('span:last-child').textContent;
     document.getElementById('page-title').textContent = label;
-    document.getElementById('portal-content').innerHTML = button.dataset.module === 'dashboard'
-      ? dashboardMarkup(profile) : emptyModuleMarkup(label);
+    if (button.dataset.module === 'dashboard') {
+      document.getElementById('portal-content').innerHTML = dashboardMarkup(profile);
+    } else if (button.dataset.module === 'invoices') {
+      await renderInvoices(api);
+    } else {
+      document.getElementById('portal-content').innerHTML = emptyModuleMarkup(label);
+    }
     closeMenu();
   }));
 
