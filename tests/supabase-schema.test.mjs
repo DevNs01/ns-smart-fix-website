@@ -23,6 +23,11 @@ test('all business tables have row level security enabled', () => {
   }
 });
 
+test('authenticated staff can read their own profile through RLS', () => {
+  assert.match(migration, /grant select on table public\.profiles to authenticated;/);
+  assert.match(migration, /create policy profiles_self_read/);
+});
+
 test('financial protections are implemented in the database', () => {
   assert.match(migration, /next_document_number/);
   assert.match(migration, /Payment total exceeds invoice total/);
