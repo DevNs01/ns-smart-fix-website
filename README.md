@@ -84,11 +84,22 @@ npx supabase db push
 
 Add these variables to `.env.local` for local work and to the appropriate Vercel environments for deployment:
 
-- `VITE_SUPABASE_URL` — public Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` — public anonymous/publishable key protected by RLS
+- `SUPABASE_URL` — server-only Supabase project URL used by Vercel Functions
+- `SUPABASE_PUBLISHABLE_KEY` — server-side publishable key used by the authentication proxy
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only key for trusted Vercel Functions
 
-The service-role key must never use the `VITE_` prefix. Phase 1 does not change the public form or expose an `/admin` UI; authentication and the protected portal shell are delivered in Phase 2 after the Supabase project is configured.
+None of these values should use the `VITE_` prefix. The `/admin` portal sends authentication requests only to the same-origin `/api/admin-auth` endpoint. Supabase access and refresh tokens are stored in scoped, `HttpOnly`, `SameSite=Strict` cookies rather than browser-readable storage.
+
+### Create the first administrator
+
+After applying the migration, create the staff user in Supabase Authentication. Then run this once in the Supabase SQL editor, replacing both placeholders with the authenticated user's actual UUID and name:
+
+```sql
+insert into public.profiles (id, full_name, role, is_active)
+values ('AUTH_USER_UUID', 'Administrator Name', 'admin', true);
+```
+
+Configure the exact production Site URL as `https://nssmartfixsolution.com` in Supabase Authentication. The portal currently uses email/password sign-in and does not require an OAuth redirect.
 
 ## Production monitoring and recovery
 

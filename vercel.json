@@ -7,6 +7,8 @@
     { "path": "/api/monitor", "schedule": "*/10 * * * *" }
   ],
   "rewrites": [
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin/(.*)", "destination": "/admin.html" },
     { "source": "/about", "destination": "/index.html" },
     { "source": "/services", "destination": "/index.html" },
     { "source": "/products", "destination": "/index.html" },
@@ -21,6 +23,13 @@
     { "source": "/warranty-and-service-policy", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/admin(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store, max-age=0" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
