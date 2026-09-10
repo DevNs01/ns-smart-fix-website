@@ -1,4 +1,4 @@
-import { buildQuotationPdf, quotationEmail } from './quotation-pdf.js';
+import { buildInvoicePdf, buildQuotationPdf, quotationEmail } from './quotation-pdf.js';
 import { sendMonitoringAlert } from './monitoring.js';
 
 const ACCESS_COOKIE = 'ns_admin_access';
@@ -440,6 +440,27 @@ export default async function handler(request, response) {
       const invoices = await restJson('/rest/v1/invoices?select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken);
       const settings = await restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken);
       return json(response, 200, { invoices, settings: settings[0] || null });
+    }
+
+    if (route === '/invoice-pdf' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80);
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error: 'Invalid invoice.' });
+      const [invoiceRows, items, settingRows] = await Promise.all([
+        restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, session.accessToken),
+        restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
+        restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken)
+      ]);
+      const invoice = invoiceRows[0];
+      if (!invoice) return json(response, 404, { error: 'Invoice was not found.' });
+      const pdf = buildInvoicePdf({ invoice, items, settings:settingRows[0] || {} });
+      const download = requestUrl.searchParams.get('download') === '1';
+      response.statusCode = 200;
+      response.setHeader('Content-Type', 'application/pdf');
+      response.setHeader('Content-Disposition', `${download ? 'attachment' : 'inline'}; filename="${invoice.invoice_number}.pdf"`);
+      response.setHeader('Cache-Control', 'private, no-store, max-age=0');
+      response.setHeader('Content-Length', String(pdf.length));
+      return response.end(pdf);
     }
 
     if (route === '/invoice-create' && request.method === 'POST') {

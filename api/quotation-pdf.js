@@ -103,7 +103,12 @@ function buildPdfDocument(streams, image) {
   return Buffer.concat(buffers);
 }
 
-export function buildQuotationPdf({ quotation, items, settings }) {
+function buildFinancialPdf({ quotation, items, settings, documentType = 'quotation' }) {
+  const isInvoice = documentType === 'invoice';
+  const documentLabel = isInvoice ? 'INVOICE' : 'QUOTATION';
+  const documentNumber = isInvoice ? quotation.invoice_number : quotation.quotation_number;
+  const documentDate = isInvoice ? quotation.invoice_date : quotation.quotation_date;
+  const endDate = isInvoice ? quotation.due_date : quotation.expiry_date;
   const customer = quotation.customer_snapshot || {};
   const streams = [];
   let commands = [];
@@ -122,22 +127,22 @@ export function buildQuotationPdf({ quotation, items, settings }) {
   text(value(settings.registration_number, ''), logo ? 138 : 44, 8, false, GREY); y -= 13;
   lines(value(settings.business_address, ''), logo ? 138 : 44, 38, 8, 11); y -= 2;
   text(`${value(settings.phone, '')} | ${value(settings.email, '')}`, logo ? 138 : 44, 8, false, GREY);
-  commands.push(commandText('QUOTATION', 400, 790, 23, true, BLUE));
-  commands.push(commandText(`No. ${quotation.quotation_number}`, 380, 758, 9, false));
-  commands.push(commandText(`Date ${shortDate(quotation.quotation_date)}`, 380, 742, 9, false));
-  commands.push(commandText(`Valid ${shortDate(quotation.expiry_date)}`, 380, 726, 9, false));
-  const displayStatus = quotation.status === 'sent' || quotation.sent_at ? 'APPROVED' : String(quotation.status || 'draft').replaceAll('_', ' ').toUpperCase();
+  commands.push(commandText(documentLabel, isInvoice ? 430 : 400, 790, 23, true, BLUE));
+  commands.push(commandText(`No. ${documentNumber}`, 380, 758, 9, false));
+  commands.push(commandText(`Date ${shortDate(documentDate)}`, 380, 742, 9, false));
+  commands.push(commandText(`${isInvoice ? 'Due' : 'Valid'} ${shortDate(endDate)}`, 380, 726, 9, false));
+  const displayStatus = !isInvoice && (quotation.status === 'sent' || quotation.sent_at) ? 'APPROVED' : String(quotation.status || 'draft').replaceAll('_', ' ').toUpperCase();
   commands.push(commandText(`Status ${displayStatus}`, 380, 710, 9, true));
   y = 684; box(44, y, 507, 7, BLUE); y -= 25;
-  text('QUOTATION TO', 54, 8, true, GREY); commands.push(commandText('PROJECT / SERVICE', 315, y, 8, true, GREY)); y -= 18;
+  text(isInvoice ? 'BILL TO' : 'QUOTATION TO', 54, 8, true, GREY); commands.push(commandText('PROJECT / SERVICE', 315, y, 8, true, GREY)); y -= 18;
   text(value(customer.name), 54, 11, true); commands.push(commandText(value(quotation.project_title), 315, y, 11, true)); y -= 17;
   text(value(customer.contact_person || customer.contactPerson, ''), 54); commands.push(commandText(value(quotation.project_location, ''), 315, y)); y -= 15;
   text(value(customer.phone, ''), 54); y -= 15; text(value(customer.email, ''), 54); y -= 28;
   line(44, y + 13, 551, y + 13);
-  text('QUOTATION ITEMS', 44, 8, true, GREY); y -= 19;
+  text(`${documentLabel} ITEMS`, 44, 8, true, GREY); y -= 19;
   box(44, y - 8, 507, 24); text('#', 50, 8, true); commands.push(commandText('DESCRIPTION', 75, y, 8, true)); commands.push(commandText('QTY', 372, y, 8, true)); commands.push(commandText('UNIT PRICE', 415, y, 8, true)); commands.push(commandText('AMOUNT', 500, y, 8, true)); y -= 24;
   for (const [index, item] of items.entries()) {
-    if (y < 150) { addPage(); text(`${quotation.quotation_number} - continued`, 44, 10, true); y -= 28; }
+    if (y < 150) { addPage(); text(`${documentNumber} - continued`, 44, 10, true); y -= 28; }
     const itemLines = wrap(item.description, 48);
     text(String(index + 1), 50); commands.push(commandText(itemLines[0], 75, y)); commands.push(commandText(String(Number(item.quantity)), 380, y)); commands.push(commandText(money(item.unit_price), 414, y)); commands.push(commandText(money(item.line_total ?? Number(item.quantity) * Number(item.unit_price)), 494, y));
     for (const extra of itemLines.slice(1)) { y -= 12; text(extra, 75); }
@@ -145,17 +150,25 @@ export function buildQuotationPdf({ quotation, items, settings }) {
   }
   y -= 10;
   const taxAmount = Math.max(0, (Number(quotation.subtotal) - Number(quotation.discount_amount || 0)) * Number(quotation.tax_percent || 0) / 100);
-  for (const [label, amount, isTotal] of [['Subtotal',quotation.subtotal,false],['Discount',-Number(quotation.discount_amount||0),false],[`Tax (${Number(quotation.tax_percent||0)}%)`,taxAmount,false],['Other charges',quotation.other_charges,false],['TOTAL QUOTATION',quotation.grand_total,true]]) {
+  for (const [label, amount, isTotal] of [['Subtotal',quotation.subtotal,false],['Discount',-Number(quotation.discount_amount||0),false],[`Tax (${Number(quotation.tax_percent||0)}%)`,taxAmount,false],['Other charges',quotation.other_charges,false],[`TOTAL ${documentLabel}`,quotation.grand_total,true]]) {
     if (isTotal) box(330, y - 7, 221, 24);
     text(label, 340, isTotal ? 10 : 8.5, isTotal); commands.push(commandText(money(amount), 470, y, isTotal ? 10 : 8.5, isTotal)); y -= isTotal ? 32 : 21;
   }
   if (y < 150) addPage();
   text('TERMS & NOTES', 44, 8, true, GREY); y -= 17;
-  lines(quotation.terms_and_conditions || settings.default_terms || 'This quotation is valid until the date stated above.', 44, 88, 8.5, 12);
+  lines(quotation.terms_and_conditions || quotation.payment_terms || settings.default_terms || `This ${documentType} is subject to the terms stated above.`, 44, 88, 8.5, 12);
   if (settings.bank_name || settings.bank_account_number) { y -= 8; text('PAYMENT DETAILS', 44, 8, true, GREY); y -= 16; lines(`${value(settings.bank_name, '')} | ${value(settings.bank_account_name, '')} | ${value(settings.bank_account_number, '')}`, 44, 88, 8.5, 12); }
   commands.push(commandText(`Generated securely by ${value(settings.company_name, 'NS Smart Fix Solution')}.`, 175, 35, 7.5, false, GREY));
   addPage();
   return buildPdfDocument(streams, logo);
+}
+
+export function buildQuotationPdf(bundle) {
+  return buildFinancialPdf({ ...bundle, documentType: 'quotation' });
+}
+
+export function buildInvoicePdf({ invoice, items, settings }) {
+  return buildFinancialPdf({ quotation: invoice, items, settings, documentType: 'invoice' });
 }
 
 export function quotationEmail({ quotation, settings }) {
