@@ -69,6 +69,8 @@ The checked-in `vercel.json` contains the same build and output settings.
 
 The `/admin` portal provides live dashboard reporting, customer records, website requests, quotations, invoices, payments, automatic receipts, company settings, staff permissions and an immutable audit log. It uses normalized Supabase records, atomic monthly document numbering, server-validated invoice balances, Row Level Security and a private payment-proof bucket.
 
+Approved quotations can be previewed as PDF and sent from the Quotations module. Staff must confirm the recipient email and approve the document before delivery. The PDF uses the current Company Settings, then preserves those details as an immutable quotation snapshot. Successful delivery records the recipient, timestamp, email-provider reference and approving staff member in the audit trail. Email credentials remain server-side.
+
 See [Admin Portal Architecture](docs/ADMIN_PORTAL_ARCHITECTURE.md) for the phased implementation plan and security boundary.
 
 To prepare a Supabase project locally:
