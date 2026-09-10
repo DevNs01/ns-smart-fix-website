@@ -22,6 +22,10 @@ if (!/files\.length > 5/.test(source) || !/5 \* 1024 \* 1024/.test(source)) fail
 if (!/validPhone\(value\)/.test(source) || !/validName\(value\)/.test(source)) failures.push('Form validation helpers missing');
 if (!/fetch\('\/api\/quotation'/.test(source)) failures.push('Quotation form does not use the same-origin email endpoint');
 if (!/process\.env\.RESEND_API_KEY/.test(emailApi)) failures.push('Email API does not use a server-only credential');
+if (!/process\.env\.TURNSTILE_SECRET_KEY/.test(emailApi) || !/siteverify/.test(emailApi)) failures.push('Server-side Turnstile verification missing');
+if (!/checkRateLimit\(ip\)/.test(emailApi) || !/status\(429\)/.test(emailApi)) failures.push('Server-side request throttling missing');
+if (!/checkDuplicate\(payload, ip\)/.test(emailApi) || !/status\(409\)/.test(emailApi)) failures.push('Duplicate-submission protection missing');
+if (!/turnstileToken:this\.state\.turnstileToken/.test(source)) failures.push('Turnstile token is not submitted by the form');
 if (!/escapeHtml\(input\.description/.test(emailApi)) failures.push('Email body escaping missing');
 if (/RESEND_API_KEY/.test(source)) failures.push('Server-only email credential referenced in browser source');
 if ([...source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].some(match => !/rel="[^"]*noopener[^"]*noreferrer[^"]*"/.test(match[0]))) failures.push('External blank-target link lacks noopener noreferrer');

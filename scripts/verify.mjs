@@ -30,21 +30,26 @@ for (const match of source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) {
 const requiredPatterns = [
   ['Vite entry point', /<script type="module" src="\/src\/main\.js"><\/script>/],
   ['English navigation handlers', /const nav = \{ home:this\.go\('home'\).*faq:this\.go\('faq'\)/],
-  ['WhatsApp contact 1', /this\.waLink\('60164110681'/],
-  ['WhatsApp contact 2', /this\.waLink\('60128851681'/],
-  ['Phone contact 1', /href="tel:\+60164110681"/],
-  ['Phone contact 2', /href="tel:\+60128851681"/],
+  ['Real route map', /const ROUTE_PATHS = Object\.freeze\(\{[\s\S]*about:'\/about'[\s\S]*quotation:'\/quotation'[\s\S]*terms:'\/terms'/],
+  ['Direct route resolver', /function routeStateFromPath\(pathname\)/],
+  ['History API navigation', /window\.history\.pushState\(\{page,legalTab:nextLegalTab\},'',path\)/],
+  ['Browser back and forward navigation', /window\.addEventListener\('popstate',this\.handlePopState\)/],
+  ['Canonical URL synchronisation', /canonical\.href = `https:\/\/nssmartfixsolution\.com\$\{routePath\(page, legalTab\)\}`/],
+  ['Semantic navigation URLs', /href="\{\{ navHref\.about \}\}"[\s\S]*href="\{\{ navHref\.services \}\}"[\s\S]*href="\{\{ navHref\.products \}\}"/],
+  ['Primary WhatsApp contact', /this\.waLink\('60162119969'/],
+  ['Primary phone contact', /href="tel:\+60162119969"/],
+  ['Web design service in English and BM', /Web Design & Development[\s\S]*Reka Bentuk & Pembangunan Laman Web/],
   ['Quick enquiry validation', /if \(!this\.validName\(f\.name\) \|\| !this\.validPhone\(f\.phone\)\)/],
   ['BM form validation', /Sila masukkan nama dan nombor telefon yang sah\./],
   ['Quotation privacy validation', /if \(!f\.agree\)/],
   ['Quick WhatsApp handoff', /quickWaLink/],
   ['Quotation WhatsApp handoff', /quoteWaLink/],
-  ['BM WhatsApp labels', /isEn \? "Name: " : "Nama: "/],
+  ['BM WhatsApp labels', /\*NAMA PENUH:\*|\*Nama Penuh:\*/i],
   ['BM legal metadata', /Tarikh Berkuat Kuasa\|Tarikh Kemas Kini/],
-  ['BM quick enquiry confirmation', /Pertanyaan anda sedia untuk dihantar\./],
+  ['BM quick enquiry confirmation', /Pertanyaan berjaya diterima/],
   ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],
   ['Mobile stacked form fields', /\.ns-grid-2\{display:flex !important;flex-direction:column !important;/],
-  ['Responsive quick enquiry card', /class="ns-quick-card"/],
+  ['Responsive quick enquiry card', /class="ns-quick-card ns-quick-shell"/],
   ['Stacked mobile product CTAs', /\.ns-product-cta-actions\{flex-direction:column !important;/],
   ['Mobile form zoom protection', /input,select,textarea\{font-size:16px !important;\}/],
   ['iOS safe-area support', /padding-bottom:env\(safe-area-inset-bottom\)/],
@@ -75,6 +80,15 @@ if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: tr
 }
 if (!/to: \[RECIPIENT\]/.test(emailApiSource) || !/html: email\.html, text: email\.plain/.test(emailApiSource)) {
   failures.push('Missing formatted quotation email delivery');
+}
+if (!/export function buildCustomerEmail\(input, reference\)/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement email builder');
+}
+if (!/to:\[replyTo\][\s\S]*subject:customerEmail\.subject/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement delivery');
+}
+if (!/acknowledgementSent/.test(emailApiSource) || !/within 1 business day/.test(emailApiSource)) {
+  failures.push('Missing customer acknowledgement status or response-time guidance');
 }
 
 if (failures.length) {
