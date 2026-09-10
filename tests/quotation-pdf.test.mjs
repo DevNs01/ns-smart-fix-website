@@ -31,6 +31,6 @@ test('customer email contains the confirmed financial summary without scripts', 
   const email = quotationEmail({ ...bundle, quotation: { ...bundle.quotation, project_title: '<script>alert(1)</script>' } });
   assert.match(email.subject, /NSS-QT-202609-001/);
   assert.match(email.text, /RM 1,000\.00/);
-  assert.doesNotMatch(email.html, /<script>/);
+  assert.equal(email.html.includes('<script>'), false);
   assert.match(email.html, /&lt;script&gt;/);
 });
