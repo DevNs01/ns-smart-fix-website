@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildQuotationPdf, quotationEmail } from '../api/quotation-pdf.js';
+import { buildInvoicePdf, buildQuotationPdf, quotationEmail } from '../api/quotation-pdf.js';
 
 const bundle = {
   settings: {
@@ -21,6 +21,32 @@ const bundle = {
 
 test('quotation PDF is a valid non-empty PDF document', () => {
   const pdf = buildQuotationPdf(bundle);
+  assert.equal(Buffer.isBuffer(pdf), true);
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+  assert.ok(pdf.length > 1000);
+  assert.match(pdf.toString('latin1'), /%%EOF$/);
+});
+
+test('invoice PDF is a valid non-empty PDF document', () => {
+  const pdf = buildInvoicePdf({
+    settings: bundle.settings,
+    invoice: {
+      invoice_number: 'NSS-INV-202609-001',
+      invoice_date: '2026-09-11',
+      due_date: '2026-10-11',
+      project_title: bundle.quotation.project_title,
+      description: bundle.quotation.description,
+      customer_snapshot: bundle.quotation.customer_snapshot,
+      subtotal: 1000,
+      discount_amount: 0,
+      tax_percent: 0,
+      other_charges: 0,
+      grand_total: 1000,
+      payment_terms: 'Payment is due within 30 days.',
+      status: 'unpaid'
+    },
+    items: bundle.items
+  });
   assert.equal(Buffer.isBuffer(pdf), true);
   assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
   assert.ok(pdf.length > 1000);
