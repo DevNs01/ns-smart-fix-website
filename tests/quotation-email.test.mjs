@@ -97,9 +97,9 @@ test('customer acknowledgement includes reference, submitted details, response t
   assert.match(html, /Network Cabling, Server Setup/);
   assert.match(html, /ns-smart-fix-logo-transparent\.png/);
   assert.match(html, /alt="NS Smart Fix Solution"/);
-  assert.match(html, /012-885 1681/);
-  assert.equal((html.match(/012-885 1681/g) || []).length, 1);
-  assert.match(html, /https:\/\/wa\.me\/60128851681/);
+  assert.match(html, /016-211 9969/);
+  assert.equal((html.match(/016-211 9969/g) || []).length, 1);
+  assert.match(html, /https:\/\/wa\.me\/60162119969/);
   assert.doesNotMatch(html, /Nasarudin|016-411 0681/);
   assert.match(html, /https:\/\/nssmartfixsolution\.com/);
   assert.match(plain, /Install network cabling and a server rack\./);

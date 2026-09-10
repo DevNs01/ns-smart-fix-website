@@ -17,7 +17,7 @@ function invoiceForm(settings = {}) {
     <div class="module-toolbar"><div><span class="eyebrow">INVOICE MANAGEMENT</span><h1>Create invoice</h1><p>Create secure cloud invoices based on the supplied NS Smart Fix layout.</p></div><button class="secondary-button" id="show-invoice-list" type="button">Saved invoices</button></div>
     <form id="invoice-form" class="invoice-document" novalidate>
       <div class="invoice-accent"></div><div class="invoice-inner">
-        <header class="invoice-heading"><div><img src="/assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution"><p>${esc(settings.business_address || '')}</p><p>${esc(settings.phone || '012-885 1681')} · ${esc(settings.email || '')} · nssmartfixsolution.com</p></div><div><h2>INVOICE</h2><span class="status draft">Draft</span></div></header>
+        <header class="invoice-heading"><div><img src="/assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution"><p>${esc(settings.business_address || '')}</p><p>${esc(settings.phone || '016-211 9969')} · ${esc(settings.email || '')} · nssmartfixsolution.com</p></div><div><h2>INVOICE</h2><span class="status draft">Draft</span></div></header>
         <div class="invoice-grid two"><fieldset><legend>Bill To</legend>
           <label>Customer or company name *<input name="customerName" maxlength="160" required></label>
           <div class="invoice-grid two"><label>Contact person<input name="contactPerson" maxlength="120"></label><label>Phone *<input name="customerPhone" maxlength="30" required></label></div>
