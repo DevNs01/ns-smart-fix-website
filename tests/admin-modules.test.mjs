@@ -17,6 +17,15 @@ test('all module data uses the same-origin authenticated API', () => {
   assert.doesNotMatch(frontend, /localStorage|sessionStorage/);
 });
 
+test('quotation delivery requires confirmation and exposes a PDF preview', () => {
+  assert.match(frontend, /Approve & Send PDF/);
+  assert.match(frontend, /Confirmed customer email/);
+  assert.match(frontend, /quotation-pdf/);
+  assert.match(api, /route === '\/quotation-send'/);
+  assert.match(api, /body\.confirmed/);
+  assert.match(api, /attachments/);
+});
+
 test('financial and audit tables remain authenticated only', () => {
   assert.match(migration, /public\.payments to authenticated/);
   assert.match(migration, /public\.receipts to authenticated/);
