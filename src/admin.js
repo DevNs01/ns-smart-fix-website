@@ -17,7 +17,9 @@ function escapeHtml(value) {
 }
 
 async function api(action, options = {}) {
-  const response = await fetch(`/api/admin-auth?action=${encodeURIComponent(action)}`, {
+  const [route, ...queryParts] = String(action).split('&');
+  const query = queryParts.length ? `&${queryParts.join('&')}` : '';
+  const response = await fetch(`/api/admin-auth?action=${encodeURIComponent(route)}${query}`, {
     ...options,
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }

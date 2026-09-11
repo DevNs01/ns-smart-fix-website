@@ -339,6 +339,16 @@ export default async function handler(request, response) {
       return json(response, 200, { quotations, customers });
     }
 
+    if (route === '/quotation-detail' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80);
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error: 'Invalid quotation.' });
+      const quotations = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, session.accessToken);
+      if (!quotations[0]) return json(response, 404, { error: 'Quotation was not found.' });
+      const items = await restJson(`/rest/v1/quotation_items?quotation_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken);
+      return json(response, 200, { quotation: quotations[0], items });
+    }
+
     if (route === '/quotation-create' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
       const body = await readBody(request); const customerId = bounded(body.customerId, 80); const quotationDate = bounded(body.quotationDate, 10); const expiryDate = bounded(body.expiryDate, 10); const projectTitle = bounded(body.projectTitle, 200);
@@ -352,6 +362,25 @@ export default async function handler(request, response) {
       await restJson('/rest/v1/quotation_items', { method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(items.map(item=>({...item,quotation_id:rows[0].id}))) }, session.accessToken);
       await audit(session,'create','quotations',rows[0].id,rows[0].quotation_number,{projectTitle,total});
       return json(response,201,{quotation:rows[0]});
+    }
+
+    if (route === '/quotation-update' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); const customerId = bounded(body.customerId, 80); const quotationDate = bounded(body.quotationDate, 10); const expiryDate = bounded(body.expiryDate, 10); const projectTitle = bounded(body.projectTitle, 200);
+      const items = Array.isArray(body.items) ? body.items.slice(0, 50).map((item, index) => ({ position:index+1, description:bounded(item.description,500), quantity:Number(item.quantity), unit_price:Number(item.unitPrice) })) : [];
+      if (!/^[0-9a-f-]{36}$/i.test(id) || !/^[0-9a-f-]{36}$/i.test(customerId) || !validDate(quotationDate) || !validDate(expiryDate) || expiryDate < quotationDate || projectTitle.length < 2 || !items.length || items.some(item => !item.description || !(item.quantity > 0) || !(item.unit_price >= 0))) return json(response, 400, { error: 'Complete the required quotation fields and items.' });
+      const existing = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&select=id,quotation_number,status,sent_at&limit=1`, {}, session.accessToken);
+      if (!existing[0]) return json(response, 404, { error: 'Quotation was not found.' });
+      if (existing[0].status !== 'draft' || existing[0].sent_at) return json(response, 409, { error: 'Only an unsent draft quotation can be edited.' });
+      const customers = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(customerId)}&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&limit=1`, {}, session.accessToken); const customer = customers[0];
+      if (!customer) return json(response, 404, { error: 'Customer was not found.' });
+      const subtotal = Math.round(items.reduce((sum,item)=>sum+item.quantity*item.unit_price,0)*100)/100; const discount = Math.max(0,Math.min(subtotal,Number(body.discountAmount)||0)); const tax = Math.max(0,Math.min(100,Number(body.taxPercent)||0)); const other = Math.max(0,Number(body.otherCharges)||0); const total = Math.round(((subtotal-discount)*(1+tax/100)+other)*100)/100;
+      const rows = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null`, { method:'PATCH', headers:{Prefer:'return=representation'}, body:JSON.stringify({ customer_id:customerId, quotation_date:quotationDate, expiry_date:expiryDate, project_title:projectTitle, project_location:bounded(body.projectLocation,500)||null, description:bounded(body.description,2000)||null, customer_snapshot:customer, discount_amount:discount, tax_percent:tax, other_charges:other, subtotal, grand_total:total, notes:bounded(body.notes,2000)||null, terms_and_conditions:bounded(body.terms,5000)||null }) }, session.accessToken);
+      if (!rows[0]) return json(response, 409, { error: 'The quotation changed in another session. Reload before editing.' });
+      await restJson(`/rest/v1/quotation_items?quotation_id=eq.${encodeURIComponent(id)}`, { method:'DELETE', headers:{Prefer:'return=minimal'} }, session.accessToken);
+      await restJson('/rest/v1/quotation_items', { method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(items.map(item=>({...item,quotation_id:id}))) }, session.accessToken);
+      await audit(session,'update','quotations',id,existing[0].quotation_number,{projectTitle,total,itemCount:items.length});
+      return json(response,200,{quotation:rows[0]});
     }
 
     if (route === '/quotation-pdf' && request.method === 'GET') {
