@@ -129,6 +129,25 @@ function validDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
 }
 
+function customerPayload(body) {
+  const name = bounded(body.name, 160);
+  const phone = bounded(body.phone, 30);
+  const email = bounded(body.email, 254).toLowerCase();
+  if (name.length < 2 || phone.length < 8 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return null;
+  return {
+    customer_type: body.customerType === 'individual' ? 'individual' : 'company',
+    name,
+    company_registration_number: bounded(body.registrationNumber, 100) || null,
+    phone,
+    email: email || null,
+    contact_person: bounded(body.contactPerson, 120) || null,
+    billing_address: bounded(body.billingAddress, 1000) || null,
+    service_address: bounded(body.serviceAddress, 1000) || null,
+    notes: bounded(body.notes, 2000) || null,
+    is_active: body.isActive !== false && body.isActive !== 'false'
+  };
+}
+
 async function restJson(path, options, accessToken) {
   const result = await supabaseFetch(path, options, accessToken);
   const body = await result.json().catch(() => null);
@@ -269,16 +288,22 @@ export default async function handler(request, response) {
 
     if (route === '/customer-create' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
-      const body = await readBody(request); const name = bounded(body.name, 160); const phone = bounded(body.phone, 30);
-      const email = bounded(body.email, 254).toLowerCase();
-      if (name.length < 2 || phone.length < 8 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return json(response, 400, { error: 'Enter a valid customer name, phone number and email address.' });
-      const rows = await restJson('/rest/v1/customers', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({
-        customer_type: body.customerType === 'individual' ? 'individual' : 'company', name, phone, email: email || null,
-        contact_person: bounded(body.contactPerson, 120) || null, billing_address: bounded(body.billingAddress, 1000) || null,
-        service_address: bounded(body.serviceAddress, 1000) || null, notes: bounded(body.notes, 2000) || null, created_by: session.user.id
-      }) }, session.accessToken);
-      await audit(session, 'create', 'customers', rows[0]?.id, rows[0]?.customer_code, { name });
+      const body = await readBody(request); const payload = customerPayload(body);
+      if (!payload) return json(response, 400, { error: 'Enter a valid customer name, phone number and email address.' });
+      const rows = await restJson('/rest/v1/customers', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...payload, created_by: session.user.id }) }, session.accessToken);
+      await audit(session, 'create', 'customers', rows[0]?.id, rows[0]?.customer_code, { name: payload.name });
       return json(response, 201, { customer: rows[0] });
+    }
+
+    if (route === '/customer-update' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); const payload = customerPayload(body);
+      if (!/^[0-9a-f-]{36}$/i.test(id) || !payload) return json(response, 400, { error: 'Enter a valid customer profile.' });
+      const existing = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(id)}&select=id,customer_code,name&limit=1`, {}, session.accessToken);
+      if (!existing[0]) return json(response, 404, { error: 'Customer was not found.' });
+      const rows = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload) }, session.accessToken);
+      await audit(session, 'update', 'customers', id, existing[0].customer_code, { name: payload.name, active: payload.is_active });
+      return json(response, 200, { customer: rows[0] });
     }
 
     if (route === '/requests' && request.method === 'GET') {

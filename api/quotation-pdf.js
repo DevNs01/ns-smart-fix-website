@@ -34,7 +34,11 @@ function shortDate(input) {
 }
 
 function wrap(text, maximum = 74) {
-  const words = ascii(text).split(/\s+/).filter(Boolean);
+  const words = ascii(text).split(/\s+/).filter(Boolean).flatMap(word => {
+    const parts = [];
+    for (let start = 0; start < word.length; start += maximum) parts.push(word.slice(start, start + maximum));
+    return parts;
+  });
   const lines = [];
   let current = '';
   for (const word of words) {
@@ -135,9 +139,14 @@ function buildFinancialPdf({ quotation, items, settings, documentType = 'quotati
   commands.push(commandText(`Status ${displayStatus}`, 380, 710, 9, true));
   y = 684; box(44, y, 507, 7, BLUE); y -= 25;
   text(isInvoice ? 'BILL TO' : 'QUOTATION TO', 54, 8, true, GREY); commands.push(commandText('PROJECT / SERVICE', 315, y, 8, true, GREY)); y -= 18;
-  text(value(customer.name), 54, 11, true); commands.push(commandText(value(quotation.project_title), 315, y, 11, true)); y -= 17;
-  text(value(customer.contact_person || customer.contactPerson, ''), 54); commands.push(commandText(value(quotation.project_location, ''), 315, y)); y -= 15;
-  text(value(customer.phone, ''), 54); y -= 15; text(value(customer.email, ''), 54); y -= 28;
+  const leftBlock = [value(customer.name), value(customer.contact_person || customer.contactPerson, ''), value(customer.phone, ''), value(customer.email, ''), value(customer.billing_address, '')]
+    .filter(Boolean).flatMap((entry, index) => wrap(entry, index === 0 ? 34 : 39).map(lineValue => ({ lineValue, bold: index === 0 })));
+  const rightBlock = [value(quotation.project_title), value(quotation.project_location, '')]
+    .filter(Boolean).flatMap((entry, index) => wrap(entry, index === 0 ? 30 : 36).map(lineValue => ({ lineValue, bold: index === 0 })));
+  const blockTop = y;
+  leftBlock.forEach((entry, index) => commands.push(commandText(entry.lineValue, 54, blockTop - index * 14, entry.bold ? 11 : 9, entry.bold)));
+  rightBlock.forEach((entry, index) => commands.push(commandText(entry.lineValue, 315, blockTop - index * 14, entry.bold ? 11 : 9, entry.bold)));
+  y = blockTop - Math.max(leftBlock.length, rightBlock.length, 1) * 14 - 20;
   line(44, y + 13, 551, y + 13);
   text(`${documentLabel} ITEMS`, 44, 8, true, GREY); y -= 19;
   box(44, y - 8, 507, 24); text('#', 50, 8, true); commands.push(commandText('DESCRIPTION', 75, y, 8, true)); commands.push(commandText('QTY', 372, y, 8, true)); commands.push(commandText('UNIT PRICE', 415, y, 8, true)); commands.push(commandText('AMOUNT', 500, y, 8, true)); y -= 24;
