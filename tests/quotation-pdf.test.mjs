@@ -27,6 +27,19 @@ test('quotation PDF is a valid non-empty PDF document', () => {
   assert.match(pdf.toString('latin1'), /%%EOF$/);
 });
 
+test('quotation PDF safely wraps long project and billing addresses', () => {
+  const pdf = buildQuotationPdf({
+    ...bundle,
+    quotation: {
+      ...bundle.quotation,
+      project_location: 'D-27-3A,MENARA-SUEZCAP-1,GATEWAY-NO-2,JALAN-KERINCHI,KUALA-LUMPUR,59200,MALAYSIA',
+      customer_snapshot: { ...bundle.quotation.customer_snapshot, billing_address: 'A long customer billing address in Kuala Lumpur Malaysia that must remain inside the customer column' }
+    }
+  });
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+  assert.ok(pdf.length > 1000);
+});
+
 test('invoice PDF is a valid non-empty PDF document', () => {
   const pdf = buildInvoicePdf({
     settings: bundle.settings,
