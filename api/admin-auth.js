@@ -302,8 +302,19 @@ export default async function handler(request, response) {
       const existing = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(id)}&select=id,customer_code,name&limit=1`, {}, session.accessToken);
       if (!existing[0]) return json(response, 404, { error: 'Customer was not found.' });
       const rows = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload) }, session.accessToken);
-      await audit(session, 'update', 'customers', id, existing[0].customer_code, { name: payload.name, active: payload.is_active });
-      return json(response, 200, { customer: rows[0] });
+      const customer = rows[0];
+      const snapshot = {
+        id: customer.id, customer_code: customer.customer_code, customer_type: customer.customer_type,
+        name: customer.name, company_registration_number: customer.company_registration_number,
+        contact_person: customer.contact_person, phone: customer.phone, email: customer.email,
+        billing_address: customer.billing_address, service_address: customer.service_address
+      };
+      const [draftQuotations, openInvoices] = await Promise.all([
+        restJson(`/rest/v1/quotations?customer_id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ customer_snapshot: snapshot }) }, session.accessToken),
+        restJson(`/rest/v1/invoices?customer_id=eq.${encodeURIComponent(id)}&status=in.(draft,unpaid)`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ customer_snapshot: snapshot }) }, session.accessToken)
+      ]);
+      await audit(session, 'update', 'customers', id, existing[0].customer_code, { name: payload.name, active: payload.is_active, draftQuotationsUpdated: draftQuotations.length, openInvoicesUpdated: openInvoices.length });
+      return json(response, 200, { customer, synchronized: { draftQuotations: draftQuotations.length, openInvoices: openInvoices.length } });
     }
 
     if (route === '/requests' && request.method === 'GET') {
