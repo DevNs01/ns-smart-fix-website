@@ -54,6 +54,15 @@ test('customer master records support audited profile editing', () => {
   assert.match(frontend, /Save and synchronize/);
 });
 
+test('requests expose a complete accessible detail view', () => {
+  assert.match(frontend, /View details/);
+  assert.match(frontend, /request-detail-dialog/);
+  assert.match(frontend, /Description of requirement/);
+  assert.match(frontend, /Preferred site visit/);
+  assert.match(frontend, /Selected file names/);
+  assert.match(frontend, /aria-labelledby="request-detail-title"/);
+});
+
 test('financial and audit tables remain authenticated only', () => {
   assert.match(migration, /public\.payments to authenticated/);
   assert.match(migration, /public\.receipts to authenticated/);
