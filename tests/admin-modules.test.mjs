@@ -33,6 +33,9 @@ test('customer master records support audited profile editing', () => {
   assert.match(frontend, /Active customer/);
   assert.match(api, /route === '\/customer-update'/);
   assert.match(api, /audit\(session, 'update', 'customers'/);
+  assert.match(api, /status=eq\.draft&sent_at=is\.null/);
+  assert.match(api, /status=in\.\(draft,unpaid\)/);
+  assert.match(frontend, /Save and synchronize/);
 });
 
 test('financial and audit tables remain authenticated only', () => {
