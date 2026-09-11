@@ -26,6 +26,15 @@ test('quotation delivery requires confirmation and exposes a PDF preview', () =>
   assert.match(api, /attachments/);
 });
 
+test('customer master records support audited profile editing', () => {
+  assert.match(frontend, /Edit profile/);
+  assert.match(frontend, /customer-update/);
+  assert.match(frontend, /Registration number/);
+  assert.match(frontend, /Active customer/);
+  assert.match(api, /route === '\/customer-update'/);
+  assert.match(api, /audit\(session, 'update', 'customers'/);
+});
+
 test('financial and audit tables remain authenticated only', () => {
   assert.match(migration, /public\.payments to authenticated/);
   assert.match(migration, /public\.receipts to authenticated/);
