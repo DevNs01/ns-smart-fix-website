@@ -4,6 +4,10 @@ import test from 'node:test';
 
 const migrationUrl = new URL('../supabase/migrations/202609100001_admin_portal_foundation.sql', import.meta.url);
 const migration = await readFile(migrationUrl, 'utf8');
+const requestStorageGrant = await readFile(
+  new URL('../supabase/migrations/202609110001_grant_request_storage_to_service_role.sql', import.meta.url),
+  'utf8'
+);
 
 test('admin portal schema contains every required business table', () => {
   for (const table of [
@@ -44,4 +48,8 @@ test('payment proofs are private and file restricted', () => {
   assert.match(migration, /'payment-proofs', 'payment-proofs', false, 5242880/);
   assert.match(migration, /'image\/jpeg'/);
   assert.match(migration, /'application\/pdf'/);
+});
+
+test('website request storage grants insert access to the service role', () => {
+  assert.match(requestStorageGrant, /grant insert on table public\.quotation_requests to service_role;/i);
 });
