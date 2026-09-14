@@ -139,7 +139,7 @@ function buildFinancialPdf({ quotation, items, settings, documentType = 'quotati
   commands.push(commandText(`Status ${displayStatus}`, 380, 710, 9, true));
   y = 684; box(44, y, 507, 7, BLUE); y -= 25;
   text(isInvoice ? 'BILL TO' : 'QUOTATION TO', 54, 8, true, GREY); commands.push(commandText('PROJECT / SERVICE', 315, y, 8, true, GREY)); y -= 18;
-  const leftBlock = [value(customer.name), value(customer.contact_person || customer.contactPerson, ''), value(customer.phone, ''), value(customer.email, ''), value(customer.billing_address, '')]
+  const leftBlock = [value(customer.name), value(customer.contact_person || customer.contactPerson, ''), value(customer.phone, ''), value(customer.email, ''), value(customer.billing_address || customer.address, '')]
     .filter(Boolean).flatMap((entry, index) => wrap(entry, index === 0 ? 34 : 39).map(lineValue => ({ lineValue, bold: index === 0 })));
   const rightBlock = [value(quotation.project_title), value(quotation.project_location, '')]
     .filter(Boolean).flatMap((entry, index) => wrap(entry, index === 0 ? 30 : 36).map(lineValue => ({ lineValue, bold: index === 0 })));

@@ -502,9 +502,12 @@ export default async function handler(request, response) {
     if (route === '/invoices' && request.method === 'GET') {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
-      const invoices = await restJson('/rest/v1/invoices?select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken);
-      const settings = await restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken);
-      return json(response, 200, { invoices, settings: settings[0] || null });
+      const [invoices, settings, customers] = await Promise.all([
+        restJson('/rest/v1/invoices?select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
+        restJson('/rest/v1/customers?is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&order=name.asc&limit=500', {}, session.accessToken)
+      ]);
+      return json(response, 200, { invoices, settings: settings[0] || null, customers });
     }
 
     if (route === '/invoice-pdf' && request.method === 'GET') {
@@ -532,9 +535,7 @@ export default async function handler(request, response) {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
       const body = await readBody(request);
-      const customerName = bounded(body.customerName, 160);
-      const phone = bounded(body.customerPhone, 30);
-      const email = bounded(body.customerEmail, 254).toLowerCase();
+      const customerId = bounded(body.customerId, 80);
       const invoiceDate = bounded(body.invoiceDate, 10);
       const dueDate = bounded(body.dueDate, 10);
       const projectTitle = bounded(body.projectTitle, 200);
@@ -544,25 +545,18 @@ export default async function handler(request, response) {
         quantity: Number(item.quantity),
         unit_price: Number(item.unitPrice)
       })) : [];
-      if (customerName.length < 2 || phone.length < 8 || !validDate(invoiceDate) || !validDate(dueDate) || dueDate < invoiceDate || projectTitle.length < 2 || !items.length || items.some(item => !item.description || !(item.quantity > 0) || !(item.unit_price >= 0))) {
+      if (!/^[0-9a-f-]{36}$/i.test(customerId) || !validDate(invoiceDate) || !validDate(dueDate) || dueDate < invoiceDate || projectTitle.length < 2 || !items.length || items.some(item => !item.description || !(item.quantity > 0) || !(item.unit_price >= 0))) {
         return json(response, 400, { error: 'Complete the required customer, date, project and invoice-item fields.' });
       }
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(response, 400, { error: 'Enter a valid customer email address.' });
       const subtotal = Math.round(items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0) * 100) / 100;
       const discountAmount = Math.max(0, Math.min(subtotal, Number(body.discountAmount) || 0));
       const taxPercent = Math.max(0, Math.min(100, Number(body.taxPercent) || 0));
       const otherCharges = Math.max(0, Number(body.otherCharges) || 0);
       const grandTotal = Math.round(((subtotal - discountAmount) * (1 + taxPercent / 100) + otherCharges) * 100) / 100;
 
-      const customerRows = await restJson('/rest/v1/customers', {
-        method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({
-          customer_type: body.customerType === 'individual' ? 'individual' : 'company', name: customerName,
-          contact_person: bounded(body.contactPerson, 120) || null, phone, email: email || null,
-          billing_address: bounded(body.customerAddress, 1000) || null, service_address: bounded(body.customerAddress, 1000) || null,
-          created_by: session.user.id
-        })
-      }, session.accessToken);
+      const customerRows = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(customerId)}&is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&limit=1`, {}, session.accessToken);
       const customer = customerRows[0];
+      if (!customer) return json(response, 404, { error: 'Select an active customer before creating the invoice.' });
       const numberResult = await restJson('/rest/v1/rpc/next_document_number', {
         method: 'POST', body: JSON.stringify({ kind: 'invoice', issue_date: invoiceDate })
       }, session.accessToken);
@@ -573,7 +567,7 @@ export default async function handler(request, response) {
             invoice_number: invoiceNumber, customer_id: customer.id, invoice_date: invoiceDate, due_date: dueDate,
             po_reference: bounded(body.poReference, 120) || null, project_title: projectTitle,
             description: bounded(body.description, 2000) || null,
-            customer_snapshot: { name: customerName, contactPerson: bounded(body.contactPerson, 120), phone, email, address: bounded(body.customerAddress, 1000) },
+            customer_snapshot: customer,
             discount_amount: discountAmount, tax_percent: taxPercent, other_charges: otherCharges,
             subtotal, grand_total: grandTotal, amount_paid: 0, balance: grandTotal,
             notes: bounded(body.notes, 2000) || null, payment_terms: bounded(body.paymentTerms, 2000) || null,
@@ -585,9 +579,9 @@ export default async function handler(request, response) {
           method: 'POST', headers: { Prefer: 'return=minimal' },
           body: JSON.stringify(items.map(item => ({ ...item, invoice_id: invoice.id })))
         }, session.accessToken);
-        return json(response, 201, { invoice: { ...invoice, customer_snapshot: { name: customerName }, invoice_number: invoiceNumber } });
+        await audit(session, 'create', 'invoices', invoice.id, invoiceNumber, { customerId: customer.id, projectTitle, total: grandTotal });
+        return json(response, 201, { invoice: { ...invoice, customer_snapshot: customer, invoice_number: invoiceNumber } });
       } catch (error) {
-        if (customer?.id) await supabaseFetch(`/rest/v1/customers?id=eq.${encodeURIComponent(customer.id)}`, { method: 'DELETE' }, session.accessToken).catch(() => {});
         throw error;
       }
     }
