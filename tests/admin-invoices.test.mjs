@@ -25,6 +25,14 @@ test('invoice UI supports line items, calculated totals and printing', () => {
   assert.match(invoices, /window\.print\(\)/);
 });
 
+test('invoices reuse the verified customer master record and standard snapshot fields', () => {
+  assert.match(invoices, /name="customerId"/);
+  assert.match(invoices, /invoice-customer-summary/);
+  assert.match(api, /customers\?id=eq\.\$\{encodeURIComponent\(customerId\)\}/);
+  assert.match(api, /customer_snapshot: customer/);
+  assert.doesNotMatch(api, /customer_snapshot: \{ name: customerName, contactPerson:/);
+});
+
 test('saved invoices can be viewed and downloaded as PDFs', () => {
   assert.match(invoices, /View PDF/);
   assert.match(invoices, /Download PDF/);

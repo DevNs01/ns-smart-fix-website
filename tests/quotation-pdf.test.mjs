@@ -66,6 +66,20 @@ test('invoice PDF is a valid non-empty PDF document', () => {
   assert.match(pdf.toString('latin1'), /%%EOF$/);
 });
 
+test('invoice PDF supports legacy customer address property names', () => {
+  const pdf = buildInvoicePdf({
+    settings: bundle.settings,
+    invoice: {
+      invoice_number: 'NSS-INV-202609-002', invoice_date: '2026-09-11', due_date: '2026-10-11',
+      project_title: 'Legacy invoice', customer_snapshot: { name: 'Legacy Customer', contactPerson: 'Amin', phone: '0123456789', email: 'legacy@example.com', address: 'Legacy billing address' },
+      subtotal: 100, discount_amount: 0, tax_percent: 0, other_charges: 0, grand_total: 100, status: 'draft'
+    },
+    items: [{ description: 'Legacy item', quantity: 1, unit_price: 100 }]
+  });
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+  assert.ok(pdf.length > 1000);
+});
+
 test('customer email contains the confirmed financial summary without scripts', () => {
   const email = quotationEmail({ ...bundle, quotation: { ...bundle.quotation, project_title: '<script>alert(1)</script>' } });
   assert.match(email.subject, /NSS-QT-202609-001/);

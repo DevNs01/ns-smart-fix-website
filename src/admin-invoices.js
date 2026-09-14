@@ -12,16 +12,16 @@ function itemRow(position = 1) {
   return `<tr class="invoice-item"><td class="item-position">${position}</td><td><input name="description" maxlength="500" placeholder="Service or product description" required></td><td><input name="quantity" type="number" min="0.001" step="0.001" value="1" required></td><td><input name="unitPrice" type="number" min="0" step="0.01" value="0" required></td><td class="line-total">RM 0.00</td><td><button class="icon-button remove-item" type="button" aria-label="Remove invoice item">×</button></td></tr>`;
 }
 
-function invoiceForm(settings = {}) {
+function invoiceForm(settings = {}, customers = []) {
   return `<section class="invoice-workspace">
     <div class="module-toolbar"><div><span class="eyebrow">INVOICE MANAGEMENT</span><h1>Create invoice</h1><p>Create secure cloud invoices based on the supplied NS Smart Fix layout.</p></div><button class="secondary-button" id="show-invoice-list" type="button">Saved invoices</button></div>
     <form id="invoice-form" class="invoice-document" novalidate>
       <div class="invoice-accent"></div><div class="invoice-inner">
         <header class="invoice-heading"><div><img src="/assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution"><p>${esc(settings.business_address || '')}</p><p>${esc(settings.phone || '016-211 9969')} · ${esc(settings.email || '')} · nssmartfixsolution.com</p></div><div><h2>INVOICE</h2><span class="status draft">Draft</span></div></header>
         <div class="invoice-grid two"><fieldset><legend>Bill To</legend>
-          <label>Customer or company name *<input name="customerName" maxlength="160" required></label>
-          <div class="invoice-grid two"><label>Contact person<input name="contactPerson" maxlength="120"></label><label>Phone *<input name="customerPhone" maxlength="30" required></label></div>
-          <label>Email address<input name="customerEmail" type="email" maxlength="254"></label><label>Billing / service address<textarea name="customerAddress" maxlength="1000"></textarea></label>
+          <label>Customer *<select name="customerId" required><option value="">Select an existing customer</option>${customers.map(customer => `<option value="${esc(customer.id)}">${esc(customer.name)} · ${esc(customer.phone)}</option>`).join('')}</select></label>
+          <div id="invoice-customer-summary" class="customer-summary" aria-live="polite"><p>Select a customer to use the verified details from the customer profile.</p></div>
+          <p class="field-help">To change these details, update the customer profile first. Draft and unpaid invoices will be synchronized automatically.</p>
         </fieldset><fieldset><legend>Invoice Details</legend>
           <div class="invoice-grid two"><label>Invoice date *<input name="invoiceDate" type="date" value="${iso(new Date())}" required></label><label>Due date *<input name="dueDate" type="date" value="${addDays(settings.default_invoice_payment_days || 30)}" required></label></div>
           <label>Project / service *<input name="projectTitle" maxlength="200" required></label><label>PO / reference<input name="poReference" maxlength="120"></label><label>Job description<textarea name="description" maxlength="2000"></textarea></label>
@@ -68,8 +68,14 @@ export async function renderInvoices(api) {
       wireDocumentStatuses(api);
     };
     const showForm = () => {
-      content.innerHTML = invoiceForm(data.settings || {});
+      content.innerHTML = invoiceForm(data.settings || {}, data.customers || []);
       const form = document.getElementById('invoice-form');
+      const customerSummary = document.getElementById('invoice-customer-summary');
+      const showCustomer = () => {
+        const customer = (data.customers || []).find(item => item.id === form.elements.customerId.value);
+        customerSummary.innerHTML = customer ? `<strong>${esc(customer.name)}</strong><span>${esc(customer.contact_person || 'No contact person')}</span><span>${esc(customer.phone)}</span><span>${esc(customer.email || 'No email address')}</span><span>${esc(customer.billing_address || customer.service_address || 'No address provided')}</span>` : '<p>Select a customer to use the verified details from the customer profile.</p>';
+      };
+      form.elements.customerId.addEventListener('change', showCustomer);
       document.getElementById('show-invoice-list').addEventListener('click', showList);
       document.getElementById('add-invoice-item').addEventListener('click', () => {
         document.getElementById('invoice-items').insertAdjacentHTML('beforeend', itemRow(document.querySelectorAll('.invoice-item').length + 1));
