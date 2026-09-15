@@ -33,11 +33,13 @@ function invoiceForm(settings = {}, customers = []) {
       </div></form></section>`;
 }
 
-function invoiceList(invoices) {
-  return `<section class="invoice-workspace"><div class="module-toolbar"><div><span class="eyebrow">INVOICE MANAGEMENT</span><h1>Saved invoices</h1><p>${invoices.length} invoice${invoices.length === 1 ? '' : 's'} stored securely.</p></div><button class="primary-button compact" id="new-invoice" type="button">+ New invoice</button></div>
+function invoiceList(invoices, acceptedQuotations = [], sentQuotations = []) {
+  return `<section class="invoice-workspace"><div class="module-toolbar"><div><span class="eyebrow">ACCOUNTS RECEIVABLE</span><h1>Invoices</h1><p>Invoices are generated only from customer-accepted quotations.</p></div></div>
+    ${sentQuotations.length ? `<section class="content-card ready-to-invoice"><div><span class="eyebrow">AWAITING CUSTOMER DECISION</span><h2>Sent quotations</h2><p>Record the customer's confirmed decision before invoicing.</p></div>${sentQuotations.map(quotation => `<div class="conversion-row"><div><strong>${esc(quotation.quotation_number)}</strong><span>${esc(quotation.customer_snapshot?.name || '—')} · ${esc(quotation.project_title)}</span></div><strong>${money(quotation.grand_total)}</strong><div class="decision-actions"><button class="primary-button compact quotation-decision" type="button" data-id="${esc(quotation.id)}" data-status="accepted">Mark Accepted</button><button class="secondary-button compact quotation-decision" type="button" data-id="${esc(quotation.id)}" data-status="rejected">Mark Rejected</button></div></div>`).join('')}</section>` : ''}
+    ${acceptedQuotations.length ? `<section class="content-card ready-to-invoice"><div><span class="eyebrow">READY TO INVOICE</span><h2>Accepted quotations</h2><p>Create one controlled invoice using the agreed customer, scope, items and total.</p></div>${acceptedQuotations.map(quotation => `<div class="conversion-row"><div><strong>${esc(quotation.quotation_number)}</strong><span>${esc(quotation.customer_snapshot?.name || '—')} · ${esc(quotation.project_title)}</span></div><strong>${money(quotation.grand_total)}</strong><button class="primary-button compact convert-accepted" type="button" data-id="${esc(quotation.id)}">Create Invoice</button></div>`).join('')}</section>` : ''}
     <div class="content-card invoice-list">${invoices.length ? `<div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th><th>Balance</th><th>Actions</th></tr></thead><tbody>${invoices.map(invoice => {
       const pdfUrl = `/api/admin-auth?action=invoice-pdf&id=${encodeURIComponent(invoice.id)}`;
-      return `<tr><td><strong>${esc(invoice.invoice_number)}</strong></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${esc(invoice.invoice_date)}</td><td><select class="document-status status-select" data-kind="invoice" data-id="${esc(invoice.id)}" aria-label="Status for ${esc(invoice.invoice_number)}">${['draft','unpaid','partially_paid','paid','overdue','cancelled'].map(state => `<option value="${state}"${invoice.status === state ? ' selected' : ''}>${state.replaceAll('_',' ')}</option>`).join('')}</select></td><td>${money(invoice.grand_total)}</td><td>${money(invoice.balance)}</td><td><div class="table-actions"><a class="action-link" href="${pdfUrl}" target="_blank" rel="noopener" aria-label="View invoice ${esc(invoice.invoice_number)} as PDF">View PDF</a><a class="action-link" href="${pdfUrl}&amp;download=1" aria-label="Download invoice ${esc(invoice.invoice_number)} as PDF">Download PDF</a></div></td></tr>`;
+      return `<tr><td><strong>${esc(invoice.invoice_number)}</strong></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${esc(invoice.invoice_date)}</td><td><span class="status ${esc(invoice.status)}">${esc(invoice.status.replaceAll('_', ' '))}</span></td><td>${money(invoice.grand_total)}</td><td>${money(invoice.balance)}</td><td><div class="table-actions"><a class="action-link" href="${pdfUrl}" target="_blank" rel="noopener" aria-label="View invoice ${esc(invoice.invoice_number)} as PDF">View PDF</a><a class="action-link" href="${pdfUrl}&amp;download=1" aria-label="Download invoice ${esc(invoice.invoice_number)} as PDF">Download PDF</a></div></td></tr>`;
     }).join('')}</tbody></table></div><p id="document-message" class="inline-message" role="status"></p>` : '<div class="empty-module"><h2>No invoices yet</h2><p>Create the first invoice to begin your cloud invoice history.</p></div>'}</div></section>`;
 }
 
@@ -63,9 +65,20 @@ export async function renderInvoices(api) {
   try {
     const data = await api('invoices');
     const showList = () => {
-      content.innerHTML = invoiceList(data.invoices || []);
-      document.getElementById('new-invoice').addEventListener('click', showForm);
-      wireDocumentStatuses(api);
+      content.innerHTML = invoiceList(data.invoices || [], data.acceptedQuotations || [], data.sentQuotations || []);
+      document.querySelectorAll('.quotation-decision').forEach(button => button.addEventListener('click', async () => {
+        const accepted = button.dataset.status === 'accepted';
+        if (!window.confirm(`Confirm that the customer ${accepted ? 'accepted' : 'rejected'} this quotation?`)) return;
+        button.disabled = true;
+        try { await api('document-status', { method:'POST', body:JSON.stringify({ id:button.dataset.id, kind:'quotation', status:button.dataset.status }) }); await renderInvoices(api); }
+        catch (error) { button.disabled = false; const out=document.getElementById('document-message'); if(out)out.textContent=error.message; }
+      }));
+      document.querySelectorAll('.convert-accepted').forEach(button => button.addEventListener('click', async () => {
+        if (!window.confirm('Create one draft invoice from this accepted quotation? Customer, items and agreed totals will be copied.')) return;
+        button.disabled = true; button.textContent = 'Creating…';
+        try { await api('quotation-convert', { method:'POST', body:JSON.stringify({ id:button.dataset.id, confirmed:true }) }); await renderInvoices(api); }
+        catch (error) { button.disabled = false; button.textContent = 'Create Invoice'; const out=document.getElementById('document-message'); if(out)out.textContent=error.message; }
+      }));
     };
     const showForm = () => {
       content.innerHTML = invoiceForm(data.settings || {}, data.customers || []);
@@ -112,4 +125,3 @@ export async function renderInvoices(api) {
     content.innerHTML = `<section class="empty-state"><h1>Invoices unavailable</h1><p>${esc(error.message)}</p></section>`;
   }
 }
-import { wireDocumentStatuses } from './admin-modules.js';

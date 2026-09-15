@@ -6,6 +6,7 @@ const admin = readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const invoices = readFileSync(new URL('../src/admin-invoices.js', import.meta.url), 'utf8');
 const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 const migration = readFileSync(new URL('../supabase/migrations/202609100003_invoice_module_permissions.sql', import.meta.url), 'utf8');
+const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
 
 test('invoice navigation opens the implemented module', () => {
   assert.match(admin, /renderInvoices\(api\)/);
@@ -13,10 +14,32 @@ test('invoice navigation opens the implemented module', () => {
 });
 
 test('invoice records use the secure API and never browser storage', () => {
-  assert.match(invoices, /api\('invoice-create'/);
+  assert.match(invoices, /api\('quotation-convert'/);
   assert.doesNotMatch(invoices, /localStorage|sessionStorage/);
   assert.match(api, /route === '\/invoice-create'/);
   assert.match(api, /next_document_number/);
+});
+
+test('accepted quotations are converted to one invoice transactionally', () => {
+  assert.match(invoices, /READY TO INVOICE/);
+  assert.match(invoices, /Mark Accepted/);
+  assert.match(api, /route === '\/quotation-convert'/);
+  assert.match(api, /convert_accepted_quotation_to_invoice/);
+  assert.match(api, /Standalone invoices are disabled/);
+  assert.match(workflowMigration, /quote\.status <> 'accepted'/);
+  assert.match(workflowMigration, /quotation_id = quote\.id/);
+  assert.match(workflowMigration, /insert into public\.invoice_items/);
+  assert.match(workflowMigration, /status = 'converted_to_invoice'/);
+  assert.match(workflowMigration, /for update/);
+});
+
+test('financial statuses follow controlled transitions', () => {
+  assert.match(api, /current\.status==='sent'/);
+  assert.match(api, /\['accepted','rejected','expired','cancelled'\]/);
+  assert.match(api, /nextStatus==='cancelled'/);
+  assert.doesNotMatch(invoices, /<select class="document-status status-select"/);
+  assert.match(api, /status=in\.\(unpaid,partially_paid,overdue\)/);
+  assert.match(api, /\['unpaid','partially_paid','overdue'\]\.includes\(invoice\.status\)/);
 });
 
 test('invoice UI supports line items, calculated totals and printing', () => {
