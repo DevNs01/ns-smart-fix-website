@@ -497,7 +497,7 @@ export default async function handler(request, response) {
       if(!current) return json(response,404,{error:'Document was not found.'});
       const permitted = kind==='quotation'
         ? current.status==='sent' && ['accepted','rejected','expired','cancelled'].includes(nextStatus)
-        : ['draft','unpaid'].includes(current.status) && nextStatus==='cancelled' && Number(current.amount_paid||0)===0;
+        : (current.status==='draft' && ['unpaid','cancelled'].includes(nextStatus)) || (current.status==='unpaid' && nextStatus==='cancelled' && Number(current.amount_paid||0)===0);
       if(!permitted) return json(response,409,{error:'This status change is not permitted by the accounting workflow.'});
       const rows=await restJson(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&status=eq.${encodeURIComponent(current.status)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:nextStatus})},session.accessToken);
       if(!rows[0]) return json(response,409,{error:'The document changed in another session. Reload before trying again.'});
@@ -512,17 +512,61 @@ export default async function handler(request, response) {
       return json(response,200,{payments,invoices});
     }
 
+    if (route === '/invoice-detail' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80);
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error:'Invalid invoice.' });
+      const [invoiceRows, items, payments] = await Promise.all([
+        restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(id)}&archived_at=is.null&select=*&limit=1`, {}, session.accessToken),
+        restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
+        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=id,payment_date,amount,payment_method,transaction_reference,notes,proof_storage_path,created_at&order=payment_date.desc,created_at.desc`, {}, session.accessToken)
+      ]);
+      if (!invoiceRows[0]) return json(response, 404, { error:'Invoice was not found.' });
+      return json(response, 200, { invoice:invoiceRows[0], items, payments });
+    }
+
+    if (route === '/payment-proof-upload-url' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const invoiceId = bounded(body.invoiceId, 80);
+      const fileName = bounded(body.fileName, 180).replace(/[^a-z0-9._-]+/gi, '-');
+      const mimeType = bounded(body.mimeType, 80); const size = Number(body.size);
+      const allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
+      if (!/^[0-9a-f-]{36}$/i.test(invoiceId) || !fileName || !allowed.includes(mimeType) || !(size > 0 && size <= 5242880)) return json(response, 400, { error:'Upload a JPG, PNG, WebP or PDF payment proof up to 5 MB.' });
+      const invoiceRows = await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&archived_at=is.null&select=id,status,balance&limit=1`, {}, session.accessToken);
+      if (!invoiceRows[0] || !['unpaid','partially_paid','overdue'].includes(invoiceRows[0].status)) return json(response, 409, { error:'Payment proof can only be added to an issued invoice with an outstanding balance.' });
+      const path = `${invoiceId}/${Date.now()}-${fileName}`;
+      const signed = await restJson(`/storage/v1/object/upload/sign/payment-proofs/${encodeURIComponent(path).replaceAll('%2F','/')}`, { method:'POST', body:JSON.stringify({}) }, session.accessToken);
+      const signedPath = signed.url || signed.signedURL || signed.signedUrl;
+      if (!signedPath) return json(response, 502, { error:'A secure proof upload could not be prepared.' });
+      const storage = config();
+      return json(response, 200, { path, uploadUrl:`${storage.url}/storage/v1${signedPath}`, uploadKey:storage.key, mimeType });
+    }
+
+    if (route === '/payment-proof' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80);
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error:'Invalid payment proof.' });
+      const rows = await restJson(`/rest/v1/payments?id=eq.${encodeURIComponent(id)}&select=proof_storage_path&limit=1`, {}, session.accessToken);
+      const path = rows[0]?.proof_storage_path;
+      if (!path) return json(response, 404, { error:'Payment proof was not found.' });
+      const signed = await restJson(`/storage/v1/object/sign/payment-proofs/${encodeURIComponent(path).replaceAll('%2F','/')}`, { method:'POST', body:JSON.stringify({ expiresIn:300 }) }, session.accessToken);
+      const location = signed.signedURL || signed.signedUrl;
+      if (!location) return json(response, 502, { error:'The protected proof could not be opened.' });
+      response.statusCode = 302; response.setHeader('Location', `${config().url}/storage/v1${location}`); response.setHeader('Cache-Control','private, no-store'); return response.end();
+    }
+
     if (route === '/payment-create' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
-      const body=await readBody(request); const invoiceId=bounded(body.invoiceId,80); const amount=Number(body.amount); const date=bounded(body.paymentDate,10); const method=bounded(body.paymentMethod,30);
+      const body=await readBody(request); const invoiceId=bounded(body.invoiceId,80); const amount=Number(body.amount); const date=bounded(body.paymentDate,10); const method=bounded(body.paymentMethod,30); const proofPath=bounded(body.proofPath,500);
       if(!/^[0-9a-f-]{36}$/i.test(invoiceId)||!validDate(date)||!(amount>0)||!['bank_transfer','cash','duitnow','cheque','other'].includes(method)) return json(response,400,{error:'Enter valid payment details.'});
       const invoices=await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&select=id,invoice_number,customer_id,balance,status&limit=1`,{},session.accessToken); const invoice=invoices[0];
       if(!invoice||!['unpaid','partially_paid','overdue'].includes(invoice.status)||amount>Number(invoice.balance)) return json(response,400,{error:'Select an issued invoice with enough outstanding balance.'});
-      const paymentRows=await restJson('/rest/v1/payments',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({invoice_id:invoice.id,customer_id:invoice.customer_id,payment_date:date,amount,payment_method:method,transaction_reference:bounded(body.reference,120)||null,notes:bounded(body.notes,1000)||null,recorded_by:session.user.id})},session.accessToken); const payment=paymentRows[0];
-      const receiptNumber=await restJson('/rest/v1/rpc/next_document_number',{method:'POST',body:JSON.stringify({kind:'receipt',issue_date:date})},session.accessToken); const remaining=Math.max(0,Number(invoice.balance)-amount);
-      const receiptRows=await restJson('/rest/v1/receipts',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({receipt_number:String(receiptNumber),payment_id:payment.id,invoice_id:invoice.id,customer_id:invoice.customer_id,amount_received:amount,remaining_balance:remaining,prepared_by:session.user.id})},session.accessToken);
-      await audit(session,'create','payments',payment.id,invoice.invoice_number,{amount,method});
-      return json(response,201,{payment,receipt:receiptRows[0]});
+      if (!proofPath.startsWith(`${invoiceId}/`)) return json(response,400,{error:'Payment proof is required before recording payment.'});
+      const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/payment-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
+      if (!proofCheck.ok) return json(response,400,{error:'The uploaded payment proof could not be verified. Upload it again.'});
+      const result=await restJson('/rest/v1/rpc/record_invoice_payment',{method:'POST',body:JSON.stringify({p_invoice_id:invoice.id,p_payment_date:date,p_amount:amount,p_payment_method:method,p_transaction_reference:bounded(body.reference,120)||null,p_notes:bounded(body.notes,1000)||null,p_proof_storage_path:proofPath})},session.accessToken);
+      await audit(session,'create','payments',result.payment.id,invoice.invoice_number,{amount,method,paymentDate:date,proofAttached:true});
+      return json(response,201,result);
     }
 
     if (route === '/receipts' && request.method === 'GET') {
@@ -555,14 +599,15 @@ export default async function handler(request, response) {
       const session = await requireSession(request, response); if (!session) return;
       const id = bounded(requestUrl.searchParams.get('id'), 80);
       if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error: 'Invalid invoice.' });
-      const [invoiceRows, items, settingRows] = await Promise.all([
+      const [invoiceRows, items, settingRows, payments] = await Promise.all([
         restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, session.accessToken),
         restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
-        restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken)
+        restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
+        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=payment_date,amount,payment_method,transaction_reference&order=payment_date.asc`, {}, session.accessToken)
       ]);
       const invoice = invoiceRows[0];
       if (!invoice) return json(response, 404, { error: 'Invoice was not found.' });
-      const pdf = buildInvoicePdf({ invoice, items, settings:settingRows[0] || {} });
+      const pdf = buildInvoicePdf({ invoice, items, settings:settingRows[0] || {}, payments });
       const download = requestUrl.searchParams.get('download') === '1';
       response.statusCode = 200;
       response.setHeader('Content-Type', 'application/pdf');
