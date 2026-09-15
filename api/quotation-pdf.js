@@ -107,7 +107,7 @@ function buildPdfDocument(streams, image) {
   return Buffer.concat(buffers);
 }
 
-function buildFinancialPdf({ quotation, items, settings, documentType = 'quotation' }) {
+function buildFinancialPdf({ quotation, items, settings, payments = [], documentType = 'quotation' }) {
   const isInvoice = documentType === 'invoice';
   const documentLabel = isInvoice ? 'INVOICE' : 'QUOTATION';
   const documentNumber = isInvoice ? quotation.invoice_number : quotation.quotation_number;
@@ -163,6 +163,13 @@ function buildFinancialPdf({ quotation, items, settings, documentType = 'quotati
     if (isTotal) box(330, y - 7, 221, 24);
     text(label, 340, isTotal ? 10 : 8.5, isTotal); commands.push(commandText(money(amount), 470, y, isTotal ? 10 : 8.5, isTotal)); y -= isTotal ? 32 : 21;
   }
+  if (isInvoice && Number(quotation.amount_paid || 0) > 0) {
+    const latestPayment = [...payments].sort((a,b)=>String(b.payment_date).localeCompare(String(a.payment_date)))[0];
+    text('PAYMENT SUMMARY', 330, 8, true, GREY); y -= 18;
+    text('PAID', 340, 8.5, true); commands.push(commandText(money(quotation.amount_paid), 470, y, 8.5, true)); y -= 20;
+    if (latestPayment) { text('PAID ON', 340, 8.5); commands.push(commandText(shortDate(latestPayment.payment_date), 470, y, 8.5)); y -= 20; }
+    box(330, y - 7, 221, 24); text('BALANCE DUE', 340, 10, true); commands.push(commandText(money(quotation.balance), 470, y, 10, true)); y -= 32;
+  }
   if (y < 150) addPage();
   text('TERMS & NOTES', 44, 8, true, GREY); y -= 17;
   lines(quotation.terms_and_conditions || quotation.payment_terms || settings.default_terms || `This ${documentType} is subject to the terms stated above.`, 44, 88, 8.5, 12);
@@ -176,8 +183,8 @@ export function buildQuotationPdf(bundle) {
   return buildFinancialPdf({ ...bundle, documentType: 'quotation' });
 }
 
-export function buildInvoicePdf({ invoice, items, settings }) {
-  return buildFinancialPdf({ quotation: invoice, items, settings, documentType: 'invoice' });
+export function buildInvoicePdf({ invoice, items, settings, payments = [] }) {
+  return buildFinancialPdf({ quotation: invoice, items, settings, payments, documentType: 'invoice' });
 }
 
 export function quotationEmail({ quotation, settings }) {

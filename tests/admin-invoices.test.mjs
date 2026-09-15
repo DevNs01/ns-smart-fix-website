@@ -7,6 +7,7 @@ const invoices = readFileSync(new URL('../src/admin-invoices.js', import.meta.ur
 const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 const migration = readFileSync(new URL('../supabase/migrations/202609100003_invoice_module_permissions.sql', import.meta.url), 'utf8');
 const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
+const paymentMigration = readFileSync(new URL('../supabase/migrations/202609150003_atomic_invoice_payments.sql', import.meta.url), 'utf8');
 
 test('invoice navigation opens the implemented module', () => {
   assert.match(admin, /renderInvoices\(api\)/);
@@ -62,6 +63,25 @@ test('saved invoices can be viewed and downloaded as PDFs', () => {
   assert.match(invoices, /action=invoice-pdf/);
   assert.match(api, /route === '\/invoice-pdf'/);
   assert.match(api, /buildInvoicePdf/);
+});
+
+test('invoice detail and controlled payment proof workflow are available', () => {
+  assert.match(invoices, /invoice-detail/);
+  assert.match(invoices, /Record Payment/);
+  assert.match(invoices, /payment-proof-upload-url/);
+  assert.match(invoices, /Payment proof \*/);
+  assert.match(api, /route === '\/invoice-detail'/);
+  assert.match(api, /route === '\/payment-proof'/);
+  assert.match(api, /proofCheck\.ok/);
+});
+
+test('payment and receipt are committed atomically and status remains database-derived', () => {
+  assert.match(api, /rpc\/record_invoice_payment/);
+  assert.match(paymentMigration, /for update/);
+  assert.match(paymentMigration, /insert into public\.payments/);
+  assert.match(paymentMigration, /insert into public\.receipts/);
+  assert.match(paymentMigration, /p_proof_storage_path is null/);
+  assert.doesNotMatch(invoices, /value="paid"/);
 });
 
 test('invoice tables are granted only to authenticated users', () => {

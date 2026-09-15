@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildInvoicePdf, buildQuotationPdf, quotationEmail } from '../api/quotation-pdf.js';
+import { readFileSync } from 'node:fs';
+const pdfSource = readFileSync(new URL('../api/quotation-pdf.js', import.meta.url), 'utf8');
 
 const bundle = {
   settings: {
@@ -64,6 +66,18 @@ test('invoice PDF is a valid non-empty PDF document', () => {
   assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
   assert.ok(pdf.length > 1000);
   assert.match(pdf.toString('latin1'), /%%EOF$/);
+});
+
+test('paid invoice PDF includes payment date, paid total and zero balance', () => {
+  const pdf = buildInvoicePdf({
+    invoice: { invoice_number:'NSS-INV-202609-002', invoice_date:'2026-09-14', due_date:'2026-09-14', status:'paid', project_title:'Service', customer_snapshot:{name:'Customer'}, subtotal:280, grand_total:280, amount_paid:280, balance:0 },
+    items:[{description:'Service',quantity:1,unit_price:280,line_total:280}], settings:{company_name:'NS Smart Fix Solution'}, payments:[{payment_date:'2026-09-14',amount:280}]
+  });
+  assert.equal(Buffer.isBuffer(pdf), true);
+  assert.match(pdfSource, /PAYMENT SUMMARY/);
+  assert.match(pdfSource, /PAID ON/);
+  assert.match(pdfSource, /BALANCE DUE/);
+  assert.match(pdfSource, /money\(quotation\.balance\)/);
 });
 
 test('invoice PDF supports legacy customer address property names', () => {
