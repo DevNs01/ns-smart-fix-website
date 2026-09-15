@@ -266,18 +266,32 @@ export default async function handler(request, response) {
 
     if (route === '/dashboard' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const [requests, quotations, invoices, customers] = await Promise.all([
-        restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/quotations?archived_at=is.null&select=id,status,grand_total,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/invoices?archived_at=is.null&select=id,status,grand_total,balance,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/customers?select=id,is_active,created_at&order=created_at.desc&limit=1000', {}, session.accessToken)
+      const [requests, quotations, invoices, customers, payments] = await Promise.all([
+        restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,public_reference,full_name,service_required,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/quotations?archived_at=is.null&select=id,quotation_number,status,grand_total,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,status,grand_total,balance,due_date,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/customers?select=id,is_active,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/payments?select=id,amount,payment_date,created_at&order=created_at.desc&limit=1000', {}, session.accessToken)
       ]);
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kuala_Lumpur' }).format(new Date());
+      const month = today.slice(0, 7);
+      const overdue = invoices.filter(item => Number(item.balance) > 0 && item.due_date < today && !['paid','cancelled','void'].includes(item.status));
+      const draftInvoices = invoices.filter(item => item.status === 'draft');
+      const awaitingDecision = quotations.filter(item => item.status === 'sent');
       return json(response, 200, { summary: {
         customers: customers.filter(item => item.is_active).length,
         requests: requests.length, newRequests: requests.filter(item => item.status === 'new').length,
         quotations: quotations.length, pendingQuotations: quotations.filter(item => ['draft', 'sent'].includes(item.status)).length,
-        invoices: invoices.length, outstandingBalance: invoices.reduce((sum, item) => sum + Number(item.balance || 0), 0)
-      }, recentRequests: requests.slice(0, 5) });
+        invoices: invoices.length, outstandingBalance: invoices.reduce((sum, item) => sum + Number(item.balance || 0), 0),
+        overdueInvoices: overdue.length, overdueBalance: overdue.reduce((sum,item)=>sum+Number(item.balance||0),0),
+        paidThisMonth: payments.filter(item=>String(item.payment_date).startsWith(month)).reduce((sum,item)=>sum+Number(item.amount||0),0),
+        paymentsThisMonth: payments.filter(item=>String(item.payment_date).startsWith(month)).length,
+        draftInvoices: draftInvoices.length, awaitingDecision: awaitingDecision.length
+      }, workQueue: {
+        requests: requests.filter(item=>item.status==='new').slice(0,3),
+        quotations: awaitingDecision.slice(0,3),
+        invoices: [...overdue, ...draftInvoices.filter(draft=>!overdue.some(item=>item.id===draft.id))].slice(0,4)
+      } });
     }
 
     if (route === '/customers' && request.method === 'GET') {
