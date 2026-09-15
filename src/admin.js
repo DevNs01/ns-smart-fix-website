@@ -10,6 +10,12 @@ const modules = [
   ['receipts', 'Receipts', '✓'], ['settings', 'Company Settings', '⚙'],
   ['users', 'User Management', '♟'], ['audit', 'Audit Log', '◷']
 ];
+const moduleGroups = [
+  ['Overview', ['dashboard']],
+  ['Sales', ['requests', 'quotations', 'customers']],
+  ['Finance', ['invoices', 'payments', 'receipts']],
+  ['Administration', ['settings', 'users', 'audit']]
+];
 
 function escapeHtml(value) {
   return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')
@@ -201,10 +207,10 @@ function renderPortal(profile) {
           <div><strong>NS Smart Fix</strong><span>Business Portal</span></div>
         </a>
         <nav aria-label="Portal navigation">
-          ${allowedModules(profile.role).map(([key, label, icon], index) => `
-            <button type="button" class="nav-item${index === 0 ? ' active' : ''}" data-module="${key}">
-              <span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>
-            </button>`).join('')}
+          ${moduleGroups.map(([group, keys]) => {
+            const entries = allowedModules(profile.role).filter(([key]) => keys.includes(key));
+            return entries.length ? `<section class="nav-group" aria-label="${group}"><span class="nav-group-label">${group}</span>${entries.map(([key,label,icon])=>`<button type="button" class="nav-item${key==='dashboard'?' active':''}" data-module="${key}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`).join('')}</section>` : '';
+          }).join('')}
         </nav>
         <a class="website-link" href="/">↗ View public website</a>
       </aside>
