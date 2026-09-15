@@ -212,12 +212,13 @@ function renderPortal(profile) {
             return entries.length ? `<section class="nav-group" aria-label="${group}"><span class="nav-group-label">${group}</span>${entries.map(([key,label,icon])=>`<button type="button" class="nav-item${key==='dashboard'?' active':''}" data-module="${key}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`).join('')}</section>` : '';
           }).join('')}
         </nav>
-        <a class="website-link" href="/">↗ View public website</a>
+        <div class="sidebar-footer"><span class="sidebar-footer-icon">↗</span><div><strong>Grow your business</strong><small>with NS Smart Fix</small></div><a class="website-link" href="/">View public website <span>↗</span></a></div>
       </aside>
       <div class="portal-main">
         <header class="portal-header">
           <button id="menu-button" class="menu-button" type="button" aria-controls="portal-sidebar" aria-expanded="false" aria-label="Open navigation">☰</button>
-          <div><span class="header-kicker">NS SMART FIX SOLUTION</span><strong id="page-title">Dashboard</strong></div>
+          <label class="global-search"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search portal records</span><input id="global-search" type="search" placeholder="Search customers, invoices, quotations…"><kbd>⌘ K</kbd></label>
+          <button class="notification-button" type="button" aria-label="No new notifications" title="No new notifications">♢</button>
           <div class="profile-menu">
             <div class="profile-copy"><strong>${escapeHtml(profile.full_name)}</strong><span>${roleLabel}</span></div>
             <span class="avatar" aria-hidden="true">${escapeHtml(profile.full_name.charAt(0).toUpperCase())}</span>
@@ -241,11 +242,13 @@ function renderPortal(profile) {
   });
   overlay.addEventListener('click', closeMenu);
 
+  const globalSearch=document.getElementById('global-search');
+  document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();globalSearch.focus();}});
+  globalSearch.addEventListener('keydown',event=>{if(event.key!=='Enter'||!globalSearch.value.trim())return;const query=globalSearch.value.trim();document.querySelector('[data-module="invoices"]')?.click();let attempts=0;const apply=()=>{const invoiceSearch=document.getElementById('invoice-search');if(invoiceSearch){invoiceSearch.value=query;invoiceSearch.dispatchEvent(new Event('input'));return;}if(attempts++<20)setTimeout(apply,100);};apply();});
+
   document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', async () => {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
-    const label = button.querySelector('span:last-child').textContent;
-    document.getElementById('page-title').textContent = label;
     const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotations(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
     closeMenu();
