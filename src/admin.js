@@ -1,5 +1,5 @@
 import { renderInvoices } from './admin-invoices.js';
-import { renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotations, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
+import { addArchiveActions, renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotations, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
 
 const root = document.getElementById('admin-app');
 
@@ -240,7 +240,7 @@ function renderPortal(profile) {
     button.classList.add('active');
     const label = button.querySelector('span:last-child').textContent;
     document.getElementById('page-title').textContent = label;
-    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: () => renderQuotations(api), invoices: () => renderInvoices(api), payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
+    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotations(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
     closeMenu();
   }));

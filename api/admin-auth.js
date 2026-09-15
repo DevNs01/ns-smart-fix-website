@@ -267,9 +267,9 @@ export default async function handler(request, response) {
     if (route === '/dashboard' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
       const [requests, quotations, invoices, customers] = await Promise.all([
-        restJson('/rest/v1/quotation_requests?select=id,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/quotations?select=id,status,grand_total,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/invoices?select=id,status,grand_total,balance,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/quotations?archived_at=is.null&select=id,status,grand_total,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/invoices?archived_at=is.null&select=id,status,grand_total,balance,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/customers?select=id,is_active,created_at&order=created_at.desc&limit=1000', {}, session.accessToken)
       ]);
       return json(response, 200, { summary: {
@@ -319,7 +319,7 @@ export default async function handler(request, response) {
 
     if (route === '/requests' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const requests = await restJson('/rest/v1/quotation_requests?select=*&order=created_at.desc&limit=500', {}, session.accessToken);
+      const requests = await restJson('/rest/v1/quotation_requests?archived_at=is.null&select=*&order=created_at.desc&limit=500', {}, session.accessToken);
       return json(response, 200, { requests });
     }
 
@@ -334,7 +334,7 @@ export default async function handler(request, response) {
 
     if (route === '/quotations' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const quotations = await restJson('/rest/v1/quotations?select=id,quotation_number,quotation_date,expiry_date,status,project_title,grand_total,customer_snapshot,sent_at,sent_to,created_at&order=created_at.desc&limit=500', {}, session.accessToken);
+      const quotations = await restJson('/rest/v1/quotations?archived_at=is.null&select=id,quotation_number,quotation_date,expiry_date,status,project_title,grand_total,customer_snapshot,sent_at,sent_to,created_at&order=created_at.desc&limit=500', {}, session.accessToken);
       const customers = await restJson('/rest/v1/customers?select=id,name,phone,email,contact_person&is_active=eq.true&order=name.asc&limit=500', {}, session.accessToken);
       return json(response, 200, { quotations, customers });
     }
@@ -465,6 +465,29 @@ export default async function handler(request, response) {
       return json(response, 201, result);
     }
 
+    if (route === '/record-archive' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); const kind = bounded(body.kind, 20); const reason = bounded(body.reason, 500);
+      const definitions = { request:{table:'quotation_requests',number:'public_reference'}, quotation:{table:'quotations',number:'quotation_number'}, invoice:{table:'invoices',number:'invoice_number'} };
+      const definition = definitions[kind];
+      if (!definition || !/^[0-9a-f-]{36}$/i.test(id) || reason.length < 3) return json(response, 400, { error:'Select a valid record and provide a deletion reason.' });
+      const existing = await restJson(`/rest/v1/${definition.table}?id=eq.${encodeURIComponent(id)}&archived_at=is.null&select=*&limit=1`, {}, session.accessToken); const record = existing[0];
+      if (!record) return json(response, 404, { error:'The record was not found or is already deleted.' });
+      if (kind === 'invoice') {
+        if (record.status === 'paid' || Number(record.amount_paid || 0) > 0) return json(response, 409, { error:'Paid or partially paid invoices cannot be deleted. Retain them for accounting and audit purposes.' });
+        const payments = await restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=id&limit=1`, {}, session.accessToken);
+        if (payments.length) return json(response, 409, { error:'An invoice with payment history cannot be deleted.' });
+      }
+      const archivedAt = new Date().toISOString();
+      const payload = { archived_at:archivedAt, archived_by:session.user.id, archive_reason:reason };
+      if (kind === 'invoice' && record.status !== 'cancelled') payload.status = 'cancelled';
+      if (kind === 'quotation' && !['cancelled','converted_to_invoice'].includes(record.status)) payload.status = 'cancelled';
+      const rows = await restJson(`/rest/v1/${definition.table}?id=eq.${encodeURIComponent(id)}&archived_at=is.null`, { method:'PATCH', headers:{Prefer:'return=representation'}, body:JSON.stringify(payload) }, session.accessToken);
+      if (!rows[0]) return json(response, 409, { error:'The record changed in another session. Reload before trying again.' });
+      await audit(session, 'archive', definition.table, id, record[definition.number], { reason, previousStatus:record.status || null, archivedAt });
+      return json(response, 200, { archived:true });
+    }
+
     if (route === '/document-status' && request.method === 'POST') {
       const session=await requireSession(request,response); if(!session)return;
       const body=await readBody(request); const id=bounded(body.id,80); const kind=bounded(body.kind,20); const nextStatus=bounded(body.status,30);
@@ -519,11 +542,11 @@ export default async function handler(request, response) {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
       const [invoices, settings, customers, acceptedQuotations, sentQuotations] = await Promise.all([
-        restJson('/rest/v1/invoices?select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken),
         restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
         restJson('/rest/v1/customers?is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&order=name.asc&limit=500', {}, session.accessToken),
-        restJson('/rest/v1/quotations?status=eq.accepted&select=id,quotation_number,customer_id,customer_snapshot,project_title,grand_total,accepted_at:updated_at&order=updated_at.asc&limit=100', {}, session.accessToken),
-        restJson('/rest/v1/quotations?status=eq.sent&select=id,quotation_number,customer_snapshot,project_title,grand_total,sent_at&order=sent_at.asc&limit=100', {}, session.accessToken)
+        restJson('/rest/v1/quotations?archived_at=is.null&status=eq.accepted&select=id,quotation_number,customer_id,customer_snapshot,project_title,grand_total,accepted_at:updated_at&order=updated_at.asc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/quotations?archived_at=is.null&status=eq.sent&select=id,quotation_number,customer_snapshot,project_title,grand_total,sent_at&order=sent_at.asc&limit=100', {}, session.accessToken)
       ]);
       return json(response, 200, { invoices, settings: settings[0] || null, customers, acceptedQuotations, sentQuotations });
     }

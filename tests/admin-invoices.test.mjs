@@ -10,7 +10,7 @@ const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150
 
 test('invoice navigation opens the implemented module', () => {
   assert.match(admin, /renderInvoices\(api\)/);
-  assert.match(admin, /invoices: \(\) => renderInvoices\(api\)/);
+  assert.match(admin, /invoices: async \(\) => \{ await renderInvoices\(api\)/);
 });
 
 test('invoice records use the secure API and never browser storage', () => {
