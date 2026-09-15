@@ -525,6 +525,30 @@ export default async function handler(request, response) {
       return json(response, 200, { invoice:invoiceRows[0], items, payments });
     }
 
+    if (route === '/invoice-serials-update' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const invoiceId = bounded(body.invoiceId, 80);
+      if (!/^[0-9a-f-]{36}$/i.test(invoiceId) || !Array.isArray(body.items) || body.items.length > 50) return json(response, 400, { error:'Enter valid invoice serial numbers.' });
+      const invoiceRows = await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&archived_at=is.null&select=id,invoice_number,status&limit=1`, {}, session.accessToken);
+      const invoice = invoiceRows[0];
+      if (!invoice) return json(response, 404, { error:'Invoice was not found.' });
+      if (!['draft','unpaid','partially_paid','overdue'].includes(invoice.status)) return json(response, 409, { error:'Serial numbers are locked after an invoice is paid, cancelled or voided.' });
+      const storedItems = await restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(invoiceId)}&select=id,quantity`, {}, session.accessToken);
+      const storedById = new Map(storedItems.map(item => [item.id, item]));
+      const updates = []; const seen = new Set();
+      for (const input of body.items) {
+        const id = bounded(input.id, 80); const stored = storedById.get(id);
+        const serialNumbers = Array.isArray(input.serialNumbers) ? input.serialNumbers.map(serial => bounded(serial, 120)).filter(Boolean) : [];
+        if (!stored || serialNumbers.length > Math.floor(Number(stored.quantity))) return json(response, 400, { error:'Serial numbers cannot exceed the related whole-item quantity.' });
+        for (const serial of serialNumbers) { const key=serial.toLowerCase(); if (seen.has(key)) return json(response, 400, { error:`Serial number ${serial} is entered more than once.` }); seen.add(key); }
+        updates.push({ id, serialNumbers });
+      }
+      if (updates.length !== storedItems.length) return json(response, 400, { error:'Serial numbers must be submitted for every invoice item.' });
+      await Promise.all(updates.map(update => restJson(`/rest/v1/invoice_items?id=eq.${encodeURIComponent(update.id)}&invoice_id=eq.${encodeURIComponent(invoiceId)}`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({serial_numbers:update.serialNumbers}) }, session.accessToken)));
+      await audit(session,'update','invoice_items',invoiceId,invoice.invoice_number,{serialNumbersUpdated:true,itemCount:updates.length});
+      return json(response, 200, { updated:true });
+    }
+
     if (route === '/payment-proof-upload-url' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
       const body = await readBody(request); const invoiceId = bounded(body.invoiceId, 80);

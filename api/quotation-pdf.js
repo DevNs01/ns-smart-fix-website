@@ -155,6 +155,10 @@ function buildFinancialPdf({ quotation, items, settings, payments = [], document
     const itemLines = wrap(item.description, 48);
     text(String(index + 1), 50); commands.push(commandText(itemLines[0], 75, y)); commands.push(commandText(String(Number(item.quantity)), 380, y)); commands.push(commandText(money(item.unit_price), 414, y)); commands.push(commandText(money(item.line_total ?? Number(item.quantity) * Number(item.unit_price)), 494, y));
     for (const extra of itemLines.slice(1)) { y -= 12; text(extra, 75); }
+    if (isInvoice && Array.isArray(item.serial_numbers) && item.serial_numbers.length) {
+      y -= 12;
+      text(`Serial No: ${item.serial_numbers.map(serial => ascii(serial)).join(', ')}`, 75, 8, false, GREY);
+    }
     y -= 17; line(44, y + 9, 551, y + 9, 0.3);
   }
   y -= 10;

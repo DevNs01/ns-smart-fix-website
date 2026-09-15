@@ -8,6 +8,9 @@ const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8
 const migration = readFileSync(new URL('../supabase/migrations/202609100003_invoice_module_permissions.sql', import.meta.url), 'utf8');
 const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
 const paymentMigration = readFileSync(new URL('../supabase/migrations/202609150003_atomic_invoice_payments.sql', import.meta.url), 'utf8');
+const serialMigration = readFileSync(new URL('../supabase/migrations/202609150004_invoice_item_serial_numbers.sql', import.meta.url), 'utf8');
+const pdf = readFileSync(new URL('../api/quotation-pdf.js', import.meta.url), 'utf8');
+const vercel = readFileSync(new URL('../vercel.json', import.meta.url), 'utf8');
 
 test('invoice navigation opens the implemented module', () => {
   assert.match(admin, /renderInvoices\(api\)/);
@@ -73,6 +76,8 @@ test('invoice detail and controlled payment proof workflow are available', () =>
   assert.match(api, /route === '\/invoice-detail'/);
   assert.match(api, /route === '\/payment-proof'/);
   assert.match(api, /proofCheck\.ok/);
+  assert.match(invoices, /apikey:signed\.uploadKey/);
+  assert.match(vercel, /connect-src[^\"]+https:\/\/gfwqlhcyowniguedlmsk\.supabase\.co/);
 });
 
 test('payment and receipt are committed atomically and status remains database-derived', () => {
@@ -82,6 +87,15 @@ test('payment and receipt are committed atomically and status remains database-d
   assert.match(paymentMigration, /insert into public\.receipts/);
   assert.match(paymentMigration, /p_proof_storage_path is null/);
   assert.doesNotMatch(invoices, /value="paid"/);
+});
+
+test('invoice items support validated serial numbers in the portal and PDF', () => {
+  assert.match(serialMigration, /add column if not exists serial_numbers text\[\]/);
+  assert.match(serialMigration, /cardinality\(serial_numbers\) <= floor\(quantity\)/);
+  assert.match(invoices, /Manage serial numbers/);
+  assert.match(invoices, /invoice-serials-update/);
+  assert.match(api, /route === '\/invoice-serials-update'/);
+  assert.match(pdf, /Serial No:/);
 });
 
 test('invoice tables are granted only to authenticated users', () => {
