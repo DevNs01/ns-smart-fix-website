@@ -455,21 +455,37 @@ export default async function handler(request, response) {
       return json(response, 200, { quotation:updated[0], delivered:true });
     }
 
+    if (route === '/quotation-convert' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const id = bounded(body.id, 80);
+      if (!body.confirmed || !/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error: 'Confirm a valid accepted quotation before creating an invoice.' });
+      const result = await restJson('/rest/v1/rpc/convert_accepted_quotation_to_invoice', {
+        method:'POST', body:JSON.stringify({ p_quotation_id:id })
+      }, session.accessToken);
+      return json(response, 201, result);
+    }
+
     if (route === '/document-status' && request.method === 'POST') {
       const session=await requireSession(request,response); if(!session)return;
       const body=await readBody(request); const id=bounded(body.id,80); const kind=bounded(body.kind,20); const nextStatus=bounded(body.status,30);
-      const allowed={quotation:['draft','sent','accepted','rejected','expired','converted_to_invoice','cancelled'],invoice:['draft','unpaid','partially_paid','paid','overdue','cancelled']};
-      if(!/^[0-9a-f-]{36}$/i.test(id)||!allowed[kind]?.includes(nextStatus)) return json(response,400,{error:'Invalid document status update.'});
+      if(!/^[0-9a-f-]{36}$/i.test(id)||!['quotation','invoice'].includes(kind)) return json(response,400,{error:'Invalid document status update.'});
       const table=kind==='quotation'?'quotations':'invoices';
-      const rows=await restJson(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:nextStatus})},session.accessToken);
-      await audit(session,'status_change',table,id,kind==='quotation'?rows[0]?.quotation_number:rows[0]?.invoice_number,{status:nextStatus});
+      const existing=await restJson(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=*&limit=1`,{},session.accessToken); const current=existing[0];
+      if(!current) return json(response,404,{error:'Document was not found.'});
+      const permitted = kind==='quotation'
+        ? current.status==='sent' && ['accepted','rejected','expired','cancelled'].includes(nextStatus)
+        : ['draft','unpaid'].includes(current.status) && nextStatus==='cancelled' && Number(current.amount_paid||0)===0;
+      if(!permitted) return json(response,409,{error:'This status change is not permitted by the accounting workflow.'});
+      const rows=await restJson(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&status=eq.${encodeURIComponent(current.status)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:nextStatus})},session.accessToken);
+      if(!rows[0]) return json(response,409,{error:'The document changed in another session. Reload before trying again.'});
+      await audit(session,'status_change',table,id,kind==='quotation'?rows[0].quotation_number:rows[0].invoice_number,{from:current.status,to:nextStatus});
       return json(response,200,{document:rows[0]});
     }
 
     if (route === '/payments' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
       const payments = await restJson('/rest/v1/payments?select=id,payment_date,amount,payment_method,transaction_reference,notes,created_at,invoices(invoice_number,customer_snapshot)&order=created_at.desc&limit=500', {}, session.accessToken);
-      const invoices = await restJson('/rest/v1/invoices?select=id,invoice_number,customer_id,balance,customer_snapshot&balance=gt.0&status=neq.cancelled&order=created_at.desc&limit=500', {}, session.accessToken);
+      const invoices = await restJson('/rest/v1/invoices?select=id,invoice_number,customer_id,balance,customer_snapshot&balance=gt.0&status=in.(unpaid,partially_paid,overdue)&order=created_at.desc&limit=500', {}, session.accessToken);
       return json(response,200,{payments,invoices});
     }
 
@@ -477,8 +493,8 @@ export default async function handler(request, response) {
       const session = await requireSession(request, response); if (!session) return;
       const body=await readBody(request); const invoiceId=bounded(body.invoiceId,80); const amount=Number(body.amount); const date=bounded(body.paymentDate,10); const method=bounded(body.paymentMethod,30);
       if(!/^[0-9a-f-]{36}$/i.test(invoiceId)||!validDate(date)||!(amount>0)||!['bank_transfer','cash','duitnow','cheque','other'].includes(method)) return json(response,400,{error:'Enter valid payment details.'});
-      const invoices=await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&select=id,invoice_number,customer_id,balance&limit=1`,{},session.accessToken); const invoice=invoices[0];
-      if(!invoice||amount>Number(invoice.balance)) return json(response,400,{error:'Payment exceeds the invoice balance or the invoice was not found.'});
+      const invoices=await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&select=id,invoice_number,customer_id,balance,status&limit=1`,{},session.accessToken); const invoice=invoices[0];
+      if(!invoice||!['unpaid','partially_paid','overdue'].includes(invoice.status)||amount>Number(invoice.balance)) return json(response,400,{error:'Select an issued invoice with enough outstanding balance.'});
       const paymentRows=await restJson('/rest/v1/payments',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({invoice_id:invoice.id,customer_id:invoice.customer_id,payment_date:date,amount,payment_method:method,transaction_reference:bounded(body.reference,120)||null,notes:bounded(body.notes,1000)||null,recorded_by:session.user.id})},session.accessToken); const payment=paymentRows[0];
       const receiptNumber=await restJson('/rest/v1/rpc/next_document_number',{method:'POST',body:JSON.stringify({kind:'receipt',issue_date:date})},session.accessToken); const remaining=Math.max(0,Number(invoice.balance)-amount);
       const receiptRows=await restJson('/rest/v1/receipts',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({receipt_number:String(receiptNumber),payment_id:payment.id,invoice_id:invoice.id,customer_id:invoice.customer_id,amount_received:amount,remaining_balance:remaining,prepared_by:session.user.id})},session.accessToken);
@@ -502,12 +518,14 @@ export default async function handler(request, response) {
     if (route === '/invoices' && request.method === 'GET') {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
-      const [invoices, settings, customers] = await Promise.all([
+      const [invoices, settings, customers, acceptedQuotations, sentQuotations] = await Promise.all([
         restJson('/rest/v1/invoices?select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken),
         restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
-        restJson('/rest/v1/customers?is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&order=name.asc&limit=500', {}, session.accessToken)
+        restJson('/rest/v1/customers?is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&order=name.asc&limit=500', {}, session.accessToken),
+        restJson('/rest/v1/quotations?status=eq.accepted&select=id,quotation_number,customer_id,customer_snapshot,project_title,grand_total,accepted_at:updated_at&order=updated_at.asc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/quotations?status=eq.sent&select=id,quotation_number,customer_snapshot,project_title,grand_total,sent_at&order=sent_at.asc&limit=100', {}, session.accessToken)
       ]);
-      return json(response, 200, { invoices, settings: settings[0] || null, customers });
+      return json(response, 200, { invoices, settings: settings[0] || null, customers, acceptedQuotations, sentQuotations });
     }
 
     if (route === '/invoice-pdf' && request.method === 'GET') {
@@ -532,6 +550,10 @@ export default async function handler(request, response) {
     }
 
     if (route === '/invoice-create' && request.method === 'POST') {
+      return json(response, 409, { error: 'Standalone invoices are disabled. Mark the quotation Accepted, then create its invoice from the Invoices page.' });
+    }
+
+    if (route === '/legacy-invoice-create-disabled' && request.method === 'POST') {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
       const body = await readBody(request);
