@@ -1,10 +1,12 @@
+import { icon } from './admin-icons.js';
+
 const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const money = value => `RM ${Number(value || 0).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const date = value => value ? new Date(value).toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const content = () => document.getElementById('portal-content');
-const loading = label => { content().innerHTML=`<section class="empty-state"><p>Loading ${esc(label)}…</p></section>`; };
-const errorView = (label,error) => { content().innerHTML=`<section class="empty-state"><h1>${esc(label)} unavailable</h1><p>${esc(error.message)}</p></section>`; };
-const badge = value => `<span class="status ${esc(value)}">${esc(String(value||'unknown').replaceAll('_',' '))}</span>`;
+const loading = label => { content().setAttribute('aria-busy','true'); content().innerHTML=`<section class="empty-state module-loading" role="status"><span class="empty-icon spinning">${icon('loader')}</span><h1>Loading ${esc(label)}</h1><p>Retrieving the latest secure business records.</p></section>`; };
+const errorView = (label,error) => { content().setAttribute('aria-busy','false'); content().innerHTML=`<section class="empty-state module-error" role="alert"><span class="empty-icon">${icon('warning')}</span><h1>${esc(label)} unavailable</h1><p>${esc(error.message)}</p><button class="secondary-button" type="button" onclick="window.location.reload()">Try again</button></section>`; };
+const badge = value => { const normalized=String(value||'unknown'); const badgeIcon=['active','accepted','paid','completed','success'].includes(normalized)?icon('check'):['overdue','spam','inactive','rejected'].includes(normalized)?icon('warning'):''; return `<span class="status ${esc(normalized)}">${badgeIcon}${esc(normalized.replaceAll('_',' '))}</span>`; };
 const emptyRow = (columns,message) => `<tr><td colspan="${columns}" class="table-empty">${esc(message)}</td></tr>`;
 const toolbar = (kicker,title,description,action='') => `<div class="module-toolbar"><div><span class="eyebrow">${esc(kicker)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${action}</div>`;
 const messageBox = id => `<div id="${id}" class="form-error" role="alert" hidden></div>`;
@@ -32,7 +34,7 @@ export function addArchiveActions(api, kind, refresh) {
     const id = new URL(link.href).searchParams.get('id');
     if (!id) return;
     const button = document.createElement('button');
-    button.type='button'; button.className='danger-button archive-record'; button.innerHTML='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7"></path><path d="M10 11v6M14 11v6"></path></svg><span>Delete</span>';
+    button.type='button'; button.className='danger-button archive-record'; button.innerHTML=`${icon('trash')}<span>Delete</span>`;
     button.dataset.kind=kind; button.dataset.id=id; button.dataset.number=number;
     button.setAttribute('aria-label',`Delete ${number}`); button.setAttribute('title',`Delete ${number}`);
     const target = kind === 'invoice' ? row.querySelector('.row-menu-popover') : actions;
