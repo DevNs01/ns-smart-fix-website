@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const admin = readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const invoices = readFileSync(new URL('../src/admin-invoices.js', import.meta.url), 'utf8');
+const adminModules = readFileSync(new URL('../src/admin-modules.js', import.meta.url), 'utf8');
 const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 const migration = readFileSync(new URL('../supabase/migrations/202609100003_invoice_module_permissions.sql', import.meta.url), 'utf8');
 const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
@@ -78,6 +79,27 @@ test('invoice detail and controlled payment proof workflow are available', () =>
   assert.match(api, /proofCheck\.ok/);
   assert.match(invoices, /apikey:signed\.uploadKey/);
   assert.match(vercel, /connect-src[^\"]+https:\/\/gfwqlhcyowniguedlmsk\.supabase\.co/);
+});
+
+test('invoice list follows the accessible compact action pattern', () => {
+  assert.match(invoices, /aria-pressed="true"/);
+  assert.match(invoices, /Search invoice or customer/);
+  assert.match(invoices, /preview-action/);
+  assert.match(invoices, /row-menu-popover/);
+  assert.match(invoices, /View Serial Numbers/);
+  assert.match(invoices, /More actions for/);
+  assert.match(invoices, /event\.key==='Escape'/);
+  assert.match(adminModules, /kind === 'invoice' \? row\.querySelector\('\.row-menu-popover'\)/);
+});
+
+test('invoice preview groups customer summary items and payment evidence', () => {
+  assert.match(invoices, /Customer Details/);
+  assert.match(invoices, /Invoice Summary/);
+  assert.match(invoices, /Balance due/);
+  assert.match(invoices, /Payment History/);
+  assert.match(invoices, /Payment completed/);
+  assert.match(invoices, /View Proof/);
+  assert.match(invoices, /aria-labelledby="invoice-detail-title"/);
 });
 
 test('payment and receipt are committed atomically and status remains database-derived', () => {

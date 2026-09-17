@@ -32,9 +32,11 @@ export function addArchiveActions(api, kind, refresh) {
     const id = new URL(link.href).searchParams.get('id');
     if (!id) return;
     const button = document.createElement('button');
-    button.type='button'; button.className='danger-button archive-record'; button.textContent='Delete';
+    button.type='button'; button.className='danger-button archive-record'; button.innerHTML='<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7"></path><path d="M10 11v6M14 11v6"></path></svg><span>Delete</span>';
     button.dataset.kind=kind; button.dataset.id=id; button.dataset.number=number;
-    button.setAttribute('aria-label',`Delete ${number}`); actions.append(button);
+    button.setAttribute('aria-label',`Delete ${number}`); button.setAttribute('title',`Delete ${number}`);
+    const target = kind === 'invoice' ? row.querySelector('.row-menu-popover') : actions;
+    (target || actions).append(button);
   });
   wireArchiveButtons(api, refresh);
 }
