@@ -43,7 +43,68 @@ export function addArchiveActions(api, kind, refresh) {
   wireArchiveButtons(api, refresh);
 }
 
-export async function renderDashboard(api,profile){loading('dashboard');try{const {summary,workQueue}=await api('dashboard');const queue=[...workQueue.requests.map(item=>({module:'requests',tone:'orange',title:'Review new request',label:item.public_reference,detail:`${item.customer_name} · ${(item.services||[]).join(', ')||'Service not specified'}`})),...workQueue.quotations.map(item=>({module:'quotations',tone:'blue',title:'Follow up quotation',label:item.quotation_number,detail:item.customer_snapshot?.name||'Customer decision pending'})),...workQueue.invoices.map(item=>({module:'invoices',tone:item.status==='draft'?'navy':'red',title:item.status==='draft'?'Issue draft invoice':'Collect overdue invoice',label:item.invoice_number,detail:`${item.customer_snapshot?.name||'Customer'} · ${money(item.balance)}`}))];content().innerHTML=`${toolbar('BUSINESS OVERVIEW',`Good day, ${profile.full_name.split(' ')[0]}`,'Your priorities and financial position for today.')}<section class="metric-grid" aria-label="Dashboard summary"><article class="metric-card green"><span>Outstanding</span><strong>${money(summary.outstandingBalance)}</strong><small>${summary.invoices} invoice records</small></article><article class="metric-card red"><span>Overdue</span><strong>${money(summary.overdueBalance)}</strong><small>${summary.overdueInvoices} invoice${summary.overdueInvoices===1?'':'s'} need attention</small></article><article class="metric-card blue"><span>Paid this month</span><strong>${money(summary.paidThisMonth)}</strong><small>${summary.paymentsThisMonth} payment${summary.paymentsThisMonth===1?'':'s'} received</small></article><article class="metric-card orange"><span>Open requests</span><strong>${summary.newRequests}</strong><small>Awaiting review</small></article></section><section class="operations-grid"><article class="content-card work-queue"><div class="section-heading"><div><span class="eyebrow">PRIORITY WORK</span><h2>Work queue</h2></div><span class="queue-count">${queue.length} actions</span></div>${queue.length?queue.map(item=>`<button class="queue-row" type="button" data-module-target="${item.module}"><span class="queue-indicator ${item.tone}"></span><span><strong>${esc(item.title)}</strong><small>${esc(item.label)} · ${esc(item.detail)}</small></span><span class="queue-action">Open →</span></button>`).join(''):'<div class="queue-empty"><span>✓</span><div><strong>You are up to date</strong><p>No urgent records require attention.</p></div></div>'}</article><article class="content-card collection-card"><span class="eyebrow">CASH COLLECTION</span><h2>Current position</h2><dl><div><dt>Outstanding</dt><dd>${money(summary.outstandingBalance)}</dd></div><div><dt>Overdue</dt><dd class="danger-text">${money(summary.overdueBalance)}</dd></div><div><dt>Collected this month</dt><dd class="success-text">${money(summary.paidThisMonth)}</dd></div></dl><button class="secondary-button dashboard-link" data-module-target="payments" type="button">View payment records</button></article></section>`;document.querySelectorAll('[data-module-target]').forEach(button=>button.addEventListener('click',()=>document.querySelector(`[data-module="${button.dataset.moduleTarget}"]`)?.click()));}catch(error){errorView('Dashboard',error);}}
+export async function renderDashboard(api,profile){
+  loading('dashboard');
+  try {
+    const {summary,workQueue}=await api('dashboard');
+    const queue=[
+      ...workQueue.requests.map(item=>({
+        module:'requests',tone:'orange',icon:'requests',title:'Review new request',action:'Review request',
+        label:item.public_reference,detail:`${item.customer_name} · ${(item.services||[]).join(', ')||'Service not specified'}`
+      })),
+      ...workQueue.quotations.map(item=>({
+        module:'quotations',tone:'blue',icon:'quotations',title:'Follow up quotation',action:'Follow up',
+        label:item.quotation_number,detail:item.customer_snapshot?.name||'Customer decision pending'
+      })),
+      ...workQueue.invoices.map(item=>({
+        module:'invoices',tone:item.status==='draft'?'navy':'red',icon:'invoices',
+        title:item.status==='draft'?'Issue draft invoice':'Collect overdue invoice',
+        action:item.status==='draft'?'Review invoice':'Collect payment',label:item.invoice_number,
+        detail:`${item.customer_snapshot?.name||'Customer'} · ${money(item.balance)}`
+      }))
+    ];
+    const queueMarkup=queue.length?`<div class="dashboard-queue-list">${queue.map(item=>`
+      <button class="queue-row dashboard-queue-row ${item.tone}" type="button" data-module-target="${item.module}" aria-label="${esc(item.action)} ${esc(item.label)}">
+        <span class="queue-leading-icon ${item.tone}" aria-hidden="true">${icon(item.icon)}</span>
+        <span class="queue-copy"><strong>${esc(item.title)}</strong><small>${esc(item.label)}</small><small>${esc(item.detail)}</small></span>
+        <span class="queue-action">${esc(item.action)}<span class="queue-open-icon" aria-hidden="true">${icon('arrowRight')}</span></span>
+      </button>`).join('')}</div>`:'<div class="queue-empty"><span>✓</span><div><strong>You are up to date</strong><p>No urgent records require attention.</p></div></div>';
+    content().innerHTML=`${toolbar('BUSINESS OVERVIEW',`Good day, ${profile.full_name.split(' ')[0]}`,'Your priorities and financial position for today.')}
+      <section class="metric-grid dashboard-metric-grid" aria-label="Dashboard summary">
+        <article class="metric-card dashboard-kpi-card">
+          <div class="dashboard-kpi-copy"><span>Outstanding</span><strong>${money(summary.outstandingBalance)}</strong><small>${summary.invoices} invoice records</small></div>
+          <span class="metric-icon" aria-hidden="true">${icon('money')}</span>
+        </article>
+        <article class="metric-card dashboard-kpi-card">
+          <div class="dashboard-kpi-copy"><span>Overdue</span><strong>${money(summary.overdueBalance)}</strong><small>${summary.overdueInvoices} invoice${summary.overdueInvoices===1?'':'s'} need attention</small></div>
+          <span class="metric-icon" aria-hidden="true">${icon('clock')}</span>
+        </article>
+        <article class="metric-card dashboard-kpi-card paid">
+          <div class="dashboard-kpi-copy"><span>Paid this month</span><strong>${money(summary.paidThisMonth)}</strong><small class="dashboard-positive">${summary.paymentsThisMonth} payment${summary.paymentsThisMonth===1?'':'s'} received</small></div>
+          <span class="metric-icon" aria-hidden="true">${icon('payments')}</span>
+        </article>
+        <article class="metric-card dashboard-kpi-card open-requests">
+          <div class="dashboard-kpi-copy"><span>Open requests</span><strong>${summary.newRequests}</strong><small><i class="dashboard-status-dot" aria-hidden="true"></i>Awaiting review</small></div>
+          <span class="metric-icon" aria-hidden="true">${icon('requests')}</span>
+        </article>
+      </section>
+      <section class="operations-grid dashboard-operations">
+        <article class="content-card work-queue dashboard-work-queue">
+          <div class="section-heading"><div><span class="eyebrow">PRIORITY WORK</span><h2>Work queue</h2></div><span class="queue-count">${queue.length} action${queue.length===1?'':'s'}</span></div>
+          ${queueMarkup}
+        </article>
+        <article class="content-card collection-card dashboard-collection">
+          <span class="eyebrow">CASH COLLECTION</span><h2>Current position</h2>
+          <div class="collection-feature"><span class="collection-feature-icon" aria-hidden="true">${icon('check')}</span><div><span>Collected this month</span><strong>${money(summary.paidThisMonth)}</strong></div></div>
+          <dl><div><dt>Outstanding</dt><dd>${money(summary.outstandingBalance)}</dd></div><div><dt>Overdue</dt><dd>${money(summary.overdueBalance)}</dd></div></dl>
+          <button class="primary-button dashboard-link" data-module-target="payments" type="button">View payment records ${icon('arrowRight')}</button>
+        </article>
+      </section>`;
+    document.querySelectorAll('[data-module-target]').forEach(button=>button.addEventListener('click',()=>document.querySelector(`[data-module="${button.dataset.moduleTarget}"]`)?.click()));
+  } catch(error) {
+    errorView('Dashboard',error);
+  }
+}
 
 export async function renderCustomers(api){loading('customers');try{const {customers}=await api('customers');content().innerHTML=`${toolbar('CUSTOMER MANAGEMENT','Customers',`${customers.length} customer record${customers.length===1?'':'s'}. Updates synchronize to draft quotations and open invoices; finalized records remain unchanged.`,`<button class="primary-button compact" id="new-customer" type="button">+ New customer</button>`)}<div class="content-card data-card"><div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>${customers.map(c=>`<tr><td><strong>${esc(c.name)}</strong><small>${esc(c.customer_code||c.customer_type)}</small></td><td>${esc(c.contact_person||'—')}</td><td><a href="tel:${esc(c.phone)}">${esc(c.phone)}</a></td><td>${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'—'}</td><td>${badge(c.is_active?'active':'inactive')}</td><td><button class="secondary-button edit-customer" type="button" data-id="${esc(c.id)}" aria-label="Edit customer ${esc(c.name)}">Edit profile</button></td></tr>`).join('')||emptyRow(6,'No customers yet.')}</tbody></table></div></div><dialog id="customer-dialog" class="admin-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="eyebrow">CUSTOMER MASTER RECORD</span><h2 id="customer-dialog-title">Add customer</h2><p class="muted">Saving synchronizes contact and address details to draft quotations and draft/unpaid invoices. Sent, paid and cancelled records stay locked.</p><form id="customer-form" class="admin-form"><input name="id" type="hidden"><div class="form-grid"><label>Customer type<select name="customerType"><option value="company">Company</option><option value="individual">Individual</option></select></label><label>Name *<input name="name" maxlength="160" required></label><label>Registration number<input name="registrationNumber" maxlength="100"></label><label>Contact person<input name="contactPerson" maxlength="120"></label><label>Phone *<input name="phone" maxlength="30" required></label><label>Email<input name="email" type="email" maxlength="254"></label><label>Billing address<textarea name="billingAddress" maxlength="1000"></textarea></label><label>Service address<textarea name="serviceAddress" maxlength="1000"></textarea></label><label>Notes<textarea name="notes" maxlength="2000"></textarea></label><label class="check-label"><input name="isActive" type="checkbox" checked> Active customer</label></div>${messageBox('customer-message')}<button class="primary-button" type="submit">Save and synchronize</button></form></dialog>`;const dialog=document.getElementById('customer-dialog');const form=document.getElementById('customer-form');const openCustomer=(customer=null)=>{form.reset();form.elements.id.value=customer?.id||'';form.elements.customerType.value=customer?.customer_type||'company';form.elements.name.value=customer?.name||'';form.elements.registrationNumber.value=customer?.company_registration_number||'';form.elements.contactPerson.value=customer?.contact_person||'';form.elements.phone.value=customer?.phone||'';form.elements.email.value=customer?.email||'';form.elements.billingAddress.value=customer?.billing_address||'';form.elements.serviceAddress.value=customer?.service_address||'';form.elements.notes.value=customer?.notes||'';form.elements.isActive.checked=customer?.is_active!==false;document.getElementById('customer-dialog-title').textContent=customer?'Edit customer profile':'Add customer';dialog.showModal();};document.getElementById('new-customer').onclick=()=>openCustomer();document.querySelectorAll('.edit-customer').forEach(button=>button.addEventListener('click',()=>openCustomer(customers.find(customer=>customer.id===button.dataset.id))));wireForm('customer-form',p=>{p.isActive=form.elements.isActive.checked;const action=p.id?'customer-update':'customer-create';return api(action,{method:'POST',body:JSON.stringify(p)});},'Customer profile and eligible documents synchronized. Audit history recorded.',()=>renderCustomers(api));}catch(error){errorView('Customers',error);}}
 

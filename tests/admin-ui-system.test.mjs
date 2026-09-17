@@ -50,3 +50,15 @@ test('portal-wide states and actions meet the shared interaction standard', () =
   assert.match(css, /module-list-tools/);
   assert.match(css, /settings-guide/);
 });
+
+test('dashboard follows the approved financial command-centre layout', () => {
+  for (const className of ['dashboard-metric-grid','dashboard-kpi-card','dashboard-work-queue','dashboard-queue-row','dashboard-collection']) {
+    assert.match(modules, new RegExp(className));
+    assert.match(css, new RegExp(`\\.${className}`));
+  }
+  assert.match(modules, /Collected this month/);
+  assert.match(modules, /View payment records/);
+  assert.match(modules, /queue-leading-icon/);
+  assert.match(css, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:760px\).*dashboard-metric-grid\{grid-template-columns:1fr\}/s);
+});
