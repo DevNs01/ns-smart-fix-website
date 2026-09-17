@@ -267,7 +267,7 @@ export default async function handler(request, response) {
     if (route === '/dashboard' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
       const [requests, quotations, invoices, customers, payments] = await Promise.all([
-        restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,public_reference,full_name,service_required,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,public_reference,customer_name,services,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/quotations?archived_at=is.null&select=id,quotation_number,status,grand_total,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,status,grand_total,balance,due_date,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/customers?select=id,is_active,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
