@@ -10,6 +10,7 @@ const migration = readFileSync(new URL('../supabase/migrations/202609100003_invo
 const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
 const paymentMigration = readFileSync(new URL('../supabase/migrations/202609150003_atomic_invoice_payments.sql', import.meta.url), 'utf8');
 const serialMigration = readFileSync(new URL('../supabase/migrations/202609150004_invoice_item_serial_numbers.sql', import.meta.url), 'utf8');
+const paymentStatusMigration = readFileSync(new URL('../supabase/migrations/202609170001_payment_status.sql', import.meta.url), 'utf8');
 const pdf = readFileSync(new URL('../api/quotation-pdf.js', import.meta.url), 'utf8');
 const vercel = readFileSync(new URL('../vercel.json', import.meta.url), 'utf8');
 
@@ -97,9 +98,19 @@ test('invoice preview groups customer summary items and payment evidence', () =>
   assert.match(invoices, /Invoice Summary/);
   assert.match(invoices, /Balance due/);
   assert.match(invoices, /Payment History/);
-  assert.match(invoices, /Payment completed/);
+  assert.match(invoices, /Payment \$\{esc\(paymentStatus\)\}/);
   assert.match(invoices, /View Proof/);
   assert.match(invoices, /aria-labelledby="invoice-detail-title"/);
+});
+
+test('payment completion status is stored and returned instead of inferred by the UI', () => {
+  assert.match(paymentStatusMigration, /add column if not exists status text/);
+  assert.match(paymentStatusMigration, /set status = 'completed'/);
+  assert.match(paymentStatusMigration, /payments_status_check check \(status = 'completed'\)/);
+  assert.match(api, /payment_method,status,transaction_reference/);
+  assert.match(invoices, /const paymentStatus=p\.status\|\|'completed'/);
+  assert.match(adminModules, /badge\(p\.status\|\|'completed'\)/);
+  assert.match(adminModules, /r\.payments\?\.status\|\|'completed'/);
 });
 
 test('payment and receipt are committed atomically and status remains database-derived', () => {

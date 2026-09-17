@@ -521,7 +521,7 @@ export default async function handler(request, response) {
 
     if (route === '/payments' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const payments = await restJson('/rest/v1/payments?select=id,payment_date,amount,payment_method,transaction_reference,notes,created_at,invoices(invoice_number,customer_snapshot)&order=created_at.desc&limit=500', {}, session.accessToken);
+      const payments = await restJson('/rest/v1/payments?select=id,payment_date,amount,payment_method,status,transaction_reference,notes,created_at,invoices(invoice_number,customer_snapshot)&order=created_at.desc&limit=500', {}, session.accessToken);
       const invoices = await restJson('/rest/v1/invoices?select=id,invoice_number,customer_id,balance,customer_snapshot&balance=gt.0&status=in.(unpaid,partially_paid,overdue)&order=created_at.desc&limit=500', {}, session.accessToken);
       return json(response,200,{payments,invoices});
     }
@@ -533,7 +533,7 @@ export default async function handler(request, response) {
       const [invoiceRows, items, payments] = await Promise.all([
         restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(id)}&archived_at=is.null&select=*&limit=1`, {}, session.accessToken),
         restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
-        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=id,payment_date,amount,payment_method,transaction_reference,notes,proof_storage_path,created_at&order=payment_date.desc,created_at.desc`, {}, session.accessToken)
+        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=id,payment_date,amount,payment_method,status,transaction_reference,notes,proof_storage_path,created_at&order=payment_date.desc,created_at.desc`, {}, session.accessToken)
       ]);
       if (!invoiceRows[0]) return json(response, 404, { error:'Invoice was not found.' });
       return json(response, 200, { invoice:invoiceRows[0], items, payments });
@@ -609,7 +609,7 @@ export default async function handler(request, response) {
 
     if (route === '/receipts' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const receipts=await restJson('/rest/v1/receipts?select=id,receipt_number,amount_received,remaining_balance,created_at,invoices(invoice_number,customer_snapshot),payments(payment_method,transaction_reference,payment_date)&order=created_at.desc&limit=500',{},session.accessToken);
+      const receipts=await restJson('/rest/v1/receipts?select=id,receipt_number,amount_received,remaining_balance,created_at,invoices(invoice_number,customer_snapshot),payments(payment_method,status,transaction_reference,payment_date)&order=created_at.desc&limit=500',{},session.accessToken);
       return json(response,200,{receipts});
     }
 
@@ -641,7 +641,7 @@ export default async function handler(request, response) {
         restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(id)}&select=*&limit=1`, {}, session.accessToken),
         restJson(`/rest/v1/invoice_items?invoice_id=eq.${encodeURIComponent(id)}&select=*&order=position.asc`, {}, session.accessToken),
         restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
-        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=payment_date,amount,payment_method,transaction_reference&order=payment_date.asc`, {}, session.accessToken)
+        restJson(`/rest/v1/payments?invoice_id=eq.${encodeURIComponent(id)}&select=payment_date,amount,payment_method,status,transaction_reference&order=payment_date.asc`, {}, session.accessToken)
       ]);
       const invoice = invoiceRows[0];
       if (!invoice) return json(response, 404, { error: 'Invoice was not found.' });
