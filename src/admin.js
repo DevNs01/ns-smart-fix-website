@@ -1,14 +1,16 @@
 import { renderInvoices } from './admin-invoices.js';
 import { addArchiveActions, renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotations, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
+import { icon } from './admin-icons.js';
+import { enhanceAdminModule, enhanceAdminShell, observeAdminModules } from './admin-ui.js';
 
 const root = document.getElementById('admin-app');
 
 const modules = [
-  ['dashboard', 'Dashboard', '▦'], ['customers', 'Customers', '♙'],
-  ['requests', 'Requests', '✉'], ['quotations', 'Quotations', '▤'],
-  ['invoices', 'Invoices', '▧'], ['payments', 'Payments', 'RM'],
-  ['receipts', 'Receipts', '✓'], ['settings', 'Company Settings', '⚙'],
-  ['users', 'User Management', '♟'], ['audit', 'Audit Log', '◷']
+  ['dashboard', 'Dashboard', 'dashboard'], ['customers', 'Customers', 'customers'],
+  ['requests', 'Requests', 'requests'], ['quotations', 'Quotations', 'quotations'],
+  ['invoices', 'Invoices', 'invoices'], ['payments', 'Payments', 'payments'],
+  ['receipts', 'Receipts', 'receipts'], ['settings', 'Company Settings', 'settings'],
+  ['users', 'User Management', 'users'], ['audit', 'Audit Log', 'audit']
 ];
 const moduleGroups = [
   ['Overview', ['dashboard']],
@@ -209,7 +211,7 @@ function renderPortal(profile) {
         <nav aria-label="Portal navigation">
           ${moduleGroups.map(([group, keys]) => {
             const entries = allowedModules(profile.role).filter(([key]) => keys.includes(key));
-            return entries.length ? `<section class="nav-group" aria-label="${group}"><span class="nav-group-label">${group}</span>${entries.map(([key,label,icon])=>`<button type="button" class="nav-item${key==='dashboard'?' active':''}" data-module="${key}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`).join('')}</section>` : '';
+            return entries.length ? `<section class="nav-group" aria-label="${group}"><span class="nav-group-label">${group}</span>${entries.map(([key,label,iconName])=>`<button type="button" class="nav-item${key==='dashboard'?' active':''}" data-module="${key}"><span class="nav-icon" aria-hidden="true">${icon(iconName)}</span><span>${label}</span></button>`).join('')}</section>` : '';
           }).join('')}
         </nav>
         <div class="sidebar-footer"><span class="sidebar-footer-icon">↗</span><div><strong>Grow your business</strong><small>with NS Smart Fix</small></div><a class="website-link" href="/">View public website <span>↗</span></a></div>
@@ -241,6 +243,10 @@ function renderPortal(profile) {
     menu.setAttribute('aria-expanded', String(open));
   });
   overlay.addEventListener('click', closeMenu);
+  enhanceAdminShell();
+  const portalContent = document.getElementById('portal-content');
+  portalContent.dataset.module = 'dashboard';
+  observeAdminModules();
 
   const globalSearch=document.getElementById('global-search');
   document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();globalSearch.focus();}});
@@ -249,8 +255,10 @@ function renderPortal(profile) {
   document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', async () => {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
+    portalContent.dataset.module = button.dataset.module;
     const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotations(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
+    enhanceAdminModule(button.dataset.module);
     closeMenu();
   }));
 
@@ -260,7 +268,7 @@ function renderPortal(profile) {
     try { await api('logout', { method: 'POST', body: '{}' }); } catch {}
     renderLogin();
   });
-  renderDashboard(api, profile);
+  renderDashboard(api, profile).then(() => enhanceAdminModule('dashboard'));
 }
 
 function dashboardMarkup(profile) {

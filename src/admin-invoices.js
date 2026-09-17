@@ -1,24 +1,9 @@
+import { icon } from './admin-icons.js';
+
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 const money = value => `RM ${Number(value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const iso = date => date.toISOString().slice(0, 10);
 const displayDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-const icon = name => {
-  const paths = {
-    search:'<circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>',
-    eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle>',
-    more:'<circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle>',
-    customer:'<path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"></path><circle cx="12" cy="7" r="4"></circle>',
-    invoice:'<path d="M6 2h9l4 4v16H6z"></path><path d="M14 2v5h5M9 12h6M9 16h6"></path>',
-    serial:'<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M20 5v14"></path>',
-    pdf:'<path d="M6 2h9l4 4v16H6z"></path><path d="M14 2v5h5"></path><path d="M8.5 16v-4h1.2a1.2 1.2 0 0 1 0 2.4H8.5M12.5 16v-4h1a2 2 0 0 1 0 4zM17 16v-4h2"></path>',
-    download:'<path d="M12 3v12m0 0 4-4m-4 4-4-4"></path><path d="M5 21h14"></path>',
-    trash:'<path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7"></path><path d="M10 11v6M14 11v6"></path>',
-    check:'<circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path>',
-    close:'<path d="m6 6 12 12M18 6 6 18"></path>'
-  };
-  return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name] || ''}</svg>`;
-};
-
 function addDays(days) {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -100,7 +85,8 @@ function calculate(form) {
 
 export async function renderInvoices(api) {
   const content = document.getElementById('portal-content');
-  content.innerHTML = '<section class="empty-state"><p>Loading invoices…</p></section>';
+  content.setAttribute('aria-busy','true');
+  content.innerHTML = `<section class="empty-state module-loading" role="status"><span class="empty-icon spinning">${icon('loader')}</span><h1>Loading invoices</h1><p>Retrieving the latest secure invoice records.</p></section>`;
   try {
     const data = await api('invoices');
     const showList = () => {
@@ -174,6 +160,7 @@ export async function renderInvoices(api) {
     };
     showList();
   } catch (error) {
-    content.innerHTML = `<section class="empty-state"><h1>Invoices unavailable</h1><p>${esc(error.message)}</p></section>`;
+    content.setAttribute('aria-busy','false');
+    content.innerHTML = `<section class="empty-state module-error" role="alert"><span class="empty-icon">${icon('warning')}</span><h1>Invoices unavailable</h1><p>${esc(error.message)}</p><button class="secondary-button" type="button" onclick="window.location.reload()">Try again</button></section>`;
   }
 }
