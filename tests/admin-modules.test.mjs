@@ -19,6 +19,14 @@ test('all module data uses the same-origin authenticated API', () => {
   assert.doesNotMatch(frontend, /localStorage|sessionStorage/);
 });
 
+test('dashboard request queue uses the quotation request database schema', () => {
+  assert.match(api, /select=id,public_reference,customer_name,services,status,created_at/);
+  assert.doesNotMatch(api, /select=id,public_reference,full_name,service_required/);
+  assert.match(frontend, /item\.customer_name/);
+  assert.match(frontend, /item\.services/);
+  assert.doesNotMatch(frontend, /item\.full_name|item\.service_required/);
+});
+
 test('quotation delivery requires confirmation and exposes a PDF preview', () => {
   assert.match(frontend, /Approve & Send PDF/);
   assert.match(frontend, /Confirmed customer email/);
