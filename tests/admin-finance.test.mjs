@@ -10,6 +10,7 @@ const migration = readFileSync(new URL('../supabase/migrations/202609240001_busi
 const workerMigration = readFileSync(new URL('../supabase/migrations/202609240002_worker_payment_profiles.sql', import.meta.url), 'utf8');
 const paymentPermissionMigration = readFileSync(new URL('../supabase/migrations/202609250001_fix_business_cost_payment_permissions.sql', import.meta.url), 'utf8');
 const paymentCorrectionMigration = readFileSync(new URL('../supabase/migrations/202609250002_correct_outgoing_payments.sql', import.meta.url), 'utf8');
+const costManagementMigration = readFileSync(new URL('../supabase/migrations/202609250003_manage_business_costs.sql', import.meta.url), 'utf8');
 
 test('finance summary keeps cash, receivables, payables and profit separate', () => {
   const result = calculateFinanceSummary({
@@ -46,10 +47,14 @@ test('finance module includes the approved QuickBooks-style workflows', () => {
   assert.match(ui, /finance-edit-payment/);
   assert.match(ui, /Edit outgoing payment/);
   assert.match(ui, /Save payment correction/);
+  assert.match(ui, /finance-edit-cost/);
+  assert.match(ui, /finance-delete-cost/);
+  assert.match(ui, /Delete unpaid payable/);
+  assert.match(ui, /Payment history must be corrected before this payable can be deleted/);
 });
 
 test('finance API validates master records, costs, accounts and proof-backed payments', () => {
-  for (const route of ['finance-overview','finance-account-create','finance-account-save','finance-supplier-save','finance-worker-save','finance-worker-bank-detail','finance-cost-create','finance-cost-proof-upload-url','finance-cost-payment-create','finance-cost-payment-update','finance-cost-payment-proof']) {
+  for (const route of ['finance-overview','finance-account-create','finance-account-save','finance-supplier-save','finance-worker-save','finance-worker-bank-detail','finance-cost-create','finance-cost-update','finance-cost-delete','finance-cost-proof-upload-url','finance-cost-payment-create','finance-cost-payment-update','finance-cost-payment-proof']) {
     assert.match(api, new RegExp(`route === '/${route}'`));
   }
   assert.match(api, /record_business_cost_payment/);
@@ -113,4 +118,18 @@ test('outgoing payment corrections are admin-only, proof-backed and balance cont
   assert.doesNotMatch(paymentCorrectionMigration, /grant update on public\.outgoing_payments/);
   assert.match(api, /correct_business_cost_payment/);
   assert.match(api, /previous:result\.previous/);
+});
+
+test('payable edits and deletions remain admin-only, balanced and audited', () => {
+  assert.match(costManagementMigration, /create or replace function public\.update_business_cost/);
+  assert.match(costManagementMigration, /create or replace function public\.delete_unpaid_business_cost/);
+  assert.match(costManagementMigration, /not public\.is_admin\(\)/);
+  assert.match(costManagementMigration, /p_total_amount < current_cost\.amount_paid/);
+  assert.match(costManagementMigration, /balance = p_total_amount - current_cost\.amount_paid/);
+  assert.match(costManagementMigration, /exists \(\s*select 1 from public\.outgoing_payments/);
+  assert.match(costManagementMigration, /insert into public\.audit_logs/);
+  assert.match(costManagementMigration, /auth\.uid\(\), 'delete', 'business_costs'/);
+  assert.doesNotMatch(costManagementMigration, /grant (update|delete) on public\.business_costs/);
+  assert.match(api, /route === '\/finance-cost-update'[\s\S]{0,180}requireAdmin/);
+  assert.match(api, /route === '\/finance-cost-delete'[\s\S]{0,180}requireAdmin/);
 });
