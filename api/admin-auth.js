@@ -6,6 +6,7 @@ const REFRESH_COOKIE = 'ns_admin_refresh';
 const MAX_BODY_BYTES = 32 * 1024;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LIMIT = 8;
+export const QUOTATION_RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 const ADMIN_REDIRECT_URL = 'https://nssmartfixsolution.com/admin';
 const attempts = globalThis.__nsAdminLoginAttempts || new Map();
 globalThis.__nsAdminLoginAttempts = attempts;
@@ -66,6 +67,12 @@ export function allowLogin(ip, now = Date.now()) {
   if (!current) { attempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS }); return true; }
   current.count += 1;
   return current.count <= LOGIN_LIMIT;
+}
+
+export function quotationResendWaitSeconds(sentAt, now = Date.now()) {
+  const sentTime = Date.parse(String(sentAt || ''));
+  if (!Number.isFinite(sentTime)) return 0;
+  return Math.max(0, Math.ceil((sentTime + QUOTATION_RESEND_COOLDOWN_MS - now) / 1000));
 }
 
 function config() {
@@ -418,25 +425,65 @@ export default async function handler(request, response) {
       if (!process.env.RESEND_API_KEY) return json(response, 503, { error: 'Email delivery is not configured.' });
       const bundle = await quotationBundle(id, session);
       if (!bundle) return json(response, 404, { error: 'Quotation was not found.' });
-      if (bundle.quotation.sent_at) return json(response, 409, { error: `This quotation was already sent to ${bundle.quotation.sent_to}.` });
-      if (bundle.quotation.status !== 'draft') return json(response, 409, { error: 'Only a draft quotation can be approved and sent.' });
+      const previousSentAt = bundle.quotation.sent_at || null;
+      const isResend = Boolean(previousSentAt);
+      if (isResend) {
+        if (bundle.quotation.status !== 'sent') return json(response, 409, { error: 'Only a sent quotation can be resent.' });
+        const retryAfterSeconds = quotationResendWaitSeconds(previousSentAt);
+        if (retryAfterSeconds > 0) {
+          return json(response, 429, {
+            error: `Please wait ${retryAfterSeconds} second${retryAfterSeconds === 1 ? '' : 's'} before resending this quotation.`,
+            retryAfterSeconds
+          }, { 'Retry-After': String(retryAfterSeconds) });
+        }
+      } else if (bundle.quotation.status !== 'draft') {
+        return json(response, 409, { error: 'Only a draft quotation can be approved and sent.' });
+      }
 
-      const companySnapshot = {
-        company_name: bundle.settings.company_name, registration_number: bundle.settings.registration_number,
-        business_address: bundle.settings.business_address, phone: bundle.settings.phone, email: bundle.settings.email,
-        website: bundle.settings.website, logo_path: bundle.settings.logo_path, bank_name: bundle.settings.bank_name,
-        bank_account_name: bundle.settings.bank_account_name, bank_account_number: bundle.settings.bank_account_number,
-        default_terms: bundle.settings.default_terms, tax_enabled: bundle.settings.tax_enabled
-      };
-      const approvalStartedAt = new Date().toISOString();
-      const locked = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null&approved_at=is.null`, {
-        method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ company_snapshot: companySnapshot, approved_by:session.user.id, approved_at:approvalStartedAt })
-      }, session.accessToken);
-      if (!locked[0]) return json(response, 409, { error: 'This quotation is already being processed. Refresh before trying again.' });
-      bundle.quotation.company_snapshot = companySnapshot;
+      const deliveryReservationAt = new Date().toISOString();
+      let previousDelivery = null;
+      if (isResend) {
+        previousDelivery = {
+          sentAt: previousSentAt,
+          sentTo: bundle.quotation.sent_to,
+          providerId: bundle.quotation.email_provider_id
+        };
+        const locked = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&status=eq.sent&sent_at=eq.${encodeURIComponent(previousSentAt)}`, {
+          method: 'PATCH', headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ sent_at: deliveryReservationAt })
+        }, session.accessToken);
+        if (!locked[0]) return json(response, 409, { error: 'This quotation is already being resent. Refresh before trying again.' });
+        bundle.quotation.sent_at = deliveryReservationAt;
+      } else {
+        const companySnapshot = {
+          company_name: bundle.settings.company_name, registration_number: bundle.settings.registration_number,
+          business_address: bundle.settings.business_address, phone: bundle.settings.phone, email: bundle.settings.email,
+          website: bundle.settings.website, logo_path: bundle.settings.logo_path, bank_name: bundle.settings.bank_name,
+          bank_account_name: bundle.settings.bank_account_name, bank_account_number: bundle.settings.bank_account_number,
+          default_terms: bundle.settings.default_terms, tax_enabled: bundle.settings.tax_enabled
+        };
+        const locked = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null&approved_at=is.null`, {
+          method: 'PATCH', headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ company_snapshot: companySnapshot, approved_by:session.user.id, approved_at:deliveryReservationAt })
+        }, session.accessToken);
+        if (!locked[0]) return json(response, 409, { error: 'This quotation is already being processed. Refresh before trying again.' });
+        bundle.quotation.company_snapshot = companySnapshot;
+      }
       bundle.quotation.status = 'sent';
       const pdf = buildQuotationPdf(bundle);
       const email = quotationEmail(bundle);
+      const rollbackDelivery = async () => {
+        if (isResend) {
+          await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=eq.${encodeURIComponent(deliveryReservationAt)}`, {
+            method:'PATCH', headers:{Prefer:'return=minimal'},
+            body:JSON.stringify({ sent_at:previousDelivery.sentAt, sent_to:previousDelivery.sentTo, email_provider_id:previousDelivery.providerId })
+          }, session.accessToken).catch(()=>{});
+          return;
+        }
+        await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, {
+          method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({approved_by:null,approved_at:null})
+        }, session.accessToken).catch(()=>{});
+      };
       let delivery;
       try {
         delivery = await fetch('https://api.resend.com/emails', {
@@ -449,24 +496,30 @@ export default async function handler(request, response) {
           })
         });
       } catch {
-        await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({approved_by:null,approved_at:null}) }, session.accessToken).catch(()=>{});
+        await rollbackDelivery();
         await sendMonitoringAlert({ category:'email_delivery_failed', severity:'critical', details:{route:'/api/admin-auth',stage:'quotation_send',code:'network_error'}, dedupeKey:'admin-quotation-send-network' });
-        return json(response, 502, { error: 'The quotation could not be delivered. Its status remains Draft.' });
+        return json(response, 502, { error: `The quotation could not be delivered. Its status remains ${isResend ? 'Sent' : 'Draft'}.` });
       }
       if (!delivery.ok) {
-        await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({approved_by:null,approved_at:null}) }, session.accessToken).catch(()=>{});
+        await rollbackDelivery();
         await sendMonitoringAlert({ category:'email_delivery_failed', severity:'critical', details:{route:'/api/admin-auth',stage:'quotation_send',status:delivery.status}, dedupeKey:`admin-quotation-send:${delivery.status}` });
-        return json(response, 502, { error: 'The quotation could not be delivered. Its status remains Draft.' });
+        return json(response, 502, { error: `The quotation could not be delivered. Its status remains ${isResend ? 'Sent' : 'Draft'}.` });
       }
       const deliveryBody = await delivery.json().catch(() => ({}));
       const sentAt = new Date().toISOString();
-      const updated = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&sent_at=is.null`, {
+      const deliveryFilter = isResend ? `sent_at=eq.${encodeURIComponent(deliveryReservationAt)}` : 'sent_at=is.null';
+      const updated = await restJson(`/rest/v1/quotations?id=eq.${encodeURIComponent(id)}&${deliveryFilter}`, {
         method: 'PATCH', headers: { Prefer: 'return=representation' },
         body: JSON.stringify({ status:'sent', sent_at:sentAt, sent_to:recipientEmail, email_provider_id:bounded(deliveryBody.id, 120) || null })
       }, session.accessToken);
       if (!updated[0]) return json(response, 409, { error: 'The email was delivered, but another session updated this quotation. Check its audit history before retrying.' });
-      await audit(session, 'approve_and_send', 'quotations', id, bundle.quotation.quotation_number, { sentTo:recipientEmail, sentAt, total:bundle.quotation.grand_total });
-      return json(response, 200, { quotation:updated[0], delivered:true });
+      await audit(session, isResend ? 'resend' : 'approve_and_send', 'quotations', id, bundle.quotation.quotation_number, {
+        sentTo:recipientEmail, sentAt, previousSentAt, total:bundle.quotation.grand_total
+      });
+      return json(response, 200, {
+        quotation:updated[0], delivered:true, resent:isResend,
+        cooldownSeconds:Math.ceil(QUOTATION_RESEND_COOLDOWN_MS / 1000)
+      });
     }
 
     if (route === '/quotation-convert' && request.method === 'POST') {
