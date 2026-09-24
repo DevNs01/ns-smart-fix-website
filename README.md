@@ -67,7 +67,7 @@ The checked-in `vercel.json` contains the same build and output settings.
 
 ## Admin business portal
 
-The `/admin` portal provides live dashboard reporting, customer records, website requests, quotations, invoices, payments, automatic receipts, company settings, staff permissions and an immutable audit log. It uses normalized Supabase records, atomic monthly document numbering, server-validated invoice balances, Row Level Security and a private payment-proof bucket.
+The `/admin` portal provides live dashboard reporting, customer records, website requests, quotations, invoices, payments, automatic receipts, Business Finance, company settings, staff permissions and an immutable audit log. Business Finance tracks bank and petty-cash accounts, suppliers, labour, company expenses, payables and project profitability while keeping cash, receivables and profit separate. It uses normalized Supabase records, atomic document numbering, server-validated balances, Row Level Security and private proof buckets.
 
 Approved quotations can be previewed as PDF and sent from the Quotations module. Staff must confirm the recipient email and approve the document before delivery. The PDF uses the current Company Settings, then preserves those details as an immutable quotation snapshot. Successful delivery records the recipient, timestamp, email-provider reference and approving staff member in the audit trail. Email credentials remain server-side.
 
@@ -84,7 +84,7 @@ npx supabase db push
 
 `supabase/seed.sql` contains non-sensitive defaults for local development and `supabase db reset`. Do not use `--include-seed` against production. The migration itself safely creates the production default settings row with tax disabled at 0%.
 
-Apply every migration in filename order. The `202609100004_complete_admin_modules.sql` migration activates authenticated permissions for the complete portal. Public website requests are stored for the Requests module only when the server-only `SUPABASE_SERVICE_ROLE_KEY` is configured; email delivery continues independently if database storage is temporarily unavailable.
+Apply every migration in filename order. The `202609100004_complete_admin_modules.sql` migration activates authenticated permissions for the core portal, and `202609240001_business_finance_ledger.sql` adds cash accounts, suppliers, labour, company expenses, project reporting and proof-backed outgoing payments. Public website requests are stored for the Requests module only when the server-only `SUPABASE_SERVICE_ROLE_KEY` is configured; email delivery continues independently if database storage is temporarily unavailable.
 
 Add these variables to `.env.local` for local work and to the appropriate Vercel environments for deployment:
 
@@ -131,6 +131,7 @@ src/main.js       React/Vite runtime entry point
 src/admin.js      Secure portal authentication and navigation
 src/admin-modules.js Customer, request, quotation, payment, receipt, settings, staff and audit interfaces
 src/admin-invoices.js Invoice creation, totals, listing and printing
+src/admin-finance.js Cash accounts, suppliers, labour, expenses, payables and project profitability
 support.js        Exported Design Canvas renderer
 public/assets/    Images copied unchanged into the production build
 scripts/verify.mjs Static production verification

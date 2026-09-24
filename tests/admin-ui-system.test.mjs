@@ -57,7 +57,9 @@ test('dashboard follows the approved financial command-centre layout', () => {
     assert.match(css, new RegExp(`\\.${className}`));
   }
   assert.match(modules, /Collected this month/);
-  assert.match(modules, /View payment records/);
+  assert.match(modules, /Open Business Finance/);
+  assert.match(modules, /Company cash/);
+  assert.match(modules, /Still to pay/);
   assert.match(modules, /queue-leading-icon/);
   assert.match(css, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /@media\(max-width:760px\).*dashboard-metric-grid\{grid-template-columns:1fr\}/s);

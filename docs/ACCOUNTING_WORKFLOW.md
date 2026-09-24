@@ -93,3 +93,26 @@ The admin must confirm the recipient and financial total before sending. After s
 - Every approval, conversion, cancellation, and payment is attributable to a staff account and timestamp.
 - Document numbering remains atomic and gaps are retained rather than reusing cancelled numbers.
 - Monetary calculations are repeated server-side and enforced by database constraints.
+
+## Business finance ledger
+
+The Business Finance module extends quote-to-cash into a controlled cash and cost ledger:
+
+- **Company cash** = verified opening balances + completed customer receipts − recorded outgoing payments.
+- **Accounts receivable** is the remaining balance of issued customer invoices. It is not included in company cash until collected.
+- **Accounts payable** is the remaining balance of supplier, labour, and company-expense records.
+- **Operating profit** = issued invoice revenue − committed supplier, labour, and company costs. It is intentionally separate from cash.
+- **Project gross profit** compares the project invoice with all committed costs linked to that project.
+- **Project cash margin** compares customer money collected with project costs actually paid.
+
+Every customer receipt and outgoing payment must name the bank or petty-cash account affected. Every outgoing payment requires a private proof file, payment date, method, amount, and optional transaction reference. Partial payments update the cost balance atomically; payment totals cannot exceed the outstanding balance.
+
+### Cost lifecycle
+
+1. Create a supplier, labour worker, or general company-expense record.
+2. Record the total committed cost. This creates an Unpaid payable but does not reduce cash.
+3. Record one or more proof-backed outgoing payments from a selected account.
+4. The database calculates Partially Paid or Paid and updates the remaining payable.
+5. The cash position and linked project report update from the same payment record.
+
+The migration `202609240001_business_finance_ledger.sql` creates the finance tables, project linkage, account attribution, private proof bucket, row-level security, and atomic payment functions.

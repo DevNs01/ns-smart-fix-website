@@ -155,6 +155,49 @@ function customerPayload(body) {
   };
 }
 
+export function calculateFinanceSummary({ accounts = [], customerPayments = [], outgoingPayments = [], costs = [], invoices = [], projects = [] } = {}) {
+  const validInvoices = invoices.filter(item => !['draft', 'cancelled'].includes(item.status));
+  const validCosts = costs.filter(item => item.status !== 'cancelled');
+  const completedReceipts = customerPayments.filter(item => !item.status || item.status === 'completed');
+  const received = completedReceipts.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const paidOut = outgoingPayments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const accountBalances = accounts.map(account => {
+    const inflow = completedReceipts.filter(item => item.cash_account_id === account.id).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const outflow = outgoingPayments.filter(item => item.cash_account_id === account.id).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    return { ...account, inflow, outflow, current_balance: Number(account.opening_balance || 0) + inflow - outflow };
+  });
+  const projectPerformance = projects.map(project => {
+    const invoice = invoices.find(item => item.id === project.source_invoice_id);
+    const projectCosts = validCosts.filter(item => item.project_id === project.id);
+    const committedCost = projectCosts.reduce((sum, item) => sum + Number(item.total_amount || 0), 0);
+    const projectPaidOut = outgoingPayments.filter(payment => projectCosts.some(cost => cost.id === payment.cost_id)).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const invoiced = Number(invoice?.grand_total || 0);
+    const collected = Number(invoice?.amount_paid || 0);
+    return { ...project, invoice, invoiced, collected, committed_cost: committedCost, paid_out: projectPaidOut, gross_profit: invoiced - committedCost, cash_margin: collected - projectPaidOut };
+  });
+  return {
+    cashBalance: accountBalances.reduce((sum, item) => sum + item.current_balance, 0),
+    accountsReceivable: validInvoices.reduce((sum, item) => sum + Number(item.balance || 0), 0),
+    accountsPayable: validCosts.reduce((sum, item) => sum + Number(item.balance || 0), 0),
+    operatingProfit: validInvoices.reduce((sum, item) => sum + Number(item.grand_total || 0), 0) - validCosts.reduce((sum, item) => sum + Number(item.total_amount || 0), 0),
+    received,
+    paidOut,
+    accountBalances,
+    projectPerformance
+  };
+}
+
+function financePartyPayload(body, kind) {
+  const name = bounded(body.name, 160);
+  const phone = bounded(body.phone, 30);
+  const email = bounded(body.email, 254).toLowerCase();
+  if (name.length < 2 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return null;
+  const common = { name, phone: phone || null, email: email || null, notes: bounded(body.notes, 2000) || null, is_active: body.isActive !== false && body.isActive !== 'false' };
+  return kind === 'supplier'
+    ? { ...common, registration_number: bounded(body.registrationNumber, 100) || null, contact_person: bounded(body.contactPerson, 120) || null, address: bounded(body.address, 1000) || null }
+    : { ...common, trade_or_role: bounded(body.tradeOrRole, 120) || null, identification_reference: bounded(body.identificationReference, 120) || null };
+}
+
 async function restJson(path, options, accessToken) {
   const result = await supabaseFetch(path, options, accessToken);
   const body = await result.json().catch(() => null);
@@ -273,18 +316,22 @@ export default async function handler(request, response) {
 
     if (route === '/dashboard' && request.method === 'GET') {
       const session = await requireSession(request, response); if (!session) return;
-      const [requests, quotations, invoices, customers, payments] = await Promise.all([
+      const [requests, quotations, invoices, customers, payments, accounts, costs, outgoingPayments] = await Promise.all([
         restJson('/rest/v1/quotation_requests?archived_at=is.null&select=id,public_reference,customer_name,services,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/quotations?archived_at=is.null&select=id,quotation_number,status,grand_total,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,status,grand_total,balance,due_date,customer_snapshot,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/customers?select=id,is_active,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
-        restJson('/rest/v1/payments?select=id,amount,payment_date,created_at&order=created_at.desc&limit=1000', {}, session.accessToken)
+        restJson('/rest/v1/payments?select=id,cash_account_id,amount,payment_date,status,created_at&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/cash_accounts?select=id,opening_balance&order=created_at.asc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/business_costs?select=id,status,total_amount,balance&order=created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/outgoing_payments?select=id,cost_id,cash_account_id,amount,payment_date,created_at&order=created_at.desc&limit=1000', {}, session.accessToken)
       ]);
       const today = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kuala_Lumpur' }).format(new Date());
       const month = today.slice(0, 7);
       const overdue = invoices.filter(item => Number(item.balance) > 0 && item.due_date < today && !['paid','cancelled','void'].includes(item.status));
       const draftInvoices = invoices.filter(item => item.status === 'draft');
       const awaitingDecision = quotations.filter(item => item.status === 'sent');
+      const finance = calculateFinanceSummary({ accounts, customerPayments:payments, outgoingPayments, costs, invoices });
       return json(response, 200, { summary: {
         customers: customers.filter(item => item.is_active).length,
         requests: requests.length, newRequests: requests.filter(item => item.status === 'new').length,
@@ -293,12 +340,108 @@ export default async function handler(request, response) {
         overdueInvoices: overdue.length, overdueBalance: overdue.reduce((sum,item)=>sum+Number(item.balance||0),0),
         paidThisMonth: payments.filter(item=>String(item.payment_date).startsWith(month)).reduce((sum,item)=>sum+Number(item.amount||0),0),
         paymentsThisMonth: payments.filter(item=>String(item.payment_date).startsWith(month)).length,
-        draftInvoices: draftInvoices.length, awaitingDecision: awaitingDecision.length
+        draftInvoices: draftInvoices.length, awaitingDecision: awaitingDecision.length,
+        cashBalance: finance.cashBalance, accountsPayable: finance.accountsPayable, operatingProfit: finance.operatingProfit
       }, workQueue: {
         requests: requests.filter(item=>item.status==='new').slice(0,3),
         quotations: awaitingDecision.slice(0,3),
         invoices: [...overdue, ...draftInvoices.filter(draft=>!overdue.some(item=>item.id===draft.id))].slice(0,4)
       } });
+    }
+
+    if (route === '/finance-overview' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const [accounts, suppliers, workers, projects, costs, outgoingPayments, invoices, customerPayments] = await Promise.all([
+        restJson('/rest/v1/cash_accounts?select=*&order=is_active.desc,name.asc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/suppliers?select=*&order=is_active.desc,name.asc&limit=500', {}, session.accessToken),
+        restJson('/rest/v1/labour_workers?select=*&order=is_active.desc,name.asc&limit=500', {}, session.accessToken),
+        restJson('/rest/v1/projects?select=*&order=created_at.desc&limit=500', {}, session.accessToken),
+        restJson('/rest/v1/business_costs?select=*&order=bill_date.desc,created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/outgoing_payments?select=id,cost_id,cash_account_id,payment_date,amount,payment_method,transaction_reference,notes,created_at&order=payment_date.desc,created_at.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,project_title,status,grand_total,amount_paid,balance,customer_snapshot,invoice_date&order=invoice_date.desc&limit=1000', {}, session.accessToken),
+        restJson('/rest/v1/payments?select=id,invoice_id,cash_account_id,payment_date,amount,payment_method,status,transaction_reference,created_at&order=payment_date.desc,created_at.desc&limit=1000', {}, session.accessToken)
+      ]);
+      const summary = calculateFinanceSummary({ accounts, customerPayments, outgoingPayments, costs, invoices, projects });
+      return json(response, 200, { accounts:summary.accountBalances, suppliers, workers, projects:summary.projectPerformance, costs, outgoingPayments, invoices, customerPayments, summary:{ cashBalance:summary.cashBalance, accountsReceivable:summary.accountsReceivable, accountsPayable:summary.accountsPayable, operatingProfit:summary.operatingProfit, received:summary.received, paidOut:summary.paidOut }, role:session.profile.role });
+    }
+
+    if ((route === '/finance-account-create' || route === '/finance-account-save') && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); const name = bounded(body.name, 120); const type = bounded(body.accountType, 20); const openingBalance = Number(body.openingBalance || 0); const isActive = body.isActive !== false && body.isActive !== 'false';
+      if ((id && !/^[0-9a-f-]{36}$/i.test(id)) || name.length < 2 || !['bank','petty_cash'].includes(type) || !Number.isFinite(openingBalance)) return json(response, 400, { error:'Enter a valid account name, type and opening balance.' });
+      const payload = { name, account_type:type, institution_name:bounded(body.institutionName,120)||null, account_last_four:bounded(body.accountLastFour,8)||null, opening_balance:Math.round(openingBalance*100)/100, is_active:isActive };
+      const path = id ? `/rest/v1/cash_accounts?id=eq.${encodeURIComponent(id)}` : '/rest/v1/cash_accounts';
+      const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
+      if (!rows[0]) return json(response, 404, { error:'Cash account was not found.' });
+      await audit(session, id?'update':'create', 'cash_accounts', rows[0].id, name, { accountType:type, openingBalance, isActive });
+      return json(response, id?200:201, { account:rows[0] });
+    }
+
+    if (route === '/finance-supplier-save' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const payload = financePartyPayload(body, 'supplier'); const id = bounded(body.id, 80);
+      if (!payload || (id && !/^[0-9a-f-]{36}$/i.test(id))) return json(response, 400, { error:'Enter valid supplier details.' });
+      const path = id ? `/rest/v1/suppliers?id=eq.${encodeURIComponent(id)}` : '/rest/v1/suppliers';
+      const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
+      if (!rows[0]) return json(response, 404, { error:'Supplier was not found.' });
+      await audit(session, id?'update':'create', 'suppliers', rows[0].id, rows[0].name, { active:rows[0].is_active });
+      return json(response, id?200:201, { supplier:rows[0] });
+    }
+
+    if (route === '/finance-worker-save' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const payload = financePartyPayload(body, 'worker'); const id = bounded(body.id, 80);
+      if (!payload || (id && !/^[0-9a-f-]{36}$/i.test(id))) return json(response, 400, { error:'Enter valid labour worker details.' });
+      const path = id ? `/rest/v1/labour_workers?id=eq.${encodeURIComponent(id)}` : '/rest/v1/labour_workers';
+      const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
+      if (!rows[0]) return json(response, 404, { error:'Labour worker was not found.' });
+      await audit(session, id?'update':'create', 'labour_workers', rows[0].id, rows[0].name, { active:rows[0].is_active });
+      return json(response, id?200:201, { worker:rows[0] });
+    }
+
+    if (route === '/finance-cost-create' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const type = bounded(body.costType, 20); const billDate = bounded(body.billDate, 10); const dueDate = bounded(body.dueDate, 10); const total = Number(body.totalAmount); const supplierId = bounded(body.supplierId, 80); const workerId = bounded(body.workerId, 80); const projectId = bounded(body.projectId, 80); const category = bounded(body.category, 80); const description = bounded(body.description, 1000);
+      const validParty = (type === 'supplier' && /^[0-9a-f-]{36}$/i.test(supplierId)) || (type === 'labour' && /^[0-9a-f-]{36}$/i.test(workerId)) || type === 'expense';
+      if (!['supplier','labour','expense'].includes(type) || !validParty || !validDate(billDate) || (dueDate && (!validDate(dueDate) || dueDate < billDate)) || !(total > 0) || category.length < 2 || description.length < 2 || (projectId && !/^[0-9a-f-]{36}$/i.test(projectId))) return json(response, 400, { error:'Complete the cost type, payee, description, date and amount.' });
+      const costNumber = await restJson('/rest/v1/rpc/next_finance_number', { method:'POST', body:JSON.stringify({kind:'cost',issue_date:billDate}) }, session.accessToken);
+      const rows = await restJson('/rest/v1/business_costs', { method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify({ cost_number:String(costNumber), cost_type:type, supplier_id:type==='supplier'?supplierId:null, worker_id:type==='labour'?workerId:null, project_id:projectId||null, category, description, bill_date:billDate, due_date:dueDate||null, total_amount:Math.round(total*100)/100, amount_paid:0, balance:Math.round(total*100)/100, status:'unpaid', notes:bounded(body.notes,2000)||null, created_by:session.user.id }) }, session.accessToken);
+      await audit(session, 'create', 'business_costs', rows[0]?.id, String(costNumber), { costType:type, totalAmount:total, projectId:projectId||null });
+      return json(response, 201, { cost:rows[0] });
+    }
+
+    if (route === '/finance-cost-proof-upload-url' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const costId = bounded(body.costId, 80); const fileName = bounded(body.fileName, 180).replace(/[^a-z0-9._-]+/gi, '-'); const mimeType = bounded(body.mimeType, 80); const size = Number(body.size); const allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
+      if (!/^[0-9a-f-]{36}$/i.test(costId) || !fileName || !allowed.includes(mimeType) || !(size > 0 && size <= 5242880)) return json(response, 400, { error:'Upload a JPG, PNG, WebP or PDF payment proof up to 5 MB.' });
+      const costs = await restJson(`/rest/v1/business_costs?id=eq.${encodeURIComponent(costId)}&select=id,status,balance&limit=1`, {}, session.accessToken);
+      if (!costs[0] || !['unpaid','partially_paid'].includes(costs[0].status) || Number(costs[0].balance) <= 0) return json(response, 409, { error:'Payment proof can only be added to an outstanding cost.' });
+      const path = `${costId}/${Date.now()}-${fileName}`;
+      const signed = await restJson(`/storage/v1/object/upload/sign/finance-proofs/${encodeURIComponent(path).replaceAll('%2F','/')}`, { method:'POST', body:JSON.stringify({}) }, session.accessToken);
+      const signedPath = signed.url || signed.signedURL || signed.signedUrl;
+      if (!signedPath) return json(response, 502, { error:'A secure proof upload could not be prepared.' });
+      const storage = config(); return json(response, 200, { path, uploadUrl:`${storage.url}/storage/v1${signedPath}`, uploadKey:storage.key, mimeType });
+    }
+
+    if (route === '/finance-cost-payment-create' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session) return;
+      const body = await readBody(request); const costId = bounded(body.costId, 80); const accountId = bounded(body.cashAccountId, 80); const paymentDate = bounded(body.paymentDate, 10); const amount = Number(body.amount); const method = bounded(body.paymentMethod, 30); const proofPath = bounded(body.proofPath, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(costId) || !/^[0-9a-f-]{36}$/i.test(accountId) || !validDate(paymentDate) || !(amount > 0) || !['bank_transfer','cash','duitnow','cheque','other'].includes(method) || !proofPath.startsWith(`${costId}/`)) return json(response, 400, { error:'Enter a valid account, amount, date, method and payment proof.' });
+      const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/finance-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
+      if (!proofCheck.ok) return json(response, 400, { error:'The uploaded payment proof could not be verified. Upload it again.' });
+      const result = await restJson('/rest/v1/rpc/record_business_cost_payment', { method:'POST', body:JSON.stringify({ p_cost_id:costId, p_cash_account_id:accountId, p_payment_date:paymentDate, p_amount:amount, p_payment_method:method, p_transaction_reference:bounded(body.reference,120)||null, p_notes:bounded(body.notes,1000)||null, p_proof_storage_path:proofPath }) }, session.accessToken);
+      await audit(session, 'create', 'outgoing_payments', result.id, null, { costId, cashAccountId:accountId, amount, method, paymentDate, proofAttached:true });
+      return json(response, 201, { payment:result });
+    }
+
+    if (route === '/finance-cost-payment-proof' && request.method === 'GET') {
+      const session = await requireSession(request, response); if (!session) return;
+      const id = bounded(requestUrl.searchParams.get('id'), 80); if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error:'Invalid payment proof.' });
+      const rows = await restJson(`/rest/v1/outgoing_payments?id=eq.${encodeURIComponent(id)}&select=proof_storage_path&limit=1`, {}, session.accessToken); const path = rows[0]?.proof_storage_path;
+      if (!path) return json(response, 404, { error:'Payment proof was not found.' });
+      const signed = await restJson(`/storage/v1/object/sign/finance-proofs/${encodeURIComponent(path).replaceAll('%2F','/')}`, { method:'POST', body:JSON.stringify({expiresIn:300}) }, session.accessToken); const location = signed.signedURL || signed.signedUrl;
+      if (!location) return json(response, 502, { error:'The protected proof could not be opened.' });
+      response.statusCode=302; response.setHeader('Location',`${config().url}/storage/v1${location}`); response.setHeader('Cache-Control','private, no-store'); return response.end();
     }
 
     if (route === '/customers' && request.method === 'GET') {
@@ -648,15 +791,15 @@ export default async function handler(request, response) {
 
     if (route === '/payment-create' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
-      const body=await readBody(request); const invoiceId=bounded(body.invoiceId,80); const amount=Number(body.amount); const date=bounded(body.paymentDate,10); const method=bounded(body.paymentMethod,30); const proofPath=bounded(body.proofPath,500);
-      if(!/^[0-9a-f-]{36}$/i.test(invoiceId)||!validDate(date)||!(amount>0)||!['bank_transfer','cash','duitnow','cheque','other'].includes(method)) return json(response,400,{error:'Enter valid payment details.'});
+      const body=await readBody(request); const invoiceId=bounded(body.invoiceId,80); const cashAccountId=bounded(body.cashAccountId,80); const amount=Number(body.amount); const date=bounded(body.paymentDate,10); const method=bounded(body.paymentMethod,30); const proofPath=bounded(body.proofPath,500);
+      if(!/^[0-9a-f-]{36}$/i.test(invoiceId)||!/^[0-9a-f-]{36}$/i.test(cashAccountId)||!validDate(date)||!(amount>0)||!['bank_transfer','cash','duitnow','cheque','other'].includes(method)) return json(response,400,{error:'Enter valid payment details and select the receiving account.'});
       const invoices=await restJson(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}&select=id,invoice_number,customer_id,balance,status&limit=1`,{},session.accessToken); const invoice=invoices[0];
       if(!invoice||!['unpaid','partially_paid','overdue'].includes(invoice.status)||amount>Number(invoice.balance)) return json(response,400,{error:'Select an issued invoice with enough outstanding balance.'});
       if (!proofPath.startsWith(`${invoiceId}/`)) return json(response,400,{error:'Payment proof is required before recording payment.'});
       const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/payment-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
       if (!proofCheck.ok) return json(response,400,{error:'The uploaded payment proof could not be verified. Upload it again.'});
-      const result=await restJson('/rest/v1/rpc/record_invoice_payment',{method:'POST',body:JSON.stringify({p_invoice_id:invoice.id,p_payment_date:date,p_amount:amount,p_payment_method:method,p_transaction_reference:bounded(body.reference,120)||null,p_notes:bounded(body.notes,1000)||null,p_proof_storage_path:proofPath})},session.accessToken);
-      await audit(session,'create','payments',result.payment.id,invoice.invoice_number,{amount,method,paymentDate:date,proofAttached:true});
+      const result=await restJson('/rest/v1/rpc/record_invoice_payment',{method:'POST',body:JSON.stringify({p_invoice_id:invoice.id,p_payment_date:date,p_amount:amount,p_payment_method:method,p_transaction_reference:bounded(body.reference,120)||null,p_notes:bounded(body.notes,1000)||null,p_proof_storage_path:proofPath,p_cash_account_id:cashAccountId})},session.accessToken);
+      await audit(session,'create','payments',result.payment.id,invoice.invoice_number,{amount,method,paymentDate:date,cashAccountId,proofAttached:true});
       return json(response,201,result);
     }
 
@@ -676,14 +819,15 @@ export default async function handler(request, response) {
     if (route === '/invoices' && request.method === 'GET') {
       const session = await authenticatedSession(parseCookies(request.headers?.cookie));
       if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
-      const [invoices, settings, customers, acceptedQuotations, sentQuotations] = await Promise.all([
+      const [invoices, settings, customers, acceptedQuotations, sentQuotations, cashAccounts] = await Promise.all([
         restJson('/rest/v1/invoices?archived_at=is.null&select=id,invoice_number,invoice_date,due_date,status,project_title,grand_total,amount_paid,balance,customer_snapshot,created_at&order=created_at.desc&limit=100', {}, session.accessToken),
         restJson('/rest/v1/company_settings?select=*&limit=1', {}, session.accessToken),
         restJson('/rest/v1/customers?is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&order=name.asc&limit=500', {}, session.accessToken),
         restJson('/rest/v1/quotations?archived_at=is.null&status=eq.accepted&select=id,quotation_number,customer_id,customer_snapshot,project_title,grand_total,accepted_at:updated_at&order=updated_at.asc&limit=100', {}, session.accessToken),
-        restJson('/rest/v1/quotations?archived_at=is.null&status=eq.sent&select=id,quotation_number,customer_snapshot,project_title,grand_total,sent_at&order=sent_at.asc&limit=100', {}, session.accessToken)
+        restJson('/rest/v1/quotations?archived_at=is.null&status=eq.sent&select=id,quotation_number,customer_snapshot,project_title,grand_total,sent_at&order=sent_at.asc&limit=100', {}, session.accessToken),
+        restJson('/rest/v1/cash_accounts?is_active=eq.true&select=id,name,account_type,institution_name,account_last_four&order=name.asc&limit=100', {}, session.accessToken)
       ]);
-      return json(response, 200, { invoices, settings: settings[0] || null, customers, acceptedQuotations, sentQuotations });
+      return json(response, 200, { invoices, settings: settings[0] || null, customers, acceptedQuotations, sentQuotations, cashAccounts });
     }
 
     if (route === '/invoice-pdf' && request.method === 'GET') {
