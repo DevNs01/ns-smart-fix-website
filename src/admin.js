@@ -1,4 +1,5 @@
 import { renderInvoices } from './admin-invoices.js';
+import { renderFinance } from './admin-finance.js';
 import { addArchiveActions, renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotationsWithResend, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
 import { icon } from './admin-icons.js';
 import { enhanceAdminModule, enhanceAdminShell, observeAdminModules } from './admin-ui.js';
@@ -8,14 +9,14 @@ const root = document.getElementById('admin-app');
 const modules = [
   ['dashboard', 'Dashboard', 'dashboard'], ['customers', 'Customers', 'customers'],
   ['requests', 'Requests', 'requests'], ['quotations', 'Quotations', 'quotations'],
-  ['invoices', 'Invoices', 'invoices'], ['payments', 'Payments', 'payments'],
+  ['invoices', 'Invoices', 'invoices'], ['finance', 'Business Finance', 'finance'], ['payments', 'Payments', 'payments'],
   ['receipts', 'Receipts', 'receipts'], ['settings', 'Company Settings', 'settings'],
   ['users', 'User Management', 'users'], ['audit', 'Audit Log', 'audit']
 ];
 const moduleGroups = [
   ['Overview', ['dashboard']],
   ['Sales', ['requests', 'quotations', 'customers']],
-  ['Finance', ['invoices', 'payments', 'receipts']],
+  ['Finance', ['finance', 'invoices', 'payments', 'receipts']],
   ['Administration', ['settings', 'users', 'audit']]
 ];
 
@@ -256,7 +257,7 @@ function renderPortal(profile) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
     portalContent.dataset.module = button.dataset.module;
-    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotationsWithResend(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
+    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotationsWithResend(api); addArchiveActions(api,'quotation',renderers.quotations); }, finance: () => renderFinance(api,profile), invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
     enhanceAdminModule(button.dataset.module);
     closeMenu();
