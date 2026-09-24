@@ -83,8 +83,15 @@ test('invoice detail and controlled payment proof workflow are available', () =>
 });
 
 test('invoice list follows the accessible compact action pattern', () => {
-  assert.match(invoices, /aria-pressed="true"/);
-  assert.match(invoices, /Search invoice or customer/);
+  assert.match(invoices, /Search invoices or customers/);
+  assert.match(invoices, /invoice-status-filter/);
+  assert.match(invoices, /invoice-month-filter/);
+  assert.match(invoices, /invoice-result-count/);
+  assert.match(invoices, /invoice-pagination/);
+  assert.match(invoices, /New invoice/);
+  assert.match(invoices, /Amount \(RM\)/);
+  assert.match(invoices, /Paid \(RM\)/);
+  assert.match(invoices, /Balance \(RM\)/);
   assert.match(invoices, /preview-action/);
   assert.match(invoices, /row-menu-popover/);
   assert.match(invoices, /View Serial Numbers/);
@@ -119,7 +126,8 @@ test('payment and receipt are committed atomically and status remains database-d
   assert.match(paymentMigration, /insert into public\.payments/);
   assert.match(paymentMigration, /insert into public\.receipts/);
   assert.match(paymentMigration, /p_proof_storage_path is null/);
-  assert.doesNotMatch(invoices, /value="paid"/);
+  assert.doesNotMatch(invoices, /name="status"[^>]*>[\s\S]*value="paid"/);
+  assert.match(invoices, /id="invoice-status-filter"/);
 });
 
 test('invoice items support validated serial numbers in the portal and PDF', () => {

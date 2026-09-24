@@ -134,6 +134,128 @@ export async function renderRequests(api){
 function lineRow(item={}){return `<div class="line-editor"><input name="lineDescription" placeholder="Product or service" maxlength="500" value="${esc(item.description||'')}" required><input name="lineQuantity" type="number" min="0.001" step="0.001" value="${esc(item.quantity||1)}" aria-label="Quantity" required><input name="linePrice" type="number" min="0" step="0.01" value="${esc(item.unit_price??0)}" aria-label="Unit price" required><button type="button" class="remove-line" aria-label="Remove item">×</button></div>`;}
 export async function renderQuotations(api){loading('quotations');try{const data=await api('quotations');content().innerHTML=`${toolbar('SALES DOCUMENTS','Quotations',`${data.quotations.length} quotation${data.quotations.length===1?'':'s'} stored. Drafts remain editable until approval and sending.`,`<button class="primary-button compact" id="new-quotation" type="button">+ New quotation</button>`)}<div class="content-card data-card"><div class="table-wrap"><table class="data-table"><thead><tr><th>Quotation</th><th>Customer</th><th>Project</th><th>Expiry</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead><tbody>${data.quotations.map(q=>`<tr><td><strong>${esc(q.quotation_number)}</strong><small>${date(q.quotation_date)}</small></td><td>${esc(q.customer_snapshot?.name||'—')}<small>${esc(q.customer_snapshot?.email||'No email')}</small></td><td>${esc(q.project_title)}</td><td>${date(q.expiry_date)}</td><td>${q.sent_at?badge('sent'):`<select class="document-status" data-kind="quotation" data-id="${esc(q.id)}" aria-label="Status for ${esc(q.quotation_number)}">${['draft','accepted','rejected','expired','converted_to_invoice','cancelled'].map(s=>`<option value="${s}"${q.status===s?' selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}</select>`}${q.sent_at?`<small>${date(q.sent_at)}</small>`:''}</td><td>${money(q.grand_total)}</td><td><div class="table-actions"><a class="secondary-button action-link" href="/api/admin-auth?action=quotation-pdf&id=${encodeURIComponent(q.id)}" target="_blank" rel="noopener">Preview PDF</a>${q.status==='draft'&&!q.sent_at?`<button class="secondary-button edit-quotation" type="button" data-id="${esc(q.id)}">Edit Draft</button><button class="primary-button send-quotation" type="button" data-id="${esc(q.id)}">Approve & Send</button>`:''}</div></td></tr>`).join('')||emptyRow(7,'No quotations yet.')}</tbody></table></div><p id="document-message" class="inline-message" role="status"></p></div><dialog id="quotation-dialog" class="admin-dialog wide"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><h2 id="quotation-dialog-title">Create quotation</h2><p class="muted" id="quotation-dialog-note">Draft changes are recalculated and recorded in the audit log.</p><form id="quotation-form" class="admin-form"><input name="id" type="hidden"><div class="form-grid"><label>Customer *<select name="customerId" required><option value="">Select customer</option>${data.customers.map(c=>`<option value="${esc(c.id)}">${esc(c.name)} · ${esc(c.phone)}</option>`).join('')}</select></label><label>Quotation date *<input name="quotationDate" type="date" required></label><label>Expiry date *<input name="expiryDate" type="date" required></label><label>Project title *<input name="projectTitle" maxlength="200" required></label><label>Project location<input name="projectLocation" maxlength="500"></label><label>Description<textarea name="description" maxlength="2000"></textarea></label></div><fieldset><legend>Items</legend><div id="quotation-lines">${lineRow()}</div><button type="button" class="secondary-button" id="add-quotation-line">+ Add item</button></fieldset><div class="form-grid three"><label>Discount (RM)<input name="discountAmount" type="number" min="0" step="0.01" value="0"></label><label>Tax (%)<input name="taxPercent" type="number" min="0" max="100" step="0.01" value="0"></label><label>Other charges (RM)<input name="otherCharges" type="number" min="0" step="0.01" value="0"></label></div><label>Terms<textarea name="terms" maxlength="5000"></textarea></label>${messageBox('quotation-message')}<button class="primary-button" type="submit">Save Draft</button></form></dialog><dialog id="send-quotation-dialog" class="admin-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><span class="eyebrow">FINANCIAL APPROVAL</span><h2>Approve and send quotation</h2><p class="muted" id="send-summary"></p><form id="send-quotation-form" class="admin-form"><input name="id" type="hidden"><label>Confirmed customer email *<input name="recipientEmail" type="email" maxlength="254" autocomplete="off" required></label><label class="check-label"><input name="confirmed" type="checkbox" required> I have reviewed the quotation, amount and recipient email.</label>${messageBox('send-quotation-message')}<div class="approval-actions"><button class="secondary-button" type="button" id="cancel-send">Cancel</button><button class="primary-button" type="submit">Approve & Send PDF</button></div></form></dialog>`;wireDocumentStatuses(api);const dialog=document.getElementById('quotation-dialog');const form=document.getElementById('quotation-form');const setDefaults=()=>{const today=new Date();const expiry=new Date();expiry.setDate(today.getDate()+14);form.elements.quotationDate.value=today.toISOString().slice(0,10);form.elements.expiryDate.value=expiry.toISOString().slice(0,10);};const openNew=()=>{form.reset();form.elements.id.value='';document.getElementById('quotation-lines').innerHTML=lineRow();setDefaults();document.getElementById('quotation-dialog-title').textContent='Create quotation';dialog.showModal();};document.getElementById('new-quotation').onclick=openNew;document.querySelectorAll('.edit-quotation').forEach(button=>button.addEventListener('click',async()=>{button.disabled=true;try{const detail=await api(`quotation-detail&id=${encodeURIComponent(button.dataset.id)}`);const q=detail.quotation;form.reset();form.elements.id.value=q.id;form.elements.customerId.value=q.customer_id;form.elements.quotationDate.value=q.quotation_date;form.elements.expiryDate.value=q.expiry_date;form.elements.projectTitle.value=q.project_title||'';form.elements.projectLocation.value=q.project_location||'';form.elements.description.value=q.description||'';form.elements.discountAmount.value=q.discount_amount||0;form.elements.taxPercent.value=q.tax_percent||0;form.elements.otherCharges.value=q.other_charges||0;form.elements.terms.value=q.terms_and_conditions||'';document.getElementById('quotation-lines').innerHTML=detail.items.map(lineRow).join('')||lineRow();document.getElementById('quotation-dialog-title').textContent=`Edit ${q.quotation_number}`;dialog.showModal();}catch(error){document.getElementById('document-message').textContent=error.message;}finally{button.disabled=false;}}));document.getElementById('add-quotation-line').onclick=()=>document.getElementById('quotation-lines').insertAdjacentHTML('beforeend',lineRow());form.addEventListener('click',e=>{if(e.target.classList.contains('remove-line')&&document.querySelectorAll('.line-editor').length>1)e.target.closest('.line-editor').remove();});wireForm('quotation-form',async p=>{p.items=[...document.querySelectorAll('.line-editor')].map(row=>({description:row.querySelector('[name=lineDescription]').value,quantity:row.querySelector('[name=lineQuantity]').value,unitPrice:row.querySelector('[name=linePrice]').value}));return api(p.id?'quotation-update':'quotation-create',{method:'POST',body:JSON.stringify(p)});},'Quotation draft saved and totals recalculated.',()=>renderQuotations(api));const sendDialog=document.getElementById('send-quotation-dialog');const sendForm=document.getElementById('send-quotation-form');document.querySelectorAll('.send-quotation').forEach(button=>button.addEventListener('click',()=>{const quotation=data.quotations.find(item=>item.id===button.dataset.id);sendForm.reset();sendForm.elements.id.value=quotation.id;sendForm.elements.recipientEmail.value=quotation.customer_snapshot?.email||'';document.getElementById('send-summary').textContent=`${quotation.quotation_number} · ${quotation.project_title} · ${money(quotation.grand_total)}`;sendDialog.showModal();}));document.getElementById('cancel-send').onclick=()=>sendDialog.close();sendForm.addEventListener('submit',async event=>{event.preventDefault();const button=sendForm.querySelector('[type=submit]');const message=document.getElementById('send-quotation-message');button.disabled=true;button.textContent='Sending securely…';message.hidden=true;try{const fields=new FormData(sendForm);await api('quotation-send',{method:'POST',body:JSON.stringify({id:fields.get('id'),recipientEmail:fields.get('recipientEmail'),confirmed:fields.get('confirmed')==='on'})});message.classList.add('success-message');message.textContent='Quotation delivered and recorded successfully.';message.hidden=false;setTimeout(()=>renderQuotations(api),900);}catch(error){message.classList.remove('success-message');message.textContent=error.message;message.hidden=false;button.disabled=false;button.textContent='Approve & Send PDF';}});}catch(error){errorView('Quotations',error);}}
 
+const QUOTATION_RESEND_COOLDOWN_MS = 2 * 60 * 1000;
+
+function quotationResendRemaining(sentAt) {
+  const sentTime = Date.parse(String(sentAt || ''));
+  if (!Number.isFinite(sentTime)) return 0;
+  return Math.max(0, Math.ceil((sentTime + QUOTATION_RESEND_COOLDOWN_MS - Date.now()) / 1000));
+}
+
+function formatResendCountdown(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+async function enhanceQuotationDeliveryControls(api, refresh) {
+  const sendDialog = document.getElementById('send-quotation-dialog');
+  if (!sendDialog || sendDialog.dataset.deliveryEnhanced === 'true') return;
+  sendDialog.dataset.deliveryEnhanced = 'true';
+
+  const data = await api('quotations');
+  for (const quotation of data.quotations) {
+    if (!quotation.sent_at || quotation.status !== 'sent') continue;
+    const preview = document.querySelector(`a[href*="action=quotation-pdf"][href*="id=${encodeURIComponent(quotation.id)}"]`);
+    const actions = preview?.closest('.table-actions');
+    if (!actions || actions.querySelector(`[data-resend-id="${quotation.id}"]`)) continue;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'secondary-button send-quotation resend-quotation';
+    button.dataset.id = quotation.id;
+    button.dataset.resendId = quotation.id;
+    button.dataset.sentAt = quotation.sent_at;
+    button.setAttribute('aria-label', `Resend ${quotation.quotation_number} to customer`);
+    actions.append(button);
+  }
+
+  document.querySelectorAll('.send-quotation').forEach(button => {
+    const cleanButton = button.cloneNode(true);
+    button.replaceWith(cleanButton);
+  });
+  const originalForm = document.getElementById('send-quotation-form');
+  const sendForm = originalForm.cloneNode(true);
+  originalForm.replaceWith(sendForm);
+
+  const updateCooldowns = () => {
+    let waiting = false;
+    document.querySelectorAll('.resend-quotation').forEach(button => {
+      if (!button.isConnected) return;
+      const remaining = quotationResendRemaining(button.dataset.sentAt);
+      button.disabled = remaining > 0;
+      button.textContent = remaining > 0 ? `Resend in ${formatResendCountdown(remaining)}` : 'Resend PDF';
+      button.title = remaining > 0 ? 'Resending becomes available two minutes after the last successful delivery.' : 'Send the quotation PDF to the customer again.';
+      waiting ||= remaining > 0;
+    });
+    if (waiting) window.setTimeout(updateCooldowns, 1000);
+  };
+  updateCooldowns();
+
+  document.querySelectorAll('.send-quotation').forEach(button => button.addEventListener('click', () => {
+    const quotation = data.quotations.find(item => item.id === button.dataset.id);
+    if (!quotation || (quotation.sent_at && quotationResendRemaining(quotation.sent_at) > 0)) return;
+    const isResend = Boolean(quotation.sent_at);
+    sendForm.reset();
+    sendForm.dataset.mode = isResend ? 'resend' : 'send';
+    sendForm.elements.id.value = quotation.id;
+    sendForm.elements.recipientEmail.value = quotation.sent_to || quotation.customer_snapshot?.email || '';
+    sendDialog.querySelector('.eyebrow').textContent = isResend ? 'EMAIL DELIVERY' : 'FINANCIAL APPROVAL';
+    sendDialog.querySelector('h2').textContent = isResend ? 'Resend quotation' : 'Approve and send quotation';
+    document.getElementById('send-summary').textContent = isResend
+      ? `${quotation.quotation_number} · Last sent ${date(quotation.sent_at)} to ${quotation.sent_to || 'the customer'}`
+      : `${quotation.quotation_number} · ${quotation.project_title} · ${money(quotation.grand_total)}`;
+    sendForm.querySelector('[type=submit]').textContent = isResend ? 'Confirm & Resend PDF' : 'Approve & Send PDF';
+    sendDialog.showModal();
+  }));
+
+  document.getElementById('cancel-send').onclick = () => sendDialog.close();
+  sendForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!sendForm.reportValidity()) return;
+    const isResend = sendForm.dataset.mode === 'resend';
+    const button = sendForm.querySelector('[type=submit]');
+    const message = document.getElementById('send-quotation-message');
+    button.disabled = true;
+    button.textContent = isResend ? 'Resending securely…' : 'Sending securely…';
+    message.hidden = true;
+    try {
+      const fields = new FormData(sendForm);
+      await api('quotation-send', { method:'POST', body:JSON.stringify({
+        id:fields.get('id'), recipientEmail:fields.get('recipientEmail'), confirmed:fields.get('confirmed') === 'on'
+      }) });
+      message.classList.add('success-message');
+      message.textContent = isResend ? 'Quotation resent successfully. The next resend is available in two minutes.' : 'Quotation delivered and recorded successfully.';
+      message.hidden = false;
+      window.setTimeout(refresh, 900);
+    } catch (error) {
+      message.classList.remove('success-message');
+      message.textContent = error.message;
+      message.hidden = false;
+      button.disabled = false;
+      button.textContent = isResend ? 'Confirm & Resend PDF' : 'Approve & Send PDF';
+    }
+  });
+}
+
+export async function renderQuotationsWithResend(api) {
+  globalThis.__quotationDeliveryObserver?.disconnect();
+  await renderQuotations(api);
+  let enhancing = false;
+  const enhance = async () => {
+    if (enhancing || !document.getElementById('send-quotation-dialog')) return;
+    enhancing = true;
+    try { await enhanceQuotationDeliveryControls(api, () => renderQuotationsWithResend(api)); }
+    catch (error) { const output=document.getElementById('document-message'); if(output)output.textContent=error.message; }
+    finally { enhancing = false; }
+  };
+  await enhance();
+  const observer = new MutationObserver(() => {
+    const dialog = document.getElementById('send-quotation-dialog');
+    if (dialog && dialog.dataset.deliveryEnhanced !== 'true') void enhance();
+  });
+  observer.observe(content(), { childList:true, subtree:true });
+  globalThis.__quotationDeliveryObserver = observer;
+}
+
 export function wireDocumentStatuses(api){document.querySelectorAll('.document-status').forEach(select=>select.addEventListener('change',async()=>{select.disabled=true;const out=document.getElementById('document-message');try{await api('document-status',{method:'POST',body:JSON.stringify({id:select.dataset.id,kind:select.dataset.kind,status:select.value})});if(out)out.textContent='Document status updated.';}catch(error){if(out)out.textContent=error.message;}finally{select.disabled=false;}}));}
 
 export async function renderPayments(api){loading('payments');try{const data=await api('payments');content().innerHTML=`${toolbar('PAYMENT MANAGEMENT','Payments',`${data.payments.length} payment${data.payments.length===1?'':'s'} recorded.`,`<button class="primary-button compact" id="new-payment" type="button"${data.invoices.length?'':' disabled'}>+ Record payment</button>`)}<div class="content-card data-card"><div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Invoice</th><th>Method</th><th>Reference</th><th>Status</th><th>Amount</th></tr></thead><tbody>${data.payments.map(p=>`<tr><td>${date(p.payment_date)}</td><td><strong>${esc(p.invoices?.invoice_number||'—')}</strong><small>${esc(p.invoices?.customer_snapshot?.name||'')}</small></td><td>${esc(p.payment_method.replaceAll('_',' '))}</td><td>${esc(p.transaction_reference||'—')}</td><td>${badge(p.status||'completed')}</td><td>${money(p.amount)}</td></tr>`).join('')||emptyRow(6,'No payments recorded.')}</tbody></table></div></div><dialog id="payment-dialog" class="admin-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><h2>Record payment</h2><form id="payment-form" class="admin-form"><label>Invoice *<select name="invoiceId" required><option value="">Select unpaid invoice</option>${data.invoices.map(i=>`<option value="${esc(i.id)}">${esc(i.invoice_number)} · ${esc(i.customer_snapshot?.name||'')} · ${money(i.balance)}</option>`).join('')}</select></label><div class="form-grid"><label>Payment date *<input name="paymentDate" type="date" value="${new Date().toISOString().slice(0,10)}" required></label><label>Amount (RM) *<input name="amount" type="number" min="0.01" step="0.01" required></label><label>Method *<select name="paymentMethod" required><option value="bank_transfer">Bank transfer</option><option value="duitnow">DuitNow</option><option value="cash">Cash</option><option value="cheque">Cheque</option><option value="other">Other</option></select></label><label>Transaction reference<input name="reference" maxlength="120"></label></div><label>Notes<textarea name="notes"></textarea></label>${messageBox('payment-message')}<button class="primary-button" type="submit">Save</button></form></dialog>`;const dialog=document.getElementById('payment-dialog');document.getElementById('new-payment').onclick=()=>dialog.showModal();wireForm('payment-form',p=>api('payment-create',{method:'POST',body:JSON.stringify(p)}),'Payment recorded and receipt created.',()=>renderPayments(api));}catch(error){errorView('Payments',error);}}

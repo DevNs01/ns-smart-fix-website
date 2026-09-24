@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { allowLogin, parseCookies, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
+import { QUOTATION_RESEND_COOLDOWN_MS, allowLogin, parseCookies, quotationResendWaitSeconds, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
 import { readFile } from 'node:fs/promises';
 
 const adminSource = await readFile(new URL('../src/admin.js', import.meta.url), 'utf8');
@@ -35,6 +35,15 @@ test('login attempts are rate limited', () => {
   const ip = `test-${Date.now()}`;
   for (let index = 0; index < 8; index += 1) assert.equal(allowLogin(ip), true);
   assert.equal(allowLogin(ip), false);
+});
+
+test('quotation resends use a two-minute server-side cooldown', () => {
+  const sentAt = '2026-09-22T10:00:00.000Z';
+  const sentTime = Date.parse(sentAt);
+  assert.equal(QUOTATION_RESEND_COOLDOWN_MS, 120_000);
+  assert.equal(quotationResendWaitSeconds(sentAt, sentTime), 120);
+  assert.equal(quotationResendWaitSeconds(sentAt, sentTime + 60_001), 60);
+  assert.equal(quotationResendWaitSeconds(sentAt, sentTime + 120_000), 0);
 });
 
 test('admin frontend uses the same-origin authentication function without browser token storage', () => {
