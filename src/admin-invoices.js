@@ -2,6 +2,7 @@ import { icon } from './admin-icons.js';
 
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 const money = value => `RM ${Number(value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const amount = value => Number(value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const iso = date => date.toISOString().slice(0, 10);
 const displayDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' }) : '—';
 function addDays(days) {
@@ -36,19 +37,19 @@ function invoiceForm(settings = {}, customers = []) {
 }
 
 function invoiceList(invoices, acceptedQuotations = [], sentQuotations = []) {
-  const counts = status => invoices.filter(invoice => status === 'outstanding' ? Number(invoice.balance) > 0 && invoice.status !== 'draft' : invoice.status === status).length;
-  const totalAmount = invoices.reduce((sum,invoice)=>sum+Number(invoice.grand_total||0),0);
-  const totalPaid = invoices.reduce((sum,invoice)=>sum+Number(invoice.amount_paid||0),0);
-  const paidPercent = totalAmount ? Math.min(100,Math.round(totalPaid/totalAmount*100)) : 0;
-  const filterTools = `<div class="record-toolbar"><label class="record-search">${icon('search')}<span class="visually-hidden">Search invoices</span><input id="invoice-search" type="search" placeholder="Search invoice or customer…"></label><div class="filter-tabs" role="group" aria-label="Filter invoices"><button class="filter-tab active" type="button" data-filter="all" aria-pressed="true">All <span>${invoices.length}</span></button><button class="filter-tab" type="button" data-filter="draft" aria-pressed="false">Draft <span>${counts('draft')}</span></button><button class="filter-tab" type="button" data-filter="outstanding" aria-pressed="false">Outstanding <span>${counts('outstanding')}</span></button><button class="filter-tab" type="button" data-filter="paid" aria-pressed="false">Paid <span>${counts('paid')}</span></button></div></div>`;
-  return `<section class="invoice-workspace"><div class="page-breadcrumb"><span>Finance</span><b>›</b><span>Invoices</span></div><div class="module-toolbar invoice-page-heading"><div><h1>Invoices</h1><p>Manage invoices, track payments and keep your business organized.</p></div></div><section class="invoice-kpis" aria-label="Invoice summary"><article><span class="kpi-icon blue">▤</span><div><small>Total invoices</small><strong>${invoices.length}</strong><span>All active invoices</span></div></article><article><span class="kpi-icon green">▥</span><div><small>Total amount</small><strong>${money(totalAmount)}</strong><span>Across all invoices</span></div></article><article><span class="kpi-icon orange">✓</span><div class="paid-kpi"><small>Amount paid</small><strong>${money(totalPaid)}</strong><span class="progress"><i style="width:${paidPercent}%"></i></span><span>${paidPercent}% collected</span></div></article></section>
+  const months = [...new Set(invoices.map(invoice => String(invoice.invoice_date || '').slice(0, 7)).filter(value => /^\d{4}-\d{2}$/.test(value)))].sort().reverse();
+  const monthLabel = value => new Date(`${value}-01T00:00:00`).toLocaleDateString('en-MY', { month:'long', year:'numeric' });
+  const initialMonth = months[0] || 'all';
+  const filterTools = `<div class="invoice-list-tools"><label class="invoice-list-search">${icon('search')}<span class="visually-hidden">Search invoices or customers</span><input id="invoice-search" type="search" placeholder="Search invoices or customers" autocomplete="off"></label><label><span class="visually-hidden">Filter invoices by status</span><select id="invoice-status-filter"><option value="all">All statuses</option><option value="draft">Draft</option><option value="unpaid">Unpaid</option><option value="partially_paid">Partially paid</option><option value="overdue">Overdue</option><option value="paid">Paid</option></select></label><label><span class="visually-hidden">Filter invoices by month</span><select id="invoice-month-filter"><option value="all">All months</option>${months.map(value => `<option value="${value}"${value === initialMonth ? ' selected' : ''}>${esc(monthLabel(value))}</option>`).join('')}</select></label><span id="invoice-result-count" class="invoice-result-count" aria-live="polite">${invoices.length} invoice${invoices.length === 1 ? '' : 's'}</span></div>`;
+  return `<section class="invoice-workspace"><nav class="page-breadcrumb" aria-label="Breadcrumb"><span>Finance</span><b aria-hidden="true">/</b><span aria-current="page">Invoices</span></nav><div class="module-toolbar invoice-page-heading"><div><h1>Invoices</h1><p>Manage invoices and track payments.</p></div><button class="invoice-new-button" id="new-invoice" type="button">${icon('plus')}<span>New invoice</span></button></div>
     <div class="invoice-workflow-grid">${sentQuotations.length ? `<section class="content-card ready-to-invoice awaiting-decision"><div class="workflow-heading"><span class="workflow-icon">◷</span><div><h2>Awaiting Customer Decision</h2><p>Sent quotations waiting for customer confirmation.</p></div><b>${sentQuotations.length}</b></div>${sentQuotations.map(quotation => `<div class="conversion-row"><div><strong>${esc(quotation.quotation_number)}</strong><span>${esc(quotation.customer_snapshot?.name || '—')} · ${esc(quotation.project_title)}</span></div><strong>${money(quotation.grand_total)}</strong><div class="decision-actions"><button class="primary-button compact quotation-decision" type="button" data-id="${esc(quotation.id)}" data-status="accepted">Mark Accepted</button><button class="secondary-button compact quotation-decision" type="button" data-id="${esc(quotation.id)}" data-status="rejected">Mark Rejected</button></div></div>`).join('')}</section>` : ''}
     ${acceptedQuotations.length ? `<section class="content-card ready-to-invoice accepted-ready"><span class="visually-hidden">READY TO INVOICE</span><div class="workflow-heading"><span class="workflow-icon">▤</span><div><h2>Ready to Invoice</h2><p>Accepted quotations ready to be converted.</p></div><b>${acceptedQuotations.length}</b></div>${acceptedQuotations.map(quotation => `<div class="conversion-row"><div><strong>${esc(quotation.quotation_number)}</strong><span>${esc(quotation.customer_snapshot?.name || '—')} · ${esc(quotation.project_title)}</span></div><strong>${money(quotation.grand_total)}</strong><button class="primary-button compact convert-accepted" type="button" data-id="${esc(quotation.id)}">Create Invoice</button></div>`).join('')}</section>` : ''}</div>
-    <div class="content-card invoice-list">${invoices.length ? `${filterTools}<div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th><th>Balance</th><th>Actions</th></tr></thead><tbody>${invoices.map(invoice => {
+    <div class="content-card invoice-list">${invoices.length ? `${filterTools}<div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Invoice no.</th><th>Customer</th><th>Date</th><th>Status</th><th class="numeric-heading">Amount (RM)</th><th class="numeric-heading">Paid (RM)</th><th class="numeric-heading balance-heading">Balance (RM)</th><th>Actions</th></tr></thead><tbody>${invoices.map(invoice => {
       const pdfUrl = `/api/admin-auth?action=invoice-pdf&id=${encodeURIComponent(invoice.id)}`;
       const canPay = ['unpaid','partially_paid','overdue'].includes(invoice.status) && Number(invoice.balance) > 0;
-      return `<tr data-invoice-row data-status="${esc(invoice.status)}" data-outstanding="${Number(invoice.balance)>0&&invoice.status!=='draft'}" data-search="${esc(`${invoice.invoice_number} ${invoice.customer_snapshot?.name||''}`.toLowerCase())}"><td><button class="record-link invoice-detail" type="button" data-id="${esc(invoice.id)}"><strong>${esc(invoice.invoice_number)}</strong></button></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${displayDate(invoice.invoice_date)}</td><td><span class="status ${esc(invoice.status)}">${invoice.status==='paid'?icon('check'):''}${esc(invoice.status.replaceAll('_', ' '))}</span></td><td>${money(invoice.grand_total)}</td><td><strong>${money(invoice.balance)}</strong>${Number(invoice.amount_paid)>0?`<small>Paid ${money(invoice.amount_paid)}</small>`:''}</td><td><div class="table-actions"><button class="secondary-button compact invoice-detail preview-action" type="button" data-id="${esc(invoice.id)}" title="Preview invoice details">${icon('eye')}<span>Preview</span></button>${invoice.status==='draft'?`<button class="primary-button compact issue-invoice" type="button" data-id="${esc(invoice.id)}">Issue Invoice</button>`:''}${canPay?`<button class="primary-button compact record-payment" type="button" data-id="${esc(invoice.id)}">Record Payment</button>`:''}<details class="row-menu"><summary aria-label="More actions for ${esc(invoice.invoice_number)}" title="More invoice actions">${icon('more')}</summary><div class="row-menu-popover" role="group" aria-label="Actions for ${esc(invoice.invoice_number)}"><button class="manage-serials" type="button" data-id="${esc(invoice.id)}">${icon('serial')}<span>View Serial Numbers</span></button><a href="${pdfUrl}" target="_blank" rel="noopener">${icon('pdf')}<span>View PDF</span></a><a href="${pdfUrl}&amp;download=1">${icon('download')}<span>Download PDF</span></a></div></details></div></td></tr>`;
-    }).join('')}</tbody></table></div><p id="document-message" class="inline-message" role="status"></p>` : '<div class="empty-module"><h2>No invoices yet</h2><p>Create the first invoice to begin your cloud invoice history.</p></div>'}</div></section>`;
+      const invoiceMonth = String(invoice.invoice_date || '').slice(0, 7);
+      return `<tr data-invoice-row data-status="${esc(invoice.status)}" data-month="${esc(invoiceMonth)}" data-outstanding="${Number(invoice.balance)>0&&invoice.status!=='draft'}" data-search="${esc(`${invoice.invoice_number} ${invoice.customer_snapshot?.name||''}`.toLowerCase())}"><td><button class="record-link invoice-detail" type="button" data-id="${esc(invoice.id)}"><strong>${esc(invoice.invoice_number)}</strong></button></td><td>${esc(invoice.customer_snapshot?.name || '—')}</td><td>${displayDate(invoice.invoice_date)}</td><td><span class="status ${esc(invoice.status)}">${invoice.status==='paid'?icon('check'):''}${esc(invoice.status.replaceAll('_', ' '))}</span></td><td class="invoice-money">${amount(invoice.grand_total)}</td><td class="invoice-money invoice-paid">${amount(invoice.amount_paid)}</td><td class="invoice-money invoice-balance-cell"><strong>${amount(invoice.balance)}</strong></td><td><div class="table-actions"><button class="secondary-button compact invoice-detail preview-action" type="button" data-id="${esc(invoice.id)}" title="Preview invoice details">${icon('eye')}<span>Preview</span></button>${invoice.status==='draft'?`<button class="primary-button compact issue-invoice" type="button" data-id="${esc(invoice.id)}">Issue Invoice</button>`:''}${canPay?`<button class="primary-button compact record-payment" type="button" data-id="${esc(invoice.id)}">Record Payment</button>`:''}<details class="row-menu"><summary aria-label="More actions for ${esc(invoice.invoice_number)}" title="More invoice actions">${icon('more')}</summary><div class="row-menu-popover" role="group" aria-label="Actions for ${esc(invoice.invoice_number)}"><button class="manage-serials" type="button" data-id="${esc(invoice.id)}">${icon('serial')}<span>View Serial Numbers</span></button><a href="${pdfUrl}" target="_blank" rel="noopener">${icon('pdf')}<span>View PDF</span></a><a href="${pdfUrl}&amp;download=1">${icon('download')}<span>Download PDF</span></a></div></details></div></td></tr>`;
+    }).join('')}</tbody></table></div><footer class="invoice-list-footer"><div><strong id="invoice-range">Showing 1–${Math.min(10, invoices.length)} of ${invoices.length} invoices</strong><span>All amounts in MYR</span></div><nav class="invoice-pagination" aria-label="Invoice pagination"><button id="invoice-previous" type="button" disabled>${icon('chevronLeft')}<span>Previous</span></button><span id="invoice-current-page" aria-current="page">1</span><button id="invoice-next" type="button"${invoices.length <= 10 ? ' disabled' : ''}><span>Next</span>${icon('chevronRight')}</button></nav></footer><p id="document-message" class="inline-message" role="status"></p>` : '<div class="empty-module"><h2>No invoices yet</h2><p>Create an invoice from an accepted quotation to begin your invoice history.</p></div>'}</div></section>`;
 }
 
 function paymentDialog(invoice) {
@@ -91,10 +92,45 @@ export async function renderInvoices(api) {
     const data = await api('invoices');
     const showList = () => {
       content.innerHTML = invoiceList(data.invoices || [], data.acceptedQuotations || [], data.sentQuotations || []);
-      let invoiceFilter = 'all';
-      const applyInvoiceFilters = () => { const query=(document.getElementById('invoice-search')?.value||'').trim().toLowerCase(); document.querySelectorAll('[data-invoice-row]').forEach(row=>{const statusMatch=invoiceFilter==='all'||row.dataset.status===invoiceFilter||(invoiceFilter==='outstanding'&&row.dataset.outstanding==='true');row.hidden=!statusMatch||!row.dataset.search.includes(query);}); };
-      document.getElementById('invoice-search')?.addEventListener('input',applyInvoiceFilters);
-      document.querySelectorAll('.filter-tab').forEach(tab=>tab.addEventListener('click',()=>{invoiceFilter=tab.dataset.filter;document.querySelectorAll('.filter-tab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));});applyInvoiceFilters();}));
+      let invoicePage = 1;
+      const invoicePageSize = 10;
+      const invoiceRows = [...document.querySelectorAll('[data-invoice-row]')];
+      const applyInvoiceFilters = () => {
+        const query = (document.getElementById('invoice-search')?.value || '').trim().toLowerCase();
+        const status = document.getElementById('invoice-status-filter')?.value || 'all';
+        const month = document.getElementById('invoice-month-filter')?.value || 'all';
+        const matches = invoiceRows.filter(row => (status === 'all' || row.dataset.status === status) && (month === 'all' || row.dataset.month === month) && row.dataset.search.includes(query));
+        const pages = Math.max(1, Math.ceil(matches.length / invoicePageSize));
+        invoicePage = Math.min(invoicePage, pages);
+        const start = (invoicePage - 1) * invoicePageSize;
+        const visible = new Set(matches.slice(start, start + invoicePageSize));
+        invoiceRows.forEach(row => { row.hidden = !visible.has(row); });
+        const count = document.getElementById('invoice-result-count');
+        const range = document.getElementById('invoice-range');
+        const current = document.getElementById('invoice-current-page');
+        const previous = document.getElementById('invoice-previous');
+        const next = document.getElementById('invoice-next');
+        if (count) count.textContent = `${matches.length} invoice${matches.length === 1 ? '' : 's'}`;
+        if (range) range.textContent = matches.length ? `Showing ${start + 1}–${Math.min(start + invoicePageSize, matches.length)} of ${matches.length} invoices` : 'Showing 0 invoices';
+        if (current) current.textContent = String(invoicePage);
+        if (previous) previous.disabled = invoicePage <= 1;
+        if (next) next.disabled = invoicePage >= pages;
+      };
+      document.getElementById('invoice-search')?.addEventListener('input', () => { invoicePage = 1; applyInvoiceFilters(); });
+      document.getElementById('invoice-status-filter')?.addEventListener('change', () => { invoicePage = 1; applyInvoiceFilters(); });
+      document.getElementById('invoice-month-filter')?.addEventListener('change', () => { invoicePage = 1; applyInvoiceFilters(); });
+      document.getElementById('invoice-previous')?.addEventListener('click', () => { invoicePage = Math.max(1, invoicePage - 1); applyInvoiceFilters(); });
+      document.getElementById('invoice-next')?.addEventListener('click', () => { invoicePage += 1; applyInvoiceFilters(); });
+      document.getElementById('new-invoice')?.addEventListener('click', () => {
+        const nextStep = document.querySelector('.accepted-ready, .awaiting-decision');
+        if (nextStep) {
+          nextStep.scrollIntoView({ behavior:'smooth', block:'center' });
+          nextStep.querySelector('button')?.focus({ preventScroll:true });
+          return;
+        }
+        document.querySelector('[data-module="quotations"]')?.click();
+      });
+      applyInvoiceFilters();
       const closeMenus = except => document.querySelectorAll('.row-menu[open]').forEach(menu=>{if(menu!==except)menu.removeAttribute('open');});
       document.querySelectorAll('.row-menu').forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open)closeMenus(menu);}));
       content.onclick=event=>{if(!event.target.closest('.row-menu'))closeMenus();};

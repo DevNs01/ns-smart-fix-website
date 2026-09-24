@@ -45,7 +45,7 @@ function addModuleHeading(scope, key) {
     toolbar.insertAdjacentHTML('beforebegin', `<nav class="page-breadcrumb" aria-label="Breadcrumb"><span>${meta.group}</span><b aria-hidden="true">›</b><span aria-current="page">${meta.label}</span></nav>`);
   }
   const heading = toolbar.querySelector('h1');
-  if (heading && !heading.closest('.module-title-row')) {
+  if (heading && key !== 'invoices' && !heading.closest('.module-title-row')) {
     const row = document.createElement('div');
     row.className = 'module-title-row';
     row.innerHTML = `<span class="module-title-icon" aria-hidden="true">${icon(meta.icon)}</span>`;

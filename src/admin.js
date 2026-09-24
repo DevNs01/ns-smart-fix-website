@@ -1,5 +1,5 @@
 import { renderInvoices } from './admin-invoices.js';
-import { addArchiveActions, renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotations, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
+import { addArchiveActions, renderAudit, renderCustomers, renderDashboard, renderPayments, renderQuotationsWithResend, renderReceipts, renderRequests, renderSettings, renderUsers } from './admin-modules.js';
 import { icon } from './admin-icons.js';
 import { enhanceAdminModule, enhanceAdminShell, observeAdminModules } from './admin-ui.js';
 
@@ -256,7 +256,7 @@ function renderPortal(profile) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
     portalContent.dataset.module = button.dataset.module;
-    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotations(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
+    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotationsWithResend(api); addArchiveActions(api,'quotation',renderers.quotations); }, invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
     enhanceAdminModule(button.dataset.module);
     closeMenu();
