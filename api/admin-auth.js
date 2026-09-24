@@ -229,6 +229,36 @@ function financePartyPayload(body, kind) {
     : { ...common, worker_type: ['employee','subcontractor','part_time'].includes(body.workerType) ? body.workerType : 'subcontractor', trade_or_role: tradeOrRole, identification_reference: bounded(body.identificationReference, 120) || null, start_date: validDate(body.startDate) ? body.startDate : null };
 }
 
+function businessCostPayload(body) {
+  const type = bounded(body.costType, 20);
+  const billDate = bounded(body.billDate, 10);
+  const dueDate = bounded(body.dueDate, 10);
+  const totalAmount = Math.round(Number(body.totalAmount) * 100) / 100;
+  const supplierId = bounded(body.supplierId, 80);
+  const workerId = bounded(body.workerId, 80);
+  const projectId = bounded(body.projectId, 80);
+  const category = bounded(body.category, 80);
+  const description = bounded(body.description, 1000);
+  const validParty = (type === 'supplier' && /^[0-9a-f-]{36}$/i.test(supplierId))
+    || (type === 'labour' && /^[0-9a-f-]{36}$/i.test(workerId))
+    || type === 'expense';
+  if (!['supplier','labour','expense'].includes(type) || !validParty || !validDate(billDate)
+      || (dueDate && (!validDate(dueDate) || dueDate < billDate)) || !(totalAmount > 0)
+      || category.length < 2 || description.length < 2 || (projectId && !/^[0-9a-f-]{36}$/i.test(projectId))) return null;
+  return {
+    cost_type:type,
+    supplier_id:type === 'supplier' ? supplierId : null,
+    worker_id:type === 'labour' ? workerId : null,
+    project_id:projectId || null,
+    category,
+    description,
+    bill_date:billDate,
+    due_date:dueDate || null,
+    total_amount:totalAmount,
+    notes:bounded(body.notes, 2000) || null
+  };
+}
+
 async function restJson(path, options, accessToken) {
   const result = await supabaseFetch(path, options, accessToken);
   const body = await result.json().catch(() => null);
@@ -467,13 +497,44 @@ export default async function handler(request, response) {
 
     if (route === '/finance-cost-create' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
-      const body = await readBody(request); const type = bounded(body.costType, 20); const billDate = bounded(body.billDate, 10); const dueDate = bounded(body.dueDate, 10); const total = Number(body.totalAmount); const supplierId = bounded(body.supplierId, 80); const workerId = bounded(body.workerId, 80); const projectId = bounded(body.projectId, 80); const category = bounded(body.category, 80); const description = bounded(body.description, 1000);
-      const validParty = (type === 'supplier' && /^[0-9a-f-]{36}$/i.test(supplierId)) || (type === 'labour' && /^[0-9a-f-]{36}$/i.test(workerId)) || type === 'expense';
-      if (!['supplier','labour','expense'].includes(type) || !validParty || !validDate(billDate) || (dueDate && (!validDate(dueDate) || dueDate < billDate)) || !(total > 0) || category.length < 2 || description.length < 2 || (projectId && !/^[0-9a-f-]{36}$/i.test(projectId))) return json(response, 400, { error:'Complete the cost type, payee, description, date and amount.' });
-      const costNumber = await restJson('/rest/v1/rpc/next_finance_number', { method:'POST', body:JSON.stringify({kind:'cost',issue_date:billDate}) }, session.accessToken);
-      const rows = await restJson('/rest/v1/business_costs', { method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify({ cost_number:String(costNumber), cost_type:type, supplier_id:type==='supplier'?supplierId:null, worker_id:type==='labour'?workerId:null, project_id:projectId||null, category, description, bill_date:billDate, due_date:dueDate||null, total_amount:Math.round(total*100)/100, amount_paid:0, balance:Math.round(total*100)/100, status:'unpaid', notes:bounded(body.notes,2000)||null, created_by:session.user.id }) }, session.accessToken);
-      await audit(session, 'create', 'business_costs', rows[0]?.id, String(costNumber), { costType:type, totalAmount:total, projectId:projectId||null });
+      const body = await readBody(request); const payload = businessCostPayload(body);
+      if (!payload) return json(response, 400, { error:'Complete the cost type, payee, description, date and amount.' });
+      const costNumber = await restJson('/rest/v1/rpc/next_finance_number', { method:'POST', body:JSON.stringify({kind:'cost',issue_date:payload.bill_date}) }, session.accessToken);
+      const rows = await restJson('/rest/v1/business_costs', { method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify({ ...payload, cost_number:String(costNumber), amount_paid:0, balance:payload.total_amount, status:'unpaid', created_by:session.user.id }) }, session.accessToken);
+      await audit(session, 'create', 'business_costs', rows[0]?.id, String(costNumber), { costType:payload.cost_type, totalAmount:payload.total_amount, projectId:payload.project_id });
       return json(response, 201, { cost:rows[0] });
+    }
+
+    if (route === '/finance-cost-update' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); const payload = businessCostPayload(body);
+      if (!/^[0-9a-f-]{36}$/i.test(id) || !payload) return json(response, 400, { error:'Complete the cost type, payee, description, date and amount.' });
+      const existingRows = await restJson(`/rest/v1/business_costs?id=eq.${encodeURIComponent(id)}&select=id,cost_number,status,total_amount,amount_paid,balance&limit=1`, {}, session.accessToken);
+      const existing = existingRows[0];
+      if (!existing) return json(response, 404, { error:'The payable record was not found.' });
+      if (existing.status === 'cancelled') return json(response, 409, { error:'A cancelled payable cannot be edited.' });
+      if (payload.total_amount < Number(existing.amount_paid || 0)) return json(response, 409, { error:`Total cost cannot be lower than the recorded payments of RM ${Number(existing.amount_paid || 0).toFixed(2)}.` });
+      const result = await restJson('/rest/v1/rpc/update_business_cost', { method:'POST', body:JSON.stringify({ p_cost_id:id, p_cost_type:payload.cost_type, p_supplier_id:payload.supplier_id, p_worker_id:payload.worker_id, p_project_id:payload.project_id, p_category:payload.category, p_description:payload.description, p_bill_date:payload.bill_date, p_due_date:payload.due_date, p_total_amount:payload.total_amount, p_notes:payload.notes }) }, session.accessToken);
+      const cost = result.cost;
+      if (!cost) return json(response, 409, { error:'The payable changes could not be verified.' });
+      return json(response, 200, { cost });
+    }
+
+    if (route === '/finance-cost-delete' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const id = bounded(body.costId, 80); const reason = bounded(body.reason, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(id) || reason.length < 8) return json(response, 400, { error:'Enter a valid payable and a deletion reason of at least 8 characters.' });
+      const [costRows, paymentRows] = await Promise.all([
+        restJson(`/rest/v1/business_costs?id=eq.${encodeURIComponent(id)}&select=id,cost_number,status,total_amount,amount_paid,balance&limit=1`, {}, session.accessToken),
+        restJson(`/rest/v1/outgoing_payments?cost_id=eq.${encodeURIComponent(id)}&select=id&limit=1`, {}, session.accessToken)
+      ]);
+      const existing = costRows[0];
+      if (!existing) return json(response, 404, { error:'The payable record was not found.' });
+      if (Number(existing.amount_paid || 0) > 0 || paymentRows.length) return json(response, 409, { error:'This payable has payment history. Correct or reverse its payments before deleting the payable.' });
+      const result = await restJson('/rest/v1/rpc/delete_unpaid_business_cost', { method:'POST', body:JSON.stringify({ p_cost_id:id, p_reason:reason }) }, session.accessToken);
+      const deleted = result.cost;
+      if (!deleted) return json(response, 409, { error:'The payable could not be deleted.' });
+      return json(response, 200, { deleted:true, costNumber:deleted.cost_number });
     }
 
     if (route === '/finance-cost-proof-upload-url' && request.method === 'POST') {
