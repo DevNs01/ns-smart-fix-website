@@ -107,6 +107,8 @@ The Business Finance module extends quote-to-cash into a controlled cash and cos
 
 Every customer receipt and outgoing payment must name the bank or petty-cash account affected. Every outgoing payment requires a private proof file, payment date, method, amount, and optional transaction reference. Partial payments update the cost balance atomically; payment totals cannot exceed the outstanding balance.
 
+Posted outgoing payments are corrected through the administrator-only **Edit** action rather than by granting direct table updates. A correction may change the account, date, amount, method, reference, notes and—when necessary—the payment proof. The existing verified proof is retained when no replacement is supplied. The database recalculates the payable and cash position, while the audit log retains both the previous and corrected values. Customer receipts require a separate reversal workflow and cannot be edited through this action.
+
 ### Cost lifecycle
 
 1. Create a supplier, labour worker, or general company-expense record.
@@ -116,3 +118,15 @@ Every customer receipt and outgoing payment must name the bank or petty-cash acc
 5. The cash position and linked project report update from the same payment record.
 
 The migration `202609240001_business_finance_ledger.sql` creates the finance tables, project linkage, account attribution, private proof bucket, row-level security, and atomic payment functions.
+
+### Worker directory and labour payments
+
+The Labour tab is the worker master record for employees, subcontractors and part-time workers. Each worker has a permanent `WRK-######` code, role, contact information, employment dates and a protected payment profile.
+
+- Bank-account and DuitNow values are encrypted by the server before storage. Lists expose only the bank name, account-holder name and final four account characters.
+- Only an administrator can explicitly reveal full protected details. Every reveal is recorded in the audit log and the interface hides the values again after 30 seconds.
+- A labour cost must be created before money is paid. The worker profile then presents the outstanding cost for payment.
+- Every payment remains linked to the worker through its labour cost and includes the cash account, amount, date, method, reference and private payment proof.
+- Partial payments reduce the outstanding labour cost atomically. A worker's totals and history are calculated from the ledger, not manually entered summary fields.
+
+The migration `202609240002_worker_payment_profiles.sql` extends the worker master without duplicating the controlled outgoing-payment ledger.
