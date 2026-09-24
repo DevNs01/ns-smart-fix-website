@@ -91,8 +91,11 @@ Add these variables to `.env.local` for local work and to the appropriate Vercel
 - `SUPABASE_URL` — server-only Supabase project URL used by Vercel Functions
 - `SUPABASE_PUBLISHABLE_KEY` — server-side publishable key used by the authentication proxy
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only key for trusted Vercel Functions
+- `WORKER_BANK_ENCRYPTION_KEY` — unique server-only value of at least 32 characters used to encrypt worker bank-account and DuitNow details
 
 None of these values should use the `VITE_` prefix. The `/admin` portal sends authentication requests only to the same-origin `/api/admin-auth` endpoint. Supabase access and refresh tokens are stored in scoped, `HttpOnly`, `SameSite=Strict` cookies rather than browser-readable storage.
+
+The migration `202609240002_worker_payment_profiles.sql` adds numbered worker profiles, protected bank metadata and the worker payment-history view. Apply it after the base finance-ledger migration. Configure `WORKER_BANK_ENCRYPTION_KEY` before adding bank details; changing this value later prevents existing encrypted details from being opened.
 
 ### Create the first administrator
 
