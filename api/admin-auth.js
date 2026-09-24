@@ -1,5 +1,6 @@
 import { buildInvoicePdf, buildQuotationPdf, quotationEmail } from './quotation-pdf.js';
 import { sendMonitoringAlert } from './monitoring.js';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 
 const ACCESS_COOKIE = 'ns_admin_access';
 const REFRESH_COOKIE = 'ns_admin_refresh';
@@ -136,6 +137,34 @@ function validDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
 }
 
+function workerBankKey(secret = process.env.WORKER_BANK_ENCRYPTION_KEY) {
+  const value = String(secret || '');
+  if (value.length < 32) return null;
+  return createHash('sha256').update(value, 'utf8').digest();
+}
+
+export function encryptWorkerBankDetail(value, secret) {
+  const plaintext = String(value || '').trim();
+  if (!plaintext) return null;
+  const key = workerBankKey(secret);
+  if (!key) throw new Error('worker-bank-configuration');
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  return `v1:${iv.toString('base64url')}:${encrypted.toString('base64url')}:${cipher.getAuthTag().toString('base64url')}`;
+}
+
+export function decryptWorkerBankDetail(value, secret) {
+  if (!value) return null;
+  const key = workerBankKey(secret);
+  if (!key) throw new Error('worker-bank-configuration');
+  const [version, ivValue, encryptedValue, tagValue] = String(value).split(':');
+  if (version !== 'v1' || !ivValue || !encryptedValue || !tagValue) throw new Error('worker-bank-data');
+  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(ivValue, 'base64url'));
+  decipher.setAuthTag(Buffer.from(tagValue, 'base64url'));
+  return Buffer.concat([decipher.update(Buffer.from(encryptedValue, 'base64url')), decipher.final()]).toString('utf8');
+}
+
 function customerPayload(body) {
   const name = bounded(body.name, 160);
   const phone = bounded(body.phone, 30);
@@ -191,11 +220,13 @@ function financePartyPayload(body, kind) {
   const name = bounded(body.name, 160);
   const phone = bounded(body.phone, 30);
   const email = bounded(body.email, 254).toLowerCase();
+  const tradeOrRole = bounded(body.tradeOrRole, 120);
   if (name.length < 2 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return null;
+  if (kind === 'worker' && (phone.length < 8 || tradeOrRole.length < 2)) return null;
   const common = { name, phone: phone || null, email: email || null, notes: bounded(body.notes, 2000) || null, is_active: body.isActive !== false && body.isActive !== 'false' };
   return kind === 'supplier'
     ? { ...common, registration_number: bounded(body.registrationNumber, 100) || null, contact_person: bounded(body.contactPerson, 120) || null, address: bounded(body.address, 1000) || null }
-    : { ...common, trade_or_role: bounded(body.tradeOrRole, 120) || null, identification_reference: bounded(body.identificationReference, 120) || null };
+    : { ...common, worker_type: ['employee','subcontractor','part_time'].includes(body.workerType) ? body.workerType : 'subcontractor', trade_or_role: tradeOrRole, identification_reference: bounded(body.identificationReference, 120) || null, start_date: validDate(body.startDate) ? body.startDate : null };
 }
 
 async function restJson(path, options, accessToken) {
@@ -354,7 +385,7 @@ export default async function handler(request, response) {
       const [accounts, suppliers, workers, projects, costs, outgoingPayments, invoices, customerPayments] = await Promise.all([
         restJson('/rest/v1/cash_accounts?select=*&order=is_active.desc,name.asc&limit=100', {}, session.accessToken),
         restJson('/rest/v1/suppliers?select=*&order=is_active.desc,name.asc&limit=500', {}, session.accessToken),
-        restJson('/rest/v1/labour_workers?select=*&order=is_active.desc,name.asc&limit=500', {}, session.accessToken),
+        restJson('/rest/v1/labour_workers?select=id,worker_code,name,phone,email,worker_type,trade_or_role,identification_reference,start_date,bank_name,bank_account_holder,bank_account_last_four,has_duitnow,notes,is_active,created_at,updated_at&order=is_active.desc,name.asc&limit=500', {}, session.accessToken),
         restJson('/rest/v1/projects?select=*&order=created_at.desc&limit=500', {}, session.accessToken),
         restJson('/rest/v1/business_costs?select=*&order=bill_date.desc,created_at.desc&limit=1000', {}, session.accessToken),
         restJson('/rest/v1/outgoing_payments?select=id,cost_id,cash_account_id,payment_date,amount,payment_method,transaction_reference,notes,created_at&order=payment_date.desc,created_at.desc&limit=1000', {}, session.accessToken),
@@ -389,14 +420,49 @@ export default async function handler(request, response) {
     }
 
     if (route === '/finance-worker-save' && request.method === 'POST') {
-      const session = await requireSession(request, response); if (!session) return;
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
       const body = await readBody(request); const payload = financePartyPayload(body, 'worker'); const id = bounded(body.id, 80);
       if (!payload || (id && !/^[0-9a-f-]{36}$/i.test(id))) return json(response, 400, { error:'Enter valid labour worker details.' });
+      const bankName = bounded(body.bankName, 120); const accountHolder = bounded(body.bankAccountHolder, 160); const accountNumber = bounded(body.bankAccountNumber, 80).replace(/[\s-]+/g, ''); const duitNowId = bounded(body.duitNowId, 120);
+      if (!id && (!bankName || !accountHolder || !accountNumber)) return json(response, 400, { error:'Complete the bank name, account-holder name and account number.' });
+      if (id && ((bankName || accountHolder || accountNumber) && (!bankName || !accountHolder))) return json(response, 400, { error:'Complete the bank name and account-holder name.' });
+      if (accountNumber && !/^[0-9A-Za-z]{6,34}$/.test(accountNumber)) return json(response, 400, { error:'Enter a valid bank account number using 6 to 34 letters or numbers.' });
+      let encryptedAccount = null; let encryptedDuitNow = null;
+      if (accountNumber || duitNowId) {
+        try {
+          encryptedAccount = accountNumber ? encryptWorkerBankDetail(accountNumber) : null;
+          encryptedDuitNow = duitNowId ? encryptWorkerBankDetail(duitNowId) : null;
+        } catch (error) {
+          if (error.message === 'worker-bank-configuration') return json(response, 503, { error:'Protected worker banking storage is not configured yet.' });
+          throw error;
+        }
+      }
+      Object.assign(payload, { bank_name:bankName||null, bank_account_holder:accountHolder||null });
+      if (!id || duitNowId) payload.has_duitnow = Boolean(duitNowId);
+      if (encryptedAccount) Object.assign(payload, { bank_account_number_encrypted:encryptedAccount, bank_account_last_four:accountNumber.slice(-4) });
+      if (encryptedDuitNow) payload.duitnow_id_encrypted = encryptedDuitNow;
       const path = id ? `/rest/v1/labour_workers?id=eq.${encodeURIComponent(id)}` : '/rest/v1/labour_workers';
       const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
       if (!rows[0]) return json(response, 404, { error:'Labour worker was not found.' });
-      await audit(session, id?'update':'create', 'labour_workers', rows[0].id, rows[0].name, { active:rows[0].is_active });
-      return json(response, id?200:201, { worker:rows[0] });
+      await audit(session, id?'update':'create', 'labour_workers', rows[0].id, rows[0].worker_code || rows[0].name, { active:rows[0].is_active, workerType:rows[0].worker_type, bankDetailsUpdated:Boolean(encryptedAccount || encryptedDuitNow) });
+      const { bank_account_number_encrypted, duitnow_id_encrypted, ...safeWorker } = rows[0];
+      return json(response, id?200:201, { worker:safeWorker });
+    }
+
+    if (route === '/finance-worker-bank-detail' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const id = bounded(body.id, 80); if (!/^[0-9a-f-]{36}$/i.test(id)) return json(response, 400, { error:'Invalid worker record.' });
+      const rows = await restJson(`/rest/v1/labour_workers?id=eq.${encodeURIComponent(id)}&select=id,worker_code,name,bank_name,bank_account_holder,bank_account_number_encrypted,duitnow_id_encrypted&limit=1`, {}, session.accessToken);
+      const worker = rows[0]; if (!worker) return json(response, 404, { error:'Worker was not found.' });
+      try {
+        const accountNumber = decryptWorkerBankDetail(worker.bank_account_number_encrypted);
+        const duitNowId = decryptWorkerBankDetail(worker.duitnow_id_encrypted);
+        await audit(session, 'view_bank_details', 'labour_workers', worker.id, worker.worker_code || worker.name, { protectedFieldsViewed:true });
+        return json(response, 200, { bank:{ bankName:worker.bank_name, accountHolder:worker.bank_account_holder, accountNumber, duitNowId } });
+      } catch (error) {
+        if (error.message === 'worker-bank-configuration') return json(response, 503, { error:'Protected worker banking storage is not configured yet.' });
+        return json(response, 422, { error:'The protected bank details could not be opened.' });
+      }
     }
 
     if (route === '/finance-cost-create' && request.method === 'POST') {
@@ -412,10 +478,16 @@ export default async function handler(request, response) {
 
     if (route === '/finance-cost-proof-upload-url' && request.method === 'POST') {
       const session = await requireSession(request, response); if (!session) return;
-      const body = await readBody(request); const costId = bounded(body.costId, 80); const fileName = bounded(body.fileName, 180).replace(/[^a-z0-9._-]+/gi, '-'); const mimeType = bounded(body.mimeType, 80); const size = Number(body.size); const allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
-      if (!/^[0-9a-f-]{36}$/i.test(costId) || !fileName || !allowed.includes(mimeType) || !(size > 0 && size <= 5242880)) return json(response, 400, { error:'Upload a JPG, PNG, WebP or PDF payment proof up to 5 MB.' });
-      const costs = await restJson(`/rest/v1/business_costs?id=eq.${encodeURIComponent(costId)}&select=id,status,balance&limit=1`, {}, session.accessToken);
-      if (!costs[0] || !['unpaid','partially_paid'].includes(costs[0].status) || Number(costs[0].balance) <= 0) return json(response, 409, { error:'Payment proof can only be added to an outstanding cost.' });
+      const body = await readBody(request); const costId = bounded(body.costId, 80); const paymentId = bounded(body.paymentId, 80); const fileName = bounded(body.fileName, 180).replace(/[^a-z0-9._-]+/gi, '-'); const mimeType = bounded(body.mimeType, 80); const size = Number(body.size); const allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
+      if (!/^[0-9a-f-]{36}$/i.test(costId) || (paymentId && !/^[0-9a-f-]{36}$/i.test(paymentId)) || !fileName || !allowed.includes(mimeType) || !(size > 0 && size <= 5242880)) return json(response, 400, { error:'Upload a JPG, PNG, WebP or PDF payment proof up to 5 MB.' });
+      if (paymentId) {
+        if (!requireAdmin(session, response)) return;
+        const payments = await restJson(`/rest/v1/outgoing_payments?id=eq.${encodeURIComponent(paymentId)}&select=id,cost_id&limit=1`, {}, session.accessToken);
+        if (!payments[0] || payments[0].cost_id !== costId) return json(response, 404, { error:'Outgoing payment was not found.' });
+      } else {
+        const costs = await restJson(`/rest/v1/business_costs?id=eq.${encodeURIComponent(costId)}&select=id,status,balance&limit=1`, {}, session.accessToken);
+        if (!costs[0] || !['unpaid','partially_paid'].includes(costs[0].status) || Number(costs[0].balance) <= 0) return json(response, 409, { error:'Payment proof can only be added to an outstanding cost.' });
+      }
       const path = `${costId}/${Date.now()}-${fileName}`;
       const signed = await restJson(`/storage/v1/object/upload/sign/finance-proofs/${encodeURIComponent(path).replaceAll('%2F','/')}`, { method:'POST', body:JSON.stringify({}) }, session.accessToken);
       const signedPath = signed.url || signed.signedURL || signed.signedUrl;
@@ -432,6 +504,23 @@ export default async function handler(request, response) {
       const result = await restJson('/rest/v1/rpc/record_business_cost_payment', { method:'POST', body:JSON.stringify({ p_cost_id:costId, p_cash_account_id:accountId, p_payment_date:paymentDate, p_amount:amount, p_payment_method:method, p_transaction_reference:bounded(body.reference,120)||null, p_notes:bounded(body.notes,1000)||null, p_proof_storage_path:proofPath }) }, session.accessToken);
       await audit(session, 'create', 'outgoing_payments', result.id, null, { costId, cashAccountId:accountId, amount, method, paymentDate, proofAttached:true });
       return json(response, 201, { payment:result });
+    }
+
+    if (route === '/finance-cost-payment-update' && request.method === 'POST') {
+      const session = await requireSession(request, response); if (!session || !requireAdmin(session, response)) return;
+      const body = await readBody(request); const paymentId = bounded(body.paymentId, 80); const costId = bounded(body.costId, 80); const accountId = bounded(body.cashAccountId, 80); const paymentDate = bounded(body.paymentDate, 10); const amount = Number(body.amount); const method = bounded(body.paymentMethod, 30); const proofPath = bounded(body.proofPath, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(paymentId) || !/^[0-9a-f-]{36}$/i.test(costId) || !/^[0-9a-f-]{36}$/i.test(accountId) || !validDate(paymentDate) || !(amount > 0) || !['bank_transfer','cash','duitnow','cheque','other'].includes(method) || (proofPath && !proofPath.startsWith(`${costId}/`))) return json(response, 400, { error:'Enter a valid account, amount, date, method and payment record.' });
+      const existingPayments = await restJson(`/rest/v1/outgoing_payments?id=eq.${encodeURIComponent(paymentId)}&select=id,cost_id&limit=1`, {}, session.accessToken);
+      if (!existingPayments[0] || existingPayments[0].cost_id !== costId) return json(response, 404, { error:'Outgoing payment was not found.' });
+      if (proofPath) {
+        const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/finance-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
+        if (!proofCheck.ok) return json(response, 400, { error:'The replacement payment proof could not be verified. Upload it again.' });
+      }
+      const result = await restJson('/rest/v1/rpc/correct_business_cost_payment', { method:'POST', body:JSON.stringify({ p_payment_id:paymentId, p_cash_account_id:accountId, p_payment_date:paymentDate, p_amount:amount, p_payment_method:method, p_transaction_reference:bounded(body.reference,120)||null, p_notes:bounded(body.notes,1000)||null, p_proof_storage_path:proofPath||null }) }, session.accessToken);
+      const payment = result.payment;
+      if (!payment) return json(response, 409, { error:'The payment correction could not be verified.' });
+      await audit(session, 'update', 'outgoing_payments', payment.id, null, { costId, previous:result.previous, corrected:{ cashAccountId:accountId, paymentDate, amount, method, reference:bounded(body.reference,120)||null, notes:bounded(body.notes,1000)||null, proofReplaced:Boolean(proofPath) } });
+      return json(response, 200, { payment });
     }
 
     if (route === '/finance-cost-payment-proof' && request.method === 'GET') {
