@@ -36,6 +36,15 @@ test('quotation delivery requires confirmation and exposes a PDF preview', () =>
   assert.match(api, /attachments/);
 });
 
+test('sent quotations can be resent after a controlled two-minute cooldown', () => {
+  assert.match(frontend, /Resend PDF/);
+  assert.match(frontend, /Resend in/);
+  assert.match(frontend, /QUOTATION_RESEND_COOLDOWN_MS = 2 \* 60 \* 1000/);
+  assert.match(api, /quotationResendWaitSeconds/);
+  assert.match(api, /'Retry-After'/);
+  assert.match(api, /isResend \? 'resend' : 'approve_and_send'/);
+});
+
 test('only unsent draft quotations expose audited editing', () => {
   assert.match(frontend, /q\.status==='draft'&&!q\.sent_at/);
   assert.match(frontend, /Edit Draft/);
