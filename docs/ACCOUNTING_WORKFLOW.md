@@ -117,6 +117,8 @@ Posted outgoing payments are corrected through the administrator-only **Edit** a
 4. The database calculates Partially Paid or Paid and updates the remaining payable.
 5. The cash position and linked project report update from the same payment record.
 
+Administrators may correct the payee, project, dates, category, description, notes, and total through the payable **Edit** action. The total may never be reduced below payments already recorded; the database recalculates the balance and status after every correction. An Unpaid payable with no payment history may be deleted only after the administrator records a reason. Partially Paid and Paid payables are protected from deletion so payment proofs and ledger movements cannot be orphaned or silently removed. Every edit and deletion is written to the audit log.
+
 The migration `202609240001_business_finance_ledger.sql` creates the finance tables, project linkage, account attribution, private proof bucket, row-level security, and atomic payment functions.
 
 ### Worker directory and labour payments
