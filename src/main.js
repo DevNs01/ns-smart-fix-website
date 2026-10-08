@@ -1,24 +1,8 @@
 import React from 'react';
 import * as ReactDOM from 'react-dom/client';
+import { installBrowserMonitoring } from './browser-monitor.js';
 
-const reportedBrowserErrors = new Set();
-
-function reportBrowserError(type) {
-  const key = `${type}:${window.location.pathname}`;
-  if (reportedBrowserErrors.has(key) || reportedBrowserErrors.size >= 5) return;
-  reportedBrowserErrors.add(key);
-  const body = JSON.stringify({ type, page: window.location.pathname });
-  fetch('/api/monitor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-    keepalive: true,
-    credentials: 'same-origin'
-  }).catch(() => {});
-}
-
-window.addEventListener('error', () => reportBrowserError('javascript_error'));
-window.addEventListener('unhandledrejection', () => reportBrowserError('unhandled_rejection'));
+installBrowserMonitoring();
 
 // The exported Design Canvas runtime expects React's UMD-style globals.
 window.React = React;
@@ -49,6 +33,12 @@ if (!revealWebsite() && root) {
     if (message) {
       message.textContent = 'The website is taking longer than expected. Please refresh. / Laman web mengambil masa lebih lama. Sila muat semula.';
     }
-    reportBrowserError('app_load_timeout');
+    fetch('/api/monitor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'app_load_timeout', page: window.location.pathname }),
+      keepalive: true,
+      credentials: 'same-origin'
+    }).catch(() => {});
   }, 12000);
 }
