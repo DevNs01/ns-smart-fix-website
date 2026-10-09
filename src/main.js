@@ -17,6 +17,7 @@ function revealWebsite() {
   if (!root?.firstElementChild) return false;
   document.documentElement.classList.add('ns-app-ready');
   loader?.setAttribute('hidden', '');
+  document.getElementById('seo-fallback')?.remove();
   return true;
 }
 
