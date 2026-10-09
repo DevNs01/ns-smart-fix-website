@@ -769,15 +769,12 @@
       return {};
     }
   };
-  function evalDcLogic(src) {
-    //! nosemgrep: eval-and-function-constructor
-    const fn = new Function(
-      "DCLogic",
-      "StreamableLogic",
-      "React",
-      src + '\n;return (typeof Component!=="undefined"&&Component)||undefined;'
-    );
-    return fn(StreamableLogic, StreamableLogic, getReact());
+  function evalDcLogic(_src) {
+    const component = window.__dcPrecompiledLogic;
+    if (typeof component !== "function") {
+      throw new Error("dc-runtime: precompiled logic component is unavailable");
+    }
+    return component;
   }
 
   // src/component.ts
@@ -1138,35 +1135,8 @@
           return r.text();
         });
       }).then((src) => {
-        const code = kind === "jsx" ? window.Babel.transform(src, {
-          filename: url,
-          presets: ["react", "typescript"]
-        }).code : src;
-        const module = { exports: {} };
-        const before = new Set(Object.keys(window));
-        //! nosemgrep: eval-and-function-constructor
-        new Function("React", "module", "exports", "require", code)(
-          getReact(),
-          module,
-          module.exports,
-          () => ({})
-        );
-        const globals = {};
-        for (const k of Object.keys(window)) {
-          if (!before.has(k) && typeof window[k] === "function") {
-            globals[k] = window[k];
-          }
-        }
-        cache.set(url, { mod: module.exports, globals });
-        console.info(
-          "[dc-runtime] x-import: loaded",
-          url,
-          "\u2014 exports:",
-          Object.keys(module.exports),
-          "window globals:",
-          Object.keys(globals)
-        );
-        onResolved();
+        void src;
+        throw new Error(`dynamic ${kind} imports are disabled by the production Content Security Policy`);
       }).catch((e) => {
         cache.set(url, {
           mod: {},
@@ -1694,7 +1664,7 @@
       if (parsed.props) r.propsMeta = parsed.props;
       if (parsed.preview) r.preview = parsed.preview;
       if (parsed.template) updateHtml(name, parsed.template);
-      if (parsed.js) updateJs(name, parsed.js);
+      if (parsed.js || window.__dcPrecompiledLogic) updateJs(name, parsed.js);
     }
     return {
       registry,
@@ -1831,11 +1801,12 @@
     };
     Object.assign(window, api);
     window.__dcContentKeyed = true;
-    if (document.readyState !== "loading") api.__dcBoot();
-    else document.addEventListener("DOMContentLoaded", () => api.__dcBoot());
+    // The application entry boots after its precompiled logic module is ready.
+    // Keeping boot explicit prevents the template from rendering once without
+    // its component state while module scripts are still evaluating.
   }
   hideRawTemplate();
-  loadReactUmd().then(init).catch((err) => {
+  window.__dcRuntimeReady = loadReactUmd().then(init).catch((err) => {
     console.error("[dc] failed to load React or boot:", err);
     throw err;
   });

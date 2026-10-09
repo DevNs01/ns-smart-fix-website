@@ -12,7 +12,7 @@ test('business records use audited soft deletion', () => {
   assert.match(migration, /archive_reason text/);
   assert.match(api, /route === '\/record-archive'/);
   assert.match(api, /requireAdmin\(session, response\)/);
-  assert.match(api, /await audit\(session, 'archive'/);
+  assert.match(api, /await auditSupplemental\(session, 'archive'/);
   assert.doesNotMatch(api, /record-archive[\s\S]{0,2500}method:'DELETE'/);
 });
 

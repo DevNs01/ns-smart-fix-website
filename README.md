@@ -84,7 +84,7 @@ npx supabase db push
 
 `supabase/seed.sql` contains non-sensitive defaults for local development and `supabase db reset`. Do not use `--include-seed` against production. The migration itself safely creates the production default settings row with tax disabled at 0%.
 
-Apply every migration in filename order. The `202609100004_complete_admin_modules.sql` migration activates authenticated permissions for the core portal, and `202609240001_business_finance_ledger.sql` adds cash accounts, suppliers, labour, company expenses, project reporting and proof-backed outgoing payments. Public website requests are stored for the Requests module only when the server-only `SUPABASE_SERVICE_ROLE_KEY` is configured; email delivery continues independently if database storage is temporarily unavailable.
+Apply every migration in filename order. The `202609100004_complete_admin_modules.sql` migration activates authenticated permissions for the core portal, `202609240001_business_finance_ledger.sql` adds cash accounts, suppliers, labour, company expenses, project reporting and proof-backed outgoing payments, and `20261009134705_enforce_admin_security_controls.sql` adds shared authentication throttling, transaction-coupled audit coverage and database-level enforcement of quotation-only invoice creation. Public website requests are stored for the Requests module only when the server-only `SUPABASE_SERVICE_ROLE_KEY` is configured; email delivery continues independently if database storage is temporarily unavailable.
 
 Add these variables to `.env.local` for local work and to the appropriate Vercel environments for deployment:
 

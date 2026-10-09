@@ -56,7 +56,6 @@
   @keyframes ns-boot-spin{to{transform:rotate(360deg);}}
   @media (prefers-reduced-motion:reduce){.ns-boot-spinner{animation:none;border-top-color:#F59E0B;}}
 </style>
-<script type="module" src="/src/main.js"></script>
 </head>
 <body>
 <a class="ns-skip-link" href="#main-content">Skip to main content / Langkau ke kandungan utama</a>
@@ -897,7 +896,10 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script>
+<script type="module" data-dc-script>
+
+await import('/src/main.js');
+const DCLogic = window.DCLogic;
 
 const CONTENT = {
 en: {
@@ -2006,6 +2008,9 @@ class Component extends DCLogic {
   }
 }
 
+window.__dcPrecompiledLogic = Component;
+window.__dcBoot();
+window.__nsRevealWebsite?.();
 </script>
 </body>
 </html>

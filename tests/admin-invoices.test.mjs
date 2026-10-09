@@ -32,6 +32,7 @@ test('accepted quotations are converted to one invoice transactionally', () => {
   assert.match(api, /route === '\/quotation-convert'/);
   assert.match(api, /convert_accepted_quotation_to_invoice/);
   assert.match(api, /Standalone invoices are disabled/);
+  assert.doesNotMatch(api, /legacy-invoice-create-disabled/);
   assert.match(workflowMigration, /quote\.status <> 'accepted'/);
   assert.match(workflowMigration, /quotation_id = quote\.id/);
   assert.match(workflowMigration, /insert into public\.invoice_items/);
@@ -54,11 +55,10 @@ test('invoice UI supports line items, calculated totals and printing', () => {
   assert.match(invoices, /window\.print\(\)/);
 });
 
-test('invoices reuse the verified customer master record and standard snapshot fields', () => {
-  assert.match(invoices, /name="customerId"/);
-  assert.match(invoices, /invoice-customer-summary/);
-  assert.match(api, /customers\?id=eq\.\$\{encodeURIComponent\(customerId\)\}/);
-  assert.match(api, /customer_snapshot: customer/);
+test('controlled invoice conversion preserves the accepted quotation customer snapshot', () => {
+  assert.match(api, /convert_accepted_quotation_to_invoice/);
+  assert.match(workflowMigration, /quote\.customer_snapshot/);
+  assert.match(workflowMigration, /quote\.customer_id/);
   assert.doesNotMatch(api, /customer_snapshot: \{ name: customerName, contactPerson:/);
 });
 

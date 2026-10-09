@@ -4,6 +4,8 @@ import { join } from 'node:path';
 const root = process.cwd();
 const source = readFileSync(join(root, 'index.html'), 'utf8');
 const emailApi = readFileSync(join(root, 'api', 'quotation.js'), 'utf8');
+const adminApi = readFileSync(join(root, 'api', 'admin-auth.js'), 'utf8');
+const runtime = readFileSync(join(root, 'support.js'), 'utf8');
 const vercel = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
 const failures = [];
 
@@ -16,6 +18,8 @@ for (const directive of ["default-src 'self'", "object-src 'none'", "base-uri 's
   if (!csp.includes(directive)) failures.push(`CSP missing: ${directive}`);
 }
 if (csp.includes("default-src *")) failures.push('CSP uses a wildcard default source');
+if (csp.includes("'unsafe-eval'")) failures.push('CSP permits unsafe-eval');
+if (/\b(?:eval|Function)\s*\(/.test(runtime)) failures.push('Browser runtime contains dynamic code evaluation');
 
 if (!/accept="\.jpg,\.jpeg,\.png,\.webp,\.pdf/.test(source)) failures.push('File chooser allowlist missing');
 if (!/files\.length > 5/.test(source) || !/5 \* 1024 \* 1024/.test(source)) failures.push('File count or size limit missing');
@@ -27,6 +31,8 @@ if (!/checkRateLimit\(ip\)/.test(emailApi) || !/status\(429\)/.test(emailApi)) f
 if (!/checkDuplicate\(payload, ip\)/.test(emailApi) || !/status\(409\)/.test(emailApi)) failures.push('Duplicate-submission protection missing');
 if (!/turnstileToken:this\.state\.turnstileToken/.test(source)) failures.push('Turnstile token is not submitted by the form');
 if (!/escapeHtml\(input\.description/.test(emailApi)) failures.push('Email body escaping missing');
+if (/legacy-invoice-create-disabled/.test(adminApi)) failures.push('Legacy standalone invoice route is still reachable');
+if (!/consume_admin_auth_rate_limit/.test(adminApi) || /__nsAdminLoginAttempts/.test(adminApi)) failures.push('Admin login does not use shared rate limiting');
 if (/RESEND_API_KEY/.test(source)) failures.push('Server-only email credential referenced in browser source');
 if ([...source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].some(match => !/rel="[^"]*noopener[^"]*noreferrer[^"]*"/.test(match[0]))) failures.push('External blank-target link lacks noopener noreferrer');
 
