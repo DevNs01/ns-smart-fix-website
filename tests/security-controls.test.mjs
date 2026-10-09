@@ -29,6 +29,8 @@ test('admin authentication rate limiting is shared and service-role only', () =>
   assert.match(migration, /create table public\.admin_auth_rate_limits/i);
   assert.match(migration, /create or replace function public\.consume_admin_auth_rate_limit/i);
   assert.match(migration, /on conflict \(key_hash\) do update/i);
+  assert.match(migration, /v_now timestamptz := clock_timestamp\(\)/i);
+  assert.doesNotMatch(migration, /current_time timestamptz/i);
   assert.match(migration, /revoke all on table public\.admin_auth_rate_limits from public, anon, authenticated/i);
   assert.match(migration, /grant execute on function public\.consume_admin_auth_rate_limit[\s\S]*to service_role/i);
   assert.match(api, /createHmac\('sha256'/);
