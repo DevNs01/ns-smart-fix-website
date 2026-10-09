@@ -5,6 +5,11 @@ const CLIENT_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const CLIENT_LIMIT_MAX = 10;
 const clientStore = globalThis.__nsClientMonitorLimits || new Map();
 globalThis.__nsClientMonitorLimits = clientStore;
+const AUTOMATED_CLIENT = /(?:Googlebot|bingbot|DuckDuckBot|YandexBot|Baiduspider|Applebot|facebookexternalhit|Twitterbot|LinkedInBot|Slackbot|WhatsApp|crawler|spider)/i;
+const BROWSER_ERROR_CODES = new Set([
+  'Error', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError',
+  'URIError', 'AggregateError', 'DOMException', 'PromiseRejection'
+]);
 
 function authorizedCron(request) {
   const secret = process.env.CRON_SECRET;
@@ -23,6 +28,28 @@ function clientAllowed(request, now = Date.now()) {
   }
   current.count += 1;
   return current.count <= CLIENT_LIMIT_MAX;
+}
+
+export function isAutomatedClient(userAgent) {
+  return AUTOMATED_CLIENT.test(String(userAgent || ''));
+}
+
+function browserErrorCode(type, value) {
+  const code = String(value || '');
+  if (BROWSER_ERROR_CODES.has(code)) return code;
+  return type;
+}
+
+function browserErrorSource(value) {
+  const source = String(value || '');
+  if (['third_party', 'inline_or_unknown'].includes(source)) return source;
+  return source.startsWith('/') ? safePath(source) : 'inline_or_unknown';
+}
+
+function boundedInteger(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.min(1_000_000, Math.round(number)));
 }
 
 async function checkProduction(fetchImpl = fetch) {
@@ -86,17 +113,24 @@ export default async function handler(request, response) {
   const body = request.body;
   const allowedTypes = new Set(['javascript_error', 'unhandled_rejection', 'app_load_timeout']);
   if (!body || !allowedTypes.has(body.type)) return response.status(400).json({ error: 'Invalid report.' });
+  if (isAutomatedClient(request.headers?.['user-agent'])) {
+    return response.status(202).json({ ok: true, ignored: 'automated_client' });
+  }
+  const code = browserErrorCode(body.type, body.code);
+  const source = browserErrorSource(body.source);
   await sendMonitoringAlert({
     category: body.type,
     severity: body.type === 'app_load_timeout' ? 'critical' : 'warning',
     details: {
       route: safePath(body.page),
       stage: 'browser',
-      code: body.type,
+      code,
+      source,
+      line: boundedInteger(body.line),
+      column: boundedInteger(body.column),
       status: 0
     },
-    dedupeKey: `${body.type}:${safePath(body.page)}`
+    dedupeKey: `${body.type}:${safePath(body.page)}:${code}:${source}:${boundedInteger(body.line)}:${boundedInteger(body.column)}`
   });
   return response.status(202).json({ ok: true });
 }
-

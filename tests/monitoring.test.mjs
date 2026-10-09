@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import healthHandler from '../api/health.js';
-import monitorHandler from '../api/monitor.js';
+import monitorHandler, { isAutomatedClient } from '../api/monitor.js';
 import {
   emitMonitoringEvent, resetMonitoringState, safePath, sendMonitoringAlert
 } from '../api/monitoring.js';
@@ -104,8 +104,19 @@ test('browser error reporter accepts only bounded event categories', async () =>
     const accepted = responseRecorder();
     await monitorHandler({
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.80' },
-      body: { type: 'javascript_error', page: '/services?customer=private' }
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': '203.0.113.80',
+        'user-agent': 'Mozilla/5.0 Chrome/153.0.0.0 Safari/537.36'
+      },
+      body: {
+        type: 'javascript_error',
+        page: '/services?customer=private',
+        code: 'TypeError',
+        source: '/assets/website.js?private=customer@example.com',
+        line: 42,
+        column: 17
+      }
     }, accepted);
     assert.equal(accepted.statusCode, 202);
 
@@ -124,6 +135,37 @@ test('browser error reporter accepts only bounded event categories', async () =>
   }
 });
 
+test('browser monitoring ignores crawler-generated JavaScript alerts', async () => {
+  assert.equal(isAutomatedClient('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'), true);
+  assert.equal(isAutomatedClient('Mozilla/5.0 Chrome/153.0.0.0 Safari/537.36'), false);
+
+  const originalKey = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = 'test-key';
+  let emailRequests = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => { emailRequests += 1; return { ok: true, status: 200 }; };
+  try {
+    const response = responseRecorder();
+    await monitorHandler({
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': '203.0.113.82',
+        'user-agent': 'Mozilla/5.0 (Linux; Android 6.0.1) Chrome/153.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+      },
+      body: { type: 'javascript_error', page: '/' }
+    }, response);
+
+    assert.equal(response.statusCode, 202);
+    assert.deepEqual(response.payload, { ok: true, ignored: 'automated_client' });
+    assert.equal(emailRequests, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalKey;
+  }
+});
+
 test('scheduled uptime endpoint requires the Vercel cron secret', async () => {
   const originalSecret = process.env.CRON_SECRET;
   process.env.CRON_SECRET = 'test-cron-secret';
@@ -136,4 +178,3 @@ test('scheduled uptime endpoint requires the Vercel cron secret', async () => {
     else process.env.CRON_SECRET = originalSecret;
   }
 });
-

@@ -66,6 +66,7 @@ const requiredPatterns = [
   ['Critical raw-template guard', /<style>[\s\S]*x-dc\{display:none!important;\}/],
   ['Accessible first-paint loader', /id="ns-boot-loader" role="status" aria-live="polite"/],
   ['No-JavaScript fallback', /<noscript>[\s\S]*JavaScript is required/],
+  ['User-initiated security verification', /document\.addEventListener\('pointerdown',this\.handleTurnstileIntent,\{passive:true\}\)[\s\S]*document\.addEventListener\('focusin',this\.handleTurnstileIntent\)/],
 ];
 
 for (const [name, pattern] of requiredPatterns) {
