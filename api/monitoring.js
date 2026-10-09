@@ -32,6 +32,9 @@ function safeDetails(details = {}) {
   if (Number.isFinite(Number(details.durationMs))) allowed.durationMs = Math.max(0, Math.round(Number(details.durationMs)));
   if (details.state) allowed.state = safeText(details.state, 32);
   if (details.deployment) allowed.deployment = safeText(details.deployment, 80);
+  if (details.source) allowed.source = safeText(details.source, 160);
+  if (Number.isFinite(Number(details.line))) allowed.line = Math.max(0, Math.round(Number(details.line)));
+  if (Number.isFinite(Number(details.column))) allowed.column = Math.max(0, Math.round(Number(details.column)));
   return allowed;
 }
 
@@ -119,4 +122,3 @@ export async function sendMonitoringAlert(input, fetchImpl = fetch) {
     return { logged: true, emailed: false };
   }
 }
-

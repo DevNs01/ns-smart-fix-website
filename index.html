@@ -1406,15 +1406,27 @@ class Component extends DCLogic {
       this.setState({...route,mobileMenuOpen:false},()=>this.syncRouteMetadata(route.page,route.legalTab));
       this.scrollTop();
     };
+    this.handleTurnstileIntent = (event) => {
+      if (!event?.target?.closest?.('.ns-quick-grid,.ns-quote-form')) return;
+      this.turnstileActivated = true;
+      document.removeEventListener('pointerdown',this.handleTurnstileIntent);
+      document.removeEventListener('focusin',this.handleTurnstileIntent);
+      this.setupTurnstile();
+    };
     window.addEventListener('popstate',this.handlePopState);
+    document.addEventListener('pointerdown',this.handleTurnstileIntent,{passive:true});
+    document.addEventListener('focusin',this.handleTurnstileIntent);
     this.syncRouteMetadata();
-    this.setupTurnstile();
   }
   componentDidUpdate(){
-    this.setupTurnstile();
+    if (this.turnstileActivated) this.setupTurnstile();
   }
   componentWillUnmount(){
     if (typeof window !== 'undefined' && this.handlePopState) window.removeEventListener('popstate',this.handlePopState);
+    if (typeof document !== 'undefined' && this.handleTurnstileIntent) {
+      document.removeEventListener('pointerdown',this.handleTurnstileIntent);
+      document.removeEventListener('focusin',this.handleTurnstileIntent);
+    }
   }
   toggleLanguage = () => {
     this.setState(st => ({lang:st.lang === 'en' ? 'bm' : 'en'}),()=>this.syncRouteMetadata());
