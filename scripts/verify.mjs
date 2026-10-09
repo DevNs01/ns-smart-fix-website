@@ -32,9 +32,11 @@ const requiredPatterns = [
   ['English navigation handlers', /const nav = \{ home:this\.go\('home'\).*faq:this\.go\('faq'\)/],
   ['Real route map', /const ROUTE_PATHS = Object\.freeze\(\{[\s\S]*about:'\/about'[\s\S]*quotation:'\/quotation'[\s\S]*terms:'\/terms'/],
   ['Direct route resolver', /function routeStateFromPath\(pathname\)/],
-  ['History API navigation', /window\.history\.pushState\(\{page,legalTab:nextLegalTab\},'',path\)/],
+  ['History API navigation', /window\.history\.pushState\(\{page,legalTab:nextLegalTab,serviceKey:nextServiceKey,lang:this\.state\.lang\},'',path\)/],
   ['Browser back and forward navigation', /window\.addEventListener\('popstate',this\.handlePopState\)/],
-  ['Canonical URL synchronisation', /canonical\.href = `https:\/\/nssmartfixsolution\.com\$\{routePath\(page, legalTab\)\}`/],
+  ['Canonical URL synchronisation', /canonical\.href = `https:\/\/nssmartfixsolution\.com\$\{routePath\(page, legalTab, lang, serviceKey\)\}`/],
+  ['Language alternate synchronisation', /setAlternate\('en-MY',englishUrl\)[\s\S]*setAlternate\('ms-MY',malayUrl\)/],
+  ['Dedicated service routes', /electrical:'electrical-wiring-kuala-lumpur'[\s\S]*network:'network-cabling-kuala-lumpur'[\s\S]*server:'server-installation-malaysia'/],
   ['Semantic navigation URLs', /href="\{\{ navHref\.about \}\}"[\s\S]*href="\{\{ navHref\.services \}\}"[\s\S]*href="\{\{ navHref\.products \}\}"/],
   ['Primary WhatsApp contact', /this\.waLink\('60162119969'/],
   ['Primary phone contact', /href="tel:\+60162119969"/],
@@ -65,7 +67,7 @@ const requiredPatterns = [
   ['Extra-small phone controls', /@media \(max-width:380px\)[\s\S]*\.ns-sticky-bar > \*\{min-height:56px !important;font-size:13px !important;/],
   ['Critical raw-template guard', /<style>[\s\S]*x-dc\{display:none!important;\}/],
   ['Accessible first-paint loader', /id="ns-boot-loader" role="status" aria-live="polite"/],
-  ['No-JavaScript fallback', /<noscript>[\s\S]*JavaScript is required/],
+  ['Crawlable no-JavaScript fallback', /SEO_FALLBACK_START[\s\S]*id="seo-fallback"[\s\S]*Request a quotation/],
   ['User-initiated security verification', /document\.addEventListener\('pointerdown',this\.handleTurnstileIntent,\{passive:true\}\)[\s\S]*document\.addEventListener\('focusin',this\.handleTurnstileIntent\)/],
 ];
 
@@ -79,6 +81,34 @@ if (!/function revealWebsite\(\)[\s\S]*root\?\.firstElementChild/.test(entrySour
 if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: true \}\)/.test(entrySource)) {
   failures.push('Missing render observer for first-paint loader');
 }
+
+const generatedPages = [
+  ['index.html','https://nssmartfixsolution.com/'],
+  ['about.html','https://nssmartfixsolution.com/about'],
+  ['network-cabling-kuala-lumpur.html','https://nssmartfixsolution.com/network-cabling-kuala-lumpur'],
+  ['server-installation-malaysia.html','https://nssmartfixsolution.com/server-installation-malaysia'],
+  [join('ms','index.html'),'https://nssmartfixsolution.com/ms'],
+  [join('ms','about.html'),'https://nssmartfixsolution.com/ms/about'],
+  [join('ms','network-cabling-kuala-lumpur.html'),'https://nssmartfixsolution.com/ms/network-cabling-kuala-lumpur']
+];
+const generatedTitles = new Set();
+for (const [file,canonical] of generatedPages) {
+  const path = join(root,'dist',file);
+  if (!existsSync(path)) {
+    failures.push(`Missing generated SEO page: ${file}`);
+    continue;
+  }
+  const html = readFileSync(path,'utf8');
+  const title = /<title>([^<]+)<\/title>/.exec(html)?.[1];
+  if (!title) failures.push(`Missing generated title: ${file}`);
+  else generatedTitles.add(title);
+  if (!html.includes(`<link rel="canonical" href="${canonical}">`)) failures.push(`Incorrect canonical URL: ${file}`);
+  if (!/hreflang="en-MY"/.test(html) || !/hreflang="ms-MY"/.test(html)) failures.push(`Missing hreflang links: ${file}`);
+  if (/\{\{/.test(/SEO_FALLBACK_START([\s\S]*?)SEO_FALLBACK_END/.exec(html)?.[1] || '')) failures.push(`Unresolved SEO fallback placeholder: ${file}`);
+}
+if (generatedTitles.size !== generatedPages.length) failures.push('Generated SEO pages do not have unique titles');
+if (!existsSync(join(root,'dist','robots.txt'))) failures.push('Missing built robots.txt');
+if (!existsSync(join(root,'dist','sitemap.xml'))) failures.push('Missing built sitemap.xml');
 if (!/to: \[RECIPIENT\]/.test(emailApiSource) || !/html: email\.html, text: email\.plain/.test(emailApiSource)) {
   failures.push('Missing formatted quotation email delivery');
 }

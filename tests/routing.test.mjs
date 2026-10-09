@@ -20,9 +20,19 @@ const expectedRoutes = [
   '/warranty'
 ];
 
+const serviceRoutes = [
+  '/electrical-wiring-kuala-lumpur',
+  '/network-cabling-kuala-lumpur',
+  '/server-installation-malaysia',
+  '/web-design-kuala-lumpur'
+];
+
 test('all public pages have stable route paths', () => {
   for (const route of expectedRoutes) {
     assert.match(source, new RegExp(`['"]${route.replace('/', '\\/')}['"]`), `missing route ${route}`);
+  }
+  for (const route of serviceRoutes) {
+    assert.match(source, new RegExp(route.slice(1)), `missing service route ${route}`);
   }
 });
 
@@ -46,9 +56,24 @@ test('navigation links expose real href destinations', () => {
   }
 });
 
-test('Vercel serves the app shell for every direct page URL', () => {
-  const rewrites = new Map(vercel.rewrites.map(item => [item.source, item.destination]));
-  for (const route of expectedRoutes.filter(route => route !== '/')) {
-    assert.equal(rewrites.get(route), '/index.html', `missing Vercel rewrite for ${route}`);
-  }
+test('Vercel serves generated clean URLs and redirects legacy legal aliases', () => {
+  assert.equal(vercel.cleanUrls,true);
+  assert.deepEqual(vercel.rewrites,[
+    {source:'/admin',destination:'/admin.html'},
+    {source:'/admin/(.*)',destination:'/admin.html'}
+  ]);
+  const redirects = new Map(vercel.redirects.map(item => [item.source,item]));
+  const hostRedirect = vercel.redirects.find(item => item.has?.some(condition => condition.type === 'host'));
+  assert.equal(hostRedirect?.has[0].value,'www.nssmartfixsolution.com');
+  assert.equal(hostRedirect?.destination,'https://nssmartfixsolution.com/:path*');
+  assert.equal(redirects.get('/privacy-notice')?.destination,'/privacy');
+  assert.equal(redirects.get('/terms-and-conditions')?.destination,'/terms');
+  assert.equal(redirects.get('/warranty-and-service-policy')?.destination,'/warranty');
+  assert.equal(redirects.get('/ms/terms-and-conditions')?.destination,'/ms/terms');
+});
+
+test('language switcher uses crawlable Bahasa Malaysia URLs', () => {
+  assert.match(source,/normalized === '\/ms' \|\| normalized\.startsWith\('\/ms\/'\)/);
+  assert.match(source,/lang === 'bm' \? \(path === '\/' \? '\/ms'/);
+  assert.match(source,/link\[rel="alternate"\]\[hreflang=/);
 });

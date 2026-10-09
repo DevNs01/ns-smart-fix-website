@@ -3,24 +3,22 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "cleanUrls": true,
   "crons": [
     { "path": "/api/monitor", "schedule": "*/10 * * * *" }
   ],
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/admin/(.*)", "destination": "/admin.html" },
-    { "source": "/about", "destination": "/index.html" },
-    { "source": "/services", "destination": "/index.html" },
-    { "source": "/products", "destination": "/index.html" },
-    { "source": "/quotation", "destination": "/index.html" },
-    { "source": "/contact", "destination": "/index.html" },
-    { "source": "/faq", "destination": "/index.html" },
-    { "source": "/privacy", "destination": "/index.html" },
-    { "source": "/privacy-notice", "destination": "/index.html" },
-    { "source": "/terms", "destination": "/index.html" },
-    { "source": "/terms-and-conditions", "destination": "/index.html" },
-    { "source": "/warranty", "destination": "/index.html" },
-    { "source": "/warranty-and-service-policy", "destination": "/index.html" }
+    { "source": "/admin/(.*)", "destination": "/admin.html" }
+  ],
+  "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "www.nssmartfixsolution.com" }], "destination": "https://nssmartfixsolution.com/:path*", "permanent": true },
+    { "source": "/privacy-notice", "destination": "/privacy", "permanent": true },
+    { "source": "/terms-and-conditions", "destination": "/terms", "permanent": true },
+    { "source": "/warranty-and-service-policy", "destination": "/warranty", "permanent": true },
+    { "source": "/ms/privacy-notice", "destination": "/ms/privacy", "permanent": true },
+    { "source": "/ms/terms-and-conditions", "destination": "/ms/terms", "permanent": true },
+    { "source": "/ms/warranty-and-service-policy", "destination": "/ms/warranty", "permanent": true }
   ],
   "headers": [
     {
