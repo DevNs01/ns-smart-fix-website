@@ -1,6 +1,6 @@
 import { buildInvoicePdf, buildQuotationPdf, quotationEmail } from './quotation-pdf.js';
 import { sendMonitoringAlert } from './monitoring.js';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'node:crypto';
 
 const ACCESS_COOKIE = 'ns_admin_access';
 const REFRESH_COOKIE = 'ns_admin_refresh';
@@ -9,8 +9,6 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LIMIT = 8;
 export const QUOTATION_RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 const ADMIN_REDIRECT_URL = 'https://nssmartfixsolution.com/admin';
-const attempts = globalThis.__nsAdminLoginAttempts || new Map();
-globalThis.__nsAdminLoginAttempts = attempts;
 
 function json(response, status, body, headers = {}) {
   response.statusCode = status;
@@ -62,14 +60,6 @@ function clientIp(request) {
   return String(request.headers?.['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown').split(',')[0].trim().slice(0, 80);
 }
 
-export function allowLogin(ip, now = Date.now()) {
-  for (const [key, value] of attempts) if (value.resetAt <= now) attempts.delete(key);
-  const current = attempts.get(ip);
-  if (!current) { attempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS }); return true; }
-  current.count += 1;
-  return current.count <= LOGIN_LIMIT;
-}
-
 export function quotationResendWaitSeconds(sentAt, now = Date.now()) {
   const sentTime = Date.parse(String(sentAt || ''));
   if (!Number.isFinite(sentTime)) return 0;
@@ -79,7 +69,8 @@ export function quotationResendWaitSeconds(sentAt, now = Date.now()) {
 function config() {
   const url = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const key = String(process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '');
-  return { url, key, ready: /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && key.length >= 20 };
+  const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+  return { url, key, serviceRoleKey, ready: /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && key.length >= 20 };
 }
 
 async function supabaseFetch(path, options = {}, accessToken = '') {
@@ -94,6 +85,64 @@ async function supabaseFetch(path, options = {}, accessToken = '') {
       ...(options.headers || {})
     }
   });
+}
+
+async function serviceRoleJson(path, options = {}) {
+  const settings = config();
+  if (!settings.ready || settings.serviceRoleKey.length < 20) throw new Error('configuration');
+  const result = await fetch(`${settings.url}${path}`, {
+    ...options,
+    headers: {
+      apikey: settings.serviceRoleKey,
+      Authorization: `Bearer ${settings.serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  const body = await result.json().catch(() => null);
+  if (!result.ok) throw new Error('database');
+  return body;
+}
+
+export function loginRateLimitKey(ip, secret = process.env.SUPABASE_SERVICE_ROLE_KEY || '') {
+  if (String(secret).length < 20) throw new Error('configuration');
+  return createHmac('sha256', String(secret)).update(`admin-auth:${String(ip)}`).digest('hex');
+}
+
+async function checkLoginRateLimit(ip) {
+  const rows = await serviceRoleJson('/rest/v1/rpc/consume_admin_auth_rate_limit', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_key_hash: loginRateLimitKey(ip),
+      p_limit: LOGIN_LIMIT,
+      p_window_seconds: Math.floor(LOGIN_WINDOW_MS / 1000)
+    })
+  });
+  const result = Array.isArray(rows) ? rows[0] : rows;
+  if (!result || typeof result.allowed !== 'boolean') throw new Error('database');
+  return {
+    allowed: result.allowed,
+    remaining: Math.max(0, Number(result.remaining) || 0),
+    retryAfter: Math.max(0, Number(result.retry_after) || 0)
+  };
+}
+
+async function enforceAuthRateLimit(request, response) {
+  let rateLimit;
+  try {
+    rateLimit = await checkLoginRateLimit(clientIp(request));
+  } catch {
+    json(response, 503, { error: 'Sign-in protection is temporarily unavailable. Please try again later.' });
+    return false;
+  }
+  response.setHeader('X-RateLimit-Remaining', String(rateLimit.remaining));
+  if (!rateLimit.allowed) {
+    json(response, 429, { error: 'Too many requests. Please try again later.' }, {
+      'Retry-After': String(rateLimit.retryAfter)
+    });
+    return false;
+  }
+  return true;
 }
 
 async function readBody(request) {
@@ -281,12 +330,29 @@ function requireAdmin(session, response) {
 }
 
 async function audit(session, action, module, recordId = null, recordNumber = null, newValue = null) {
-  await supabaseFetch('/rest/v1/audit_logs', {
+  await restJson('/rest/v1/audit_logs', {
     method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({
       actor_id: session.user.id, action, module, record_id: recordId,
       record_number: recordNumber, new_value: newValue
     })
-  }, session.accessToken).catch(() => {});
+  }, session.accessToken);
+}
+
+async function auditSupplemental(session, action, module, recordId = null, recordNumber = null, newValue = null) {
+  try {
+    const details = newValue && typeof newValue === 'object'
+      ? { ...newValue, source: 'application_event' }
+      : { source: 'application_event' };
+    await audit(session, action, module, recordId, recordNumber, details);
+  } catch {
+    // The database trigger already committed the mandatory baseline audit in
+    // the business transaction. This richer semantic entry is supplemental.
+    await sendMonitoringAlert({
+      category: 'audit_write_failed', severity: 'warning',
+      details: { route: '/api/admin-auth', stage: 'supplemental_audit', code: `${module}_${action}` },
+      dedupeKey: `supplemental-audit:${module}:${action}`
+    });
+  }
 }
 
 async function quotationBundle(id, session) {
@@ -322,7 +388,7 @@ export default async function handler(request, response) {
 
   try {
     if (route === '/login' && request.method === 'POST') {
-      if (!allowLogin(clientIp(request))) return json(response, 429, { error: 'Too many sign-in attempts. Please try again later.' });
+      if (!await enforceAuthRateLimit(request, response)) return;
       const body = await readBody(request);
       const email = String(body.email || '').trim().toLowerCase();
       const password = String(body.password || '');
@@ -340,7 +406,7 @@ export default async function handler(request, response) {
     }
 
     if (route === '/recover' && request.method === 'POST') {
-      if (!allowLogin(clientIp(request))) return json(response, 429, { error: 'Too many requests. Please try again later.' });
+      if (!await enforceAuthRateLimit(request, response)) return;
       const body = await readBody(request);
       const email = String(body.email || '').trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -434,7 +500,7 @@ export default async function handler(request, response) {
       const path = id ? `/rest/v1/cash_accounts?id=eq.${encodeURIComponent(id)}` : '/rest/v1/cash_accounts';
       const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
       if (!rows[0]) return json(response, 404, { error:'Cash account was not found.' });
-      await audit(session, id?'update':'create', 'cash_accounts', rows[0].id, name, { accountType:type, openingBalance, isActive });
+      await auditSupplemental(session, id?'update':'create', 'cash_accounts', rows[0].id, name, { accountType:type, openingBalance, isActive });
       return json(response, id?200:201, { account:rows[0] });
     }
 
@@ -445,7 +511,7 @@ export default async function handler(request, response) {
       const path = id ? `/rest/v1/suppliers?id=eq.${encodeURIComponent(id)}` : '/rest/v1/suppliers';
       const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
       if (!rows[0]) return json(response, 404, { error:'Supplier was not found.' });
-      await audit(session, id?'update':'create', 'suppliers', rows[0].id, rows[0].name, { active:rows[0].is_active });
+      await auditSupplemental(session, id?'update':'create', 'suppliers', rows[0].id, rows[0].name, { active:rows[0].is_active });
       return json(response, id?200:201, { supplier:rows[0] });
     }
 
@@ -474,7 +540,7 @@ export default async function handler(request, response) {
       const path = id ? `/rest/v1/labour_workers?id=eq.${encodeURIComponent(id)}` : '/rest/v1/labour_workers';
       const rows = await restJson(path, { method:id?'PATCH':'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(id?payload:{...payload,created_by:session.user.id}) }, session.accessToken);
       if (!rows[0]) return json(response, 404, { error:'Labour worker was not found.' });
-      await audit(session, id?'update':'create', 'labour_workers', rows[0].id, rows[0].worker_code || rows[0].name, { active:rows[0].is_active, workerType:rows[0].worker_type, bankDetailsUpdated:Boolean(encryptedAccount || encryptedDuitNow) });
+      await auditSupplemental(session, id?'update':'create', 'labour_workers', rows[0].id, rows[0].worker_code || rows[0].name, { active:rows[0].is_active, workerType:rows[0].worker_type, bankDetailsUpdated:Boolean(encryptedAccount || encryptedDuitNow) });
       const { bank_account_number_encrypted, duitnow_id_encrypted, ...safeWorker } = rows[0];
       return json(response, id?200:201, { worker:safeWorker });
     }
@@ -501,7 +567,7 @@ export default async function handler(request, response) {
       if (!payload) return json(response, 400, { error:'Complete the cost type, payee, description, date and amount.' });
       const costNumber = await restJson('/rest/v1/rpc/next_finance_number', { method:'POST', body:JSON.stringify({kind:'cost',issue_date:payload.bill_date}) }, session.accessToken);
       const rows = await restJson('/rest/v1/business_costs', { method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify({ ...payload, cost_number:String(costNumber), amount_paid:0, balance:payload.total_amount, status:'unpaid', created_by:session.user.id }) }, session.accessToken);
-      await audit(session, 'create', 'business_costs', rows[0]?.id, String(costNumber), { costType:payload.cost_type, totalAmount:payload.total_amount, projectId:payload.project_id });
+      await auditSupplemental(session, 'create', 'business_costs', rows[0]?.id, String(costNumber), { costType:payload.cost_type, totalAmount:payload.total_amount, projectId:payload.project_id });
       return json(response, 201, { cost:rows[0] });
     }
 
@@ -563,7 +629,7 @@ export default async function handler(request, response) {
       const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/finance-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
       if (!proofCheck.ok) return json(response, 400, { error:'The uploaded payment proof could not be verified. Upload it again.' });
       const result = await restJson('/rest/v1/rpc/record_business_cost_payment', { method:'POST', body:JSON.stringify({ p_cost_id:costId, p_cash_account_id:accountId, p_payment_date:paymentDate, p_amount:amount, p_payment_method:method, p_transaction_reference:bounded(body.reference,120)||null, p_notes:bounded(body.notes,1000)||null, p_proof_storage_path:proofPath }) }, session.accessToken);
-      await audit(session, 'create', 'outgoing_payments', result.id, null, { costId, cashAccountId:accountId, amount, method, paymentDate, proofAttached:true });
+      await auditSupplemental(session, 'create', 'outgoing_payments', result.id, null, { costId, cashAccountId:accountId, amount, method, paymentDate, proofAttached:true });
       return json(response, 201, { payment:result });
     }
 
@@ -580,7 +646,7 @@ export default async function handler(request, response) {
       const result = await restJson('/rest/v1/rpc/correct_business_cost_payment', { method:'POST', body:JSON.stringify({ p_payment_id:paymentId, p_cash_account_id:accountId, p_payment_date:paymentDate, p_amount:amount, p_payment_method:method, p_transaction_reference:bounded(body.reference,120)||null, p_notes:bounded(body.notes,1000)||null, p_proof_storage_path:proofPath||null }) }, session.accessToken);
       const payment = result.payment;
       if (!payment) return json(response, 409, { error:'The payment correction could not be verified.' });
-      await audit(session, 'update', 'outgoing_payments', payment.id, null, { costId, previous:result.previous, corrected:{ cashAccountId:accountId, paymentDate, amount, method, reference:bounded(body.reference,120)||null, notes:bounded(body.notes,1000)||null, proofReplaced:Boolean(proofPath) } });
+      await auditSupplemental(session, 'update', 'outgoing_payments', payment.id, null, { costId, previous:result.previous, corrected:{ cashAccountId:accountId, paymentDate, amount, method, reference:bounded(body.reference,120)||null, notes:bounded(body.notes,1000)||null, proofReplaced:Boolean(proofPath) } });
       return json(response, 200, { payment });
     }
 
@@ -605,7 +671,7 @@ export default async function handler(request, response) {
       const body = await readBody(request); const payload = customerPayload(body);
       if (!payload) return json(response, 400, { error: 'Enter a valid customer name, phone number and email address.' });
       const rows = await restJson('/rest/v1/customers', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...payload, created_by: session.user.id }) }, session.accessToken);
-      await audit(session, 'create', 'customers', rows[0]?.id, rows[0]?.customer_code, { name: payload.name });
+      await auditSupplemental(session, 'create', 'customers', rows[0]?.id, rows[0]?.customer_code, { name: payload.name });
       return json(response, 201, { customer: rows[0] });
     }
 
@@ -627,7 +693,7 @@ export default async function handler(request, response) {
         restJson(`/rest/v1/quotations?customer_id=eq.${encodeURIComponent(id)}&status=eq.draft&sent_at=is.null`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ customer_snapshot: snapshot }) }, session.accessToken),
         restJson(`/rest/v1/invoices?customer_id=eq.${encodeURIComponent(id)}&status=in.(draft,unpaid)`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ customer_snapshot: snapshot }) }, session.accessToken)
       ]);
-      await audit(session, 'update', 'customers', id, existing[0].customer_code, { name: payload.name, active: payload.is_active, draftQuotationsUpdated: draftQuotations.length, openInvoicesUpdated: openInvoices.length });
+      await auditSupplemental(session, 'update', 'customers', id, existing[0].customer_code, { name: payload.name, active: payload.is_active, draftQuotationsUpdated: draftQuotations.length, openInvoicesUpdated: openInvoices.length });
       return json(response, 200, { customer, synchronized: { draftQuotations: draftQuotations.length, openInvoices: openInvoices.length } });
     }
 
@@ -642,7 +708,7 @@ export default async function handler(request, response) {
       const body = await readBody(request); const id = bounded(body.id, 80); const status = bounded(body.status, 20);
       if (!/^[0-9a-f-]{36}$/i.test(id) || !['new','reviewing','converted','closed','spam'].includes(status)) return json(response, 400, { error: 'Invalid request update.' });
       const rows = await restJson(`/rest/v1/quotation_requests?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ status, reviewed_by: session.user.id, reviewed_at: new Date().toISOString() }) }, session.accessToken);
-      await audit(session, 'status_change', 'requests', id, rows[0]?.public_reference, { status });
+      await auditSupplemental(session, 'status_change', 'requests', id, rows[0]?.public_reference, { status });
       return json(response, 200, { request: rows[0] });
     }
 
@@ -674,7 +740,7 @@ export default async function handler(request, response) {
       const quotationNumber = await restJson('/rest/v1/rpc/next_document_number', { method:'POST', body:JSON.stringify({kind:'quotation',issue_date:quotationDate}) }, session.accessToken);
       const rows = await restJson('/rest/v1/quotations', { method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify({ quotation_number:String(quotationNumber), customer_id:customerId, quotation_date:quotationDate, expiry_date:expiryDate, project_title:projectTitle, project_location:bounded(body.projectLocation,500)||null, description:bounded(body.description,2000)||null, customer_snapshot:customer, discount_amount:discount, tax_percent:tax, other_charges:other, subtotal, grand_total:total, notes:bounded(body.notes,2000)||null, terms_and_conditions:bounded(body.terms,5000)||null, status:'draft', created_by:session.user.id }) }, session.accessToken);
       await restJson('/rest/v1/quotation_items', { method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(items.map(item=>({...item,quotation_id:rows[0].id}))) }, session.accessToken);
-      await audit(session,'create','quotations',rows[0].id,rows[0].quotation_number,{projectTitle,total});
+      await auditSupplemental(session,'create','quotations',rows[0].id,rows[0].quotation_number,{projectTitle,total});
       return json(response,201,{quotation:rows[0]});
     }
 
@@ -693,7 +759,7 @@ export default async function handler(request, response) {
       if (!rows[0]) return json(response, 409, { error: 'The quotation changed in another session. Reload before editing.' });
       await restJson(`/rest/v1/quotation_items?quotation_id=eq.${encodeURIComponent(id)}`, { method:'DELETE', headers:{Prefer:'return=minimal'} }, session.accessToken);
       await restJson('/rest/v1/quotation_items', { method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(items.map(item=>({...item,quotation_id:id}))) }, session.accessToken);
-      await audit(session,'update','quotations',id,existing[0].quotation_number,{projectTitle,total,itemCount:items.length});
+      await auditSupplemental(session,'update','quotations',id,existing[0].quotation_number,{projectTitle,total,itemCount:items.length});
       return json(response,200,{quotation:rows[0]});
     }
 
@@ -806,7 +872,7 @@ export default async function handler(request, response) {
         body: JSON.stringify({ status:'sent', sent_at:sentAt, sent_to:recipientEmail, email_provider_id:bounded(deliveryBody.id, 120) || null })
       }, session.accessToken);
       if (!updated[0]) return json(response, 409, { error: 'The email was delivered, but another session updated this quotation. Check its audit history before retrying.' });
-      await audit(session, isResend ? 'resend' : 'approve_and_send', 'quotations', id, bundle.quotation.quotation_number, {
+      await auditSupplemental(session, isResend ? 'resend' : 'approve_and_send', 'quotations', id, bundle.quotation.quotation_number, {
         sentTo:recipientEmail, sentAt, previousSentAt, total:bundle.quotation.grand_total
       });
       return json(response, 200, {
@@ -844,7 +910,7 @@ export default async function handler(request, response) {
       if (kind === 'quotation' && !['cancelled','converted_to_invoice'].includes(record.status)) payload.status = 'cancelled';
       const rows = await restJson(`/rest/v1/${definition.table}?id=eq.${encodeURIComponent(id)}&archived_at=is.null`, { method:'PATCH', headers:{Prefer:'return=representation'}, body:JSON.stringify(payload) }, session.accessToken);
       if (!rows[0]) return json(response, 409, { error:'The record changed in another session. Reload before trying again.' });
-      await audit(session, 'archive', definition.table, id, record[definition.number], { reason, previousStatus:record.status || null, archivedAt });
+      await auditSupplemental(session, 'archive', definition.table, id, record[definition.number], { reason, previousStatus:record.status || null, archivedAt });
       return json(response, 200, { archived:true });
     }
 
@@ -861,7 +927,7 @@ export default async function handler(request, response) {
       if(!permitted) return json(response,409,{error:'This status change is not permitted by the accounting workflow.'});
       const rows=await restJson(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&status=eq.${encodeURIComponent(current.status)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:nextStatus})},session.accessToken);
       if(!rows[0]) return json(response,409,{error:'The document changed in another session. Reload before trying again.'});
-      await audit(session,'status_change',table,id,kind==='quotation'?rows[0].quotation_number:rows[0].invoice_number,{from:current.status,to:nextStatus});
+      await auditSupplemental(session,'status_change',table,id,kind==='quotation'?rows[0].quotation_number:rows[0].invoice_number,{from:current.status,to:nextStatus});
       return json(response,200,{document:rows[0]});
     }
 
@@ -905,7 +971,7 @@ export default async function handler(request, response) {
       }
       if (updates.length !== storedItems.length) return json(response, 400, { error:'Serial numbers must be submitted for every invoice item.' });
       await Promise.all(updates.map(update => restJson(`/rest/v1/invoice_items?id=eq.${encodeURIComponent(update.id)}&invoice_id=eq.${encodeURIComponent(invoiceId)}`, { method:'PATCH', headers:{Prefer:'return=minimal'}, body:JSON.stringify({serial_numbers:update.serialNumbers}) }, session.accessToken)));
-      await audit(session,'update','invoice_items',invoiceId,invoice.invoice_number,{serialNumbersUpdated:true,itemCount:updates.length});
+      await auditSupplemental(session,'update','invoice_items',invoiceId,invoice.invoice_number,{serialNumbersUpdated:true,itemCount:updates.length});
       return json(response, 200, { updated:true });
     }
 
@@ -949,7 +1015,7 @@ export default async function handler(request, response) {
       const proofCheck = await supabaseFetch(`/storage/v1/object/authenticated/payment-proofs/${encodeURIComponent(proofPath).replaceAll('%2F','/')}`, { method:'HEAD' }, session.accessToken);
       if (!proofCheck.ok) return json(response,400,{error:'The uploaded payment proof could not be verified. Upload it again.'});
       const result=await restJson('/rest/v1/rpc/record_invoice_payment',{method:'POST',body:JSON.stringify({p_invoice_id:invoice.id,p_payment_date:date,p_amount:amount,p_payment_method:method,p_transaction_reference:bounded(body.reference,120)||null,p_notes:bounded(body.notes,1000)||null,p_proof_storage_path:proofPath,p_cash_account_id:cashAccountId})},session.accessToken);
-      await audit(session,'create','payments',result.payment.id,invoice.invoice_number,{amount,method,paymentDate:date,cashAccountId,proofAttached:true});
+      await auditSupplemental(session,'create','payments',result.payment.id,invoice.invoice_number,{amount,method,paymentDate:date,cashAccountId,proofAttached:true});
       return json(response,201,result);
     }
 
@@ -960,10 +1026,10 @@ export default async function handler(request, response) {
     }
 
     if (route === '/settings' && request.method === 'GET') { const session=await requireSession(request,response); if(!session)return; const rows=await restJson('/rest/v1/company_settings?select=*&limit=1',{},session.accessToken); return json(response,200,{settings:rows[0]||{}}); }
-    if (route === '/settings-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const logoPath=bounded(b.logoPath,200)||'/assets/ns-smart-fix-logo.png'; if(!/^\/assets\/[a-z0-9._-]+\.png$/i.test(logoPath))return json(response,400,{error:'Select a valid website logo.'}); const payload={company_name:bounded(b.companyName,160),registration_number:bounded(b.registrationNumber,80)||null,business_address:bounded(b.businessAddress,1000)||null,phone:bounded(b.phone,30)||null,email:bounded(b.email,254)||null,website:bounded(b.website,300)||null,logo_path:logoPath,bank_name:bounded(b.bankName,120)||null,bank_account_name:bounded(b.bankAccountName,160)||null,bank_account_number:bounded(b.bankAccountNumber,80)||null,default_quotation_validity_days:Math.max(1,Math.min(365,Number(b.quotationDays)||14)),default_invoice_payment_days:Math.max(0,Math.min(365,Number(b.invoiceDays)||30)),default_terms:bounded(b.defaultTerms,5000)||null,tax_enabled:Boolean(b.taxEnabled),default_tax_percent:Math.max(0,Math.min(100,Number(b.defaultTaxPercent)||0)),updated_by:session.user.id}; if(payload.company_name.length<2)return json(response,400,{error:'Company name is required.'}); const rows=await restJson('/rest/v1/company_settings?id=eq.true',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)},session.accessToken); await audit(session,'update','settings',null,null,{companyName:payload.company_name}); return json(response,200,{settings:rows[0]}); }
+    if (route === '/settings-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const logoPath=bounded(b.logoPath,200)||'/assets/ns-smart-fix-logo.png'; if(!/^\/assets\/[a-z0-9._-]+\.png$/i.test(logoPath))return json(response,400,{error:'Select a valid website logo.'}); const payload={company_name:bounded(b.companyName,160),registration_number:bounded(b.registrationNumber,80)||null,business_address:bounded(b.businessAddress,1000)||null,phone:bounded(b.phone,30)||null,email:bounded(b.email,254)||null,website:bounded(b.website,300)||null,logo_path:logoPath,bank_name:bounded(b.bankName,120)||null,bank_account_name:bounded(b.bankAccountName,160)||null,bank_account_number:bounded(b.bankAccountNumber,80)||null,default_quotation_validity_days:Math.max(1,Math.min(365,Number(b.quotationDays)||14)),default_invoice_payment_days:Math.max(0,Math.min(365,Number(b.invoiceDays)||30)),default_terms:bounded(b.defaultTerms,5000)||null,tax_enabled:Boolean(b.taxEnabled),default_tax_percent:Math.max(0,Math.min(100,Number(b.defaultTaxPercent)||0)),updated_by:session.user.id}; if(payload.company_name.length<2)return json(response,400,{error:'Company name is required.'}); const rows=await restJson('/rest/v1/company_settings?id=eq.true',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)},session.accessToken); await auditSupplemental(session,'update','settings',null,null,{companyName:payload.company_name}); return json(response,200,{settings:rows[0]}); }
 
     if (route === '/users' && request.method === 'GET') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const users=await restJson('/rest/v1/profiles?select=id,full_name,role,is_active,created_at,updated_at&order=created_at.asc&limit=100',{},session.accessToken); return json(response,200,{users}); }
-    if (route === '/user-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const id=bounded(b.id,80); const roleValue=bounded(b.role,10); if(!/^[0-9a-f-]{36}$/i.test(id)||!['admin','staff'].includes(roleValue))return json(response,400,{error:'Invalid staff update.'}); if(id===session.user.id&&!b.isActive)return json(response,400,{error:'You cannot deactivate your own account.'}); const rows=await restJson(`/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({role:roleValue,is_active:Boolean(b.isActive)})},session.accessToken); await audit(session,'update','users',id,null,{role:roleValue,isActive:Boolean(b.isActive)}); return json(response,200,{user:rows[0]}); }
+    if (route === '/user-update' && request.method === 'POST') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const b=await readBody(request); const id=bounded(b.id,80); const roleValue=bounded(b.role,10); if(!/^[0-9a-f-]{36}$/i.test(id)||!['admin','staff'].includes(roleValue))return json(response,400,{error:'Invalid staff update.'}); if(id===session.user.id&&!b.isActive)return json(response,400,{error:'You cannot deactivate your own account.'}); const rows=await restJson(`/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({role:roleValue,is_active:Boolean(b.isActive)})},session.accessToken); await auditSupplemental(session,'update','users',id,null,{role:roleValue,isActive:Boolean(b.isActive)}); return json(response,200,{user:rows[0]}); }
     if (route === '/audit' && request.method === 'GET') { const session=await requireSession(request,response); if(!session||!requireAdmin(session,response))return; const logs=await restJson('/rest/v1/audit_logs?select=id,occurred_at,action,module,record_id,record_number,new_value,profiles(full_name)&order=occurred_at.desc&limit=500',{},session.accessToken); return json(response,200,{logs}); }
 
     if (route === '/invoices' && request.method === 'GET') {
@@ -1004,61 +1070,6 @@ export default async function handler(request, response) {
 
     if (route === '/invoice-create' && request.method === 'POST') {
       return json(response, 409, { error: 'Standalone invoices are disabled. Mark the quotation Accepted, then create its invoice from the Invoices page.' });
-    }
-
-    if (route === '/legacy-invoice-create-disabled' && request.method === 'POST') {
-      const session = await authenticatedSession(parseCookies(request.headers?.cookie));
-      if (!session) return json(response, 401, { error: 'Authentication is required.' }, { 'Set-Cookie': clearCookies() });
-      const body = await readBody(request);
-      const customerId = bounded(body.customerId, 80);
-      const invoiceDate = bounded(body.invoiceDate, 10);
-      const dueDate = bounded(body.dueDate, 10);
-      const projectTitle = bounded(body.projectTitle, 200);
-      const items = Array.isArray(body.items) ? body.items.slice(0, 50).map((item, index) => ({
-        position: index + 1,
-        description: bounded(item.description, 500),
-        quantity: Number(item.quantity),
-        unit_price: Number(item.unitPrice)
-      })) : [];
-      if (!/^[0-9a-f-]{36}$/i.test(customerId) || !validDate(invoiceDate) || !validDate(dueDate) || dueDate < invoiceDate || projectTitle.length < 2 || !items.length || items.some(item => !item.description || !(item.quantity > 0) || !(item.unit_price >= 0))) {
-        return json(response, 400, { error: 'Complete the required customer, date, project and invoice-item fields.' });
-      }
-      const subtotal = Math.round(items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0) * 100) / 100;
-      const discountAmount = Math.max(0, Math.min(subtotal, Number(body.discountAmount) || 0));
-      const taxPercent = Math.max(0, Math.min(100, Number(body.taxPercent) || 0));
-      const otherCharges = Math.max(0, Number(body.otherCharges) || 0);
-      const grandTotal = Math.round(((subtotal - discountAmount) * (1 + taxPercent / 100) + otherCharges) * 100) / 100;
-
-      const customerRows = await restJson(`/rest/v1/customers?id=eq.${encodeURIComponent(customerId)}&is_active=eq.true&select=id,customer_code,customer_type,name,company_registration_number,phone,email,contact_person,billing_address,service_address&limit=1`, {}, session.accessToken);
-      const customer = customerRows[0];
-      if (!customer) return json(response, 404, { error: 'Select an active customer before creating the invoice.' });
-      const numberResult = await restJson('/rest/v1/rpc/next_document_number', {
-        method: 'POST', body: JSON.stringify({ kind: 'invoice', issue_date: invoiceDate })
-      }, session.accessToken);
-      const invoiceNumber = typeof numberResult === 'string' ? numberResult : String(numberResult || '');
-      try {
-        const invoiceRows = await restJson('/rest/v1/invoices', {
-          method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({
-            invoice_number: invoiceNumber, customer_id: customer.id, invoice_date: invoiceDate, due_date: dueDate,
-            po_reference: bounded(body.poReference, 120) || null, project_title: projectTitle,
-            description: bounded(body.description, 2000) || null,
-            customer_snapshot: customer,
-            discount_amount: discountAmount, tax_percent: taxPercent, other_charges: otherCharges,
-            subtotal, grand_total: grandTotal, amount_paid: 0, balance: grandTotal,
-            notes: bounded(body.notes, 2000) || null, payment_terms: bounded(body.paymentTerms, 2000) || null,
-            status: 'draft', created_by: session.user.id
-          })
-        }, session.accessToken);
-        const invoice = invoiceRows[0];
-        await restJson('/rest/v1/invoice_items', {
-          method: 'POST', headers: { Prefer: 'return=minimal' },
-          body: JSON.stringify(items.map(item => ({ ...item, invoice_id: invoice.id })))
-        }, session.accessToken);
-        await audit(session, 'create', 'invoices', invoice.id, invoiceNumber, { customerId: customer.id, projectTitle, total: grandTotal });
-        return json(response, 201, { invoice: { ...invoice, customer_snapshot: customer, invoice_number: invoiceNumber } });
-      } catch (error) {
-        throw error;
-      }
     }
 
     if (route === '/logout' && request.method === 'POST') {

@@ -2,13 +2,17 @@
 
 Audit date: 22 July 2026. Scope: repository, reachable Git history signature scan, dependencies, local build and Vercel/GitHub configuration files. Standard: OWASP ASVS 5.0 Level 2 requirements applicable to this static architecture. This is a secure-development review, not a penetration test or certification.
 
+## Remediation addendum — 9 October 2026
+
+The repository now also contains a Supabase-backed staff portal and Vercel API functions. The October remediation removes the legacy standalone-invoice route and authenticated direct invoice inserts, adds transaction-coupled database audit triggers, replaces process-local login throttling with an atomic shared database limiter, and precompiles the public-site logic so the global CSP no longer needs `unsafe-eval`. The complete local suite and a production-build browser render passed. Production is not remediated until the new Supabase migration and matching application deployment are promoted together.
+
 ## Summary
 
 | Severity | Open | Fixed | Not applicable |
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 0 | 0 | 0 |
-| Medium | 2 | 2 | 0 |
+| Medium | 1 | 3 | 0 |
 | Low | 1 | 3 | 0 |
 | Informational | 1 | 1 | 4 |
 
@@ -25,7 +29,7 @@ Audit date: 22 July 2026. Scope: repository, reachable Git history signature sca
 - **Remediation:** Add and verify CSP, HSTS, nosniff, referrer, permissions and isolation/anti-framing headers.
 - **Status:** Fixed in code.
 - **Verification:** Automated header/CSP parser added; final Vercel Preview header/console check remains required.
-- **Residual risk:** Hosting configuration can override behavior; CSP requires `unsafe-eval` as described in NSF-SEC-002.
+- **Residual risk:** Hosting configuration can override behavior; deployed headers still require verification after promotion.
 
 ### NSF-SEC-002 — Generated runtime requires dynamic code compilation
 
@@ -36,9 +40,9 @@ Audit date: 22 July 2026. Scope: repository, reachable Git history signature sca
 - **Scenario:** If an attacker later gains control of template/script source or a vulnerable injection path, dynamic compilation can increase execution impact and limits CSP protection.
 - **Impact:** Weaker XSS defense in depth.
 - **Remediation:** Replace/export the Design Canvas runtime with precompiled React components, then remove `unsafe-eval`; do not feed remote or user-controlled templates into this runtime.
-- **Status:** Open; requires architectural migration and design regression testing.
-- **Verification:** Source inspection and CSP test confirm the dependency.
-- **Residual risk:** Current templates are static and checked into Git; `frame-ancestors 'none'` blocks editor embedding in Production, but CSP cannot be considered strict until migration.
+- **Status:** Fixed in code on 9 October 2026.
+- **Verification:** The runtime contains no `eval`/`new Function`, the CSP rejects `unsafe-eval`, the complete local suite passes, and browser verification of the production build found a complete render with no console warnings or unresolved bindings.
+- **Residual risk:** The deployed Vercel response header must be checked after promotion.
 
 ### NSF-SEC-003 — No automated repository security gates
 

@@ -28,7 +28,7 @@ for (const match of source.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) {
 }
 
 const requiredPatterns = [
-  ['Vite entry point', /<script type="module" src="\/src\/main\.js"><\/script>/],
+  ['Vite entry point', /<script type="module" data-dc-script>[\s\S]*await import\('\/src\/main\.js'\)/],
   ['English navigation handlers', /const nav = \{ home:this\.go\('home'\).*faq:this\.go\('faq'\)/],
   ['Real route map', /const ROUTE_PATHS = Object\.freeze\(\{[\s\S]*about:'\/about'[\s\S]*quotation:'\/quotation'[\s\S]*terms:'\/terms'/],
   ['Direct route resolver', /function routeStateFromPath\(pathname\)/],
@@ -78,7 +78,7 @@ for (const [name, pattern] of requiredPatterns) {
 if (!/function revealWebsite\(\)[\s\S]*root\?\.firstElementChild/.test(entrySource)) {
   failures.push('Missing render-completion guard');
 }
-if (!/new MutationObserver[\s\S]*renderObserver\.observe\(root, \{ childList: true \}\)/.test(entrySource)) {
+if (!/new MutationObserver[\s\S]*renderObserver\.observe\(document\.body, \{ childList: true, subtree: true \}\)/.test(entrySource)) {
   failures.push('Missing render observer for first-paint loader');
 }
 

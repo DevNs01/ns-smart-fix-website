@@ -55,7 +55,7 @@ test('only unsent draft quotations expose audited editing', () => {
   assert.match(api, /route === '\/quotation-update'/);
   assert.match(api, /existing\[0\]\.status !== 'draft' \|\| existing\[0\]\.sent_at/);
   assert.match(api, /status=eq\.draft&sent_at=is\.null/);
-  assert.match(api, /audit\(session,'update','quotations'/);
+  assert.match(api, /auditSupplemental\(session,'update','quotations'/);
   assert.match(draftEditingMigration, /grant delete on table public\.quotation_items to authenticated/);
 });
 
@@ -65,7 +65,7 @@ test('customer master records support audited profile editing', () => {
   assert.match(frontend, /Registration number/);
   assert.match(frontend, /Active customer/);
   assert.match(api, /route === '\/customer-update'/);
-  assert.match(api, /audit\(session, 'update', 'customers'/);
+  assert.match(api, /auditSupplemental\(session, 'update', 'customers'/);
   assert.match(api, /status=eq\.draft&sent_at=is\.null/);
   assert.match(api, /status=in\.\(draft,unpaid\)/);
   assert.match(frontend, /Save and synchronize/);

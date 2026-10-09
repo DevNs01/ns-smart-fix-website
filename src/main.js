@@ -8,12 +8,16 @@ installBrowserMonitoring();
 window.React = React;
 window.ReactDOM = ReactDOM;
 
-await import('../support.js');
+window.__dcReady = (async () => {
+  await import('../support.js');
+  await window.__dcRuntimeReady;
+})();
+await window.__dcReady;
 
 const loader = document.getElementById('ns-boot-loader');
-const root = document.getElementById('dc-root');
 
 function revealWebsite() {
+  const root = document.getElementById('dc-root');
   if (!root?.firstElementChild) return false;
   document.documentElement.classList.add('ns-app-ready');
   loader?.setAttribute('hidden', '');
@@ -21,11 +25,13 @@ function revealWebsite() {
   return true;
 }
 
-if (!revealWebsite() && root) {
+window.__nsRevealWebsite = revealWebsite;
+
+if (!revealWebsite()) {
   const renderObserver = new MutationObserver(() => {
     if (revealWebsite()) renderObserver.disconnect();
   });
-  renderObserver.observe(root, { childList: true });
+  renderObserver.observe(document.body, { childList: true, subtree: true });
 
   window.setTimeout(() => {
     if (revealWebsite()) return;

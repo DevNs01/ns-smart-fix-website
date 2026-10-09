@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { QUOTATION_RESEND_COOLDOWN_MS, allowLogin, parseCookies, quotationResendWaitSeconds, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
+import { QUOTATION_RESEND_COOLDOWN_MS, loginRateLimitKey, parseCookies, quotationResendWaitSeconds, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
 import { readFile } from 'node:fs/promises';
 
 const adminSource = await readFile(new URL('../src/admin.js', import.meta.url), 'utf8');
+const apiSource = await readFile(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 
 test('admin authentication cookies are HttpOnly and same-site restricted', () => {
   const original = process.env.NODE_ENV;
@@ -31,10 +32,13 @@ test('state-changing authentication calls require the same origin', () => {
   assert.equal(trustedOrigin({ method: 'GET', headers: {} }), true);
 });
 
-test('login attempts are rate limited', () => {
-  const ip = `test-${Date.now()}`;
-  for (let index = 0; index < 8; index += 1) assert.equal(allowLogin(ip), true);
-  assert.equal(allowLogin(ip), false);
+test('login attempts use an opaque shared database rate limit', () => {
+  const key = loginRateLimitKey('203.0.113.10', 'test-service-role-secret-key');
+  assert.match(key, /^[0-9a-f]{64}$/);
+  assert.equal(key.includes('203.0.113.10'), false);
+  assert.match(apiSource, /rpc\/consume_admin_auth_rate_limit/);
+  assert.match(apiSource, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(apiSource, /__nsAdminLoginAttempts|new Map\(\)/);
 });
 
 test('quotation resends use a two-minute server-side cooldown', () => {

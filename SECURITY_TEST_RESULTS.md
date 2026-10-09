@@ -9,7 +9,7 @@ Execution date: 22 July 2026. Target: local repository and local build only.
 | ST-03 | `npm run check` passed lint, syntax checking, 3/3 Node tests, Vite build, functional verifier and security verifier. | Pass |
 | ST-04 | Reachable-history high-confidence signature scan found no matches; `.env` files are untracked/ignored; bundle patterns checked. This is not proof that no secret exists. | Pass |
 | ST-05 | `scripts/security-test.mjs` parsed `vercel.json` and verified required headers/CSP directives. | Pass |
-| ST-06 | CSP is designed for the current runtime. Dynamic Design Canvas compilation requires `script-src 'unsafe-eval'`; browser verification on a Preview is still required before merge. | Partial / manual Preview check |
+| ST-06 | The public-site logic is precompiled; source and built runtime contain no dynamic code evaluation, and the CSP does not permit `unsafe-eval`. Local production-build browser verification completed with a full render and clean console. | Pass locally; deployed header check pending |
 | ST-07 | No `dangerouslySetInnerHTML` in application code; fixed WhatsApp origin and `encodeURIComponent` verified. Generated runtime parses trusted checked-in templates. | Pass with runtime residual risk |
 | ST-08 | No redirect parameter or arbitrary URL input exists. Destinations are fixed in source. | Pass |
 | ST-09 | Field `maxlength`/types and name, phone, email, date and aggregate-length checks added. These are client controls because no server exists. | Pass for current architecture |

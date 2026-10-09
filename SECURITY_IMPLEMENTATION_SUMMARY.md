@@ -27,11 +27,11 @@
 
 - **Critical:** 0
 - **High:** 0
-- **Medium:** 4 total; 2 fixed, 2 open/owner acceptance
+- **Medium:** 4 total; 3 fixed, 1 open/owner acceptance
 - **Low:** 4 total; 3 fixed, 1 open
 - **Informational:** 1 open/documented
 
-Open risks are the Design Canvas runtime's `unsafe-eval` requirement, personal data in visitor-initiated WhatsApp URLs, external Google Fonts and platform-only monitoring. No item was falsely marked fixed without a technical check.
+Open risks are personal data in visitor-initiated WhatsApp URLs, external Google Fonts and hosting/provider monitoring dependencies. The Design Canvas logic is now precompiled and the CSP no longer permits `unsafe-eval`.
 
 ## Manual owner actions
 
