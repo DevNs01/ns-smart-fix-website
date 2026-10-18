@@ -46,7 +46,7 @@ const requiredPatterns = [
   ['Quotation privacy validation', /if \(!f\.agree\)/],
   ['Quick WhatsApp handoff', /quickWaLink/],
   ['Quotation WhatsApp handoff', /quoteWaLink/],
-  ['BM WhatsApp labels', /\*NAMA PENUH:\*|\*Nama Penuh:\*/i],
+  ['Reference-only WhatsApp handoff', /saya ingin membuat susulan untuk permohonan sebut harga \$\{s\.quoteRef/],
   ['BM legal metadata', /Tarikh Berkuat Kuasa\|Tarikh Kemas Kini/],
   ['BM quick enquiry confirmation', /Pertanyaan berjaya diterima/],
   ['Mobile overflow protection', /html,body\{max-width:100%;overflow-x:hidden;\}/],

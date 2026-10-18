@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import healthHandler from '../api/health.js';
 import monitorHandler, { isAutomatedClient } from '../api/monitor.js';
 import {
-  emitMonitoringEvent, resetMonitoringState, safePath, sendMonitoringAlert
+  emitMonitoringEvent, resetMonitoringState, safePath, sendMonitoringAlert, sharedBudgetKey
 } from '../api/monitoring.js';
 
 function responseRecorder() {
@@ -40,8 +40,12 @@ test('monitoring sanitizes routes and excludes arbitrary customer data', () => {
 
 test('email alerts contain operational metadata only', async () => {
   const originalKey = process.env.RESEND_API_KEY;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const originalError = console.error;
   process.env.RESEND_API_KEY = 'test-key';
+  process.env.SUPABASE_URL = 'https://example-project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-secret-key';
   console.error = () => {};
   resetMonitoringState();
   let request;
@@ -56,7 +60,10 @@ test('email alerts contain operational metadata only', async () => {
         customerEmail: 'private@example.com',
         message: 'Sensitive form contents'
       }
-    }, async (_url, options) => {
+    }, async (url, options) => {
+      if (String(url).includes('/consume_service_rate_limit')) {
+        return { ok:true, json:async()=>[{ allowed:true, remaining:0, retry_after:0 }] };
+      }
       request = JSON.parse(options.body);
       return { ok: true, status: 200 };
     });
@@ -69,6 +76,48 @@ test('email alerts contain operational metadata only', async () => {
     console.error = originalError;
     if (originalKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalKey;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
+  }
+});
+
+test('monitoring keys are opaque and duplicate email claims use shared state', async () => {
+  const originalResend = process.env.RESEND_API_KEY;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const originalError = console.error;
+  process.env.RESEND_API_KEY = 'test-key';
+  process.env.SUPABASE_URL = 'https://example-project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-secret-key';
+  console.error = () => {};
+  const opaque = sharedBudgetKey('monitor-client', '203.0.113.88', process.env.SUPABASE_SERVICE_ROLE_KEY);
+  assert.match(opaque, /^[0-9a-f]{64}$/);
+  assert.equal(opaque.includes('203.0.113.88'), false);
+  let claims = 0;
+  let emails = 0;
+  const sharedFetch = async url => {
+    if (String(url).includes('/consume_service_rate_limit')) {
+      claims += 1;
+      return { ok:true, json:async()=>[{ allowed:claims === 1, remaining:0, retry_after:60 }] };
+    }
+    emails += 1;
+    return { ok:true, status:200, json:async()=>({}) };
+  };
+  try {
+    await sendMonitoringAlert({ category:'javascript_error', severity:'warning', dedupeKey:'same-alert' }, sharedFetch);
+    await sendMonitoringAlert({ category:'javascript_error', severity:'warning', dedupeKey:'same-alert' }, sharedFetch);
+    assert.equal(claims, 2);
+    assert.equal(emails, 1);
+  } finally {
+    console.error = originalError;
+    if (originalResend === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalResend;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
   }
 });
 
@@ -96,10 +145,14 @@ test('health endpoint reports readiness without returning secrets', () => {
 test('browser error reporter accepts only bounded event categories', async () => {
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.RESEND_API_KEY;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const originalError = console.error;
   delete process.env.RESEND_API_KEY;
+  process.env.SUPABASE_URL = 'https://example-project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-secret-key';
   console.error = () => {};
-  globalThis.fetch = async () => ({ ok: true, status: 200 });
+  globalThis.fetch = async () => ({ ok:true, status:200, json:async()=>[{ allowed:true, remaining:9, retry_after:0 }] });
   try {
     const accepted = responseRecorder();
     await monitorHandler({
@@ -132,6 +185,10 @@ test('browser error reporter accepts only bounded event categories', async () =>
     console.error = originalError;
     if (originalKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalKey;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
   }
 });
 
@@ -140,10 +197,20 @@ test('browser monitoring ignores crawler-generated JavaScript alerts', async () 
   assert.equal(isAutomatedClient('Mozilla/5.0 Chrome/153.0.0.0 Safari/537.36'), false);
 
   const originalKey = process.env.RESEND_API_KEY;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   process.env.RESEND_API_KEY = 'test-key';
+  process.env.SUPABASE_URL = 'https://example-project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-secret-key';
   let emailRequests = 0;
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => { emailRequests += 1; return { ok: true, status: 200 }; };
+  globalThis.fetch = async url => {
+    if (String(url).includes('/consume_service_rate_limit')) {
+      return { ok:true, status:200, json:async()=>[{ allowed:true, remaining:9, retry_after:0 }] };
+    }
+    emailRequests += 1;
+    return { ok:true, status:200, json:async()=>({}) };
+  };
   try {
     const response = responseRecorder();
     await monitorHandler({
@@ -163,6 +230,10 @@ test('browser monitoring ignores crawler-generated JavaScript alerts', async () 
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalKey;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
   }
 });
 

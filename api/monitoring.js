@@ -1,11 +1,11 @@
+import { createHmac } from 'node:crypto';
+
 const ALERT_RECIPIENT = process.env.MONITORING_ALERT_EMAIL
   || process.env.QUOTATION_TO_EMAIL
   || 'admin@nssmartfixsolution.com';
 const ALERT_SENDER = process.env.QUOTATION_FROM_EMAIL
   || 'NS Smart Fix Website <website@nssmartfixsolution.com>';
 const DEFAULT_COOLDOWN_MS = 15 * 60 * 1000;
-const alertStore = globalThis.__nsMonitoringAlerts || new Map();
-globalThis.__nsMonitoringAlerts = alertStore;
 
 function safeText(value, max = 160) {
   return String(value || '')
@@ -51,16 +51,46 @@ export function emitMonitoringEvent(category, severity, details = {}) {
   return event;
 }
 
-function shouldSend(key, now = Date.now()) {
-  const cooldown = Math.max(60_000, Number(process.env.MONITORING_ALERT_COOLDOWN_MS) || DEFAULT_COOLDOWN_MS);
-  const previous = alertStore.get(key) || 0;
-  if (previous > now - cooldown) return false;
-  alertStore.set(key, now);
-  return true;
+export function sharedBudgetKey(namespace, value, secret = process.env.SUPABASE_SERVICE_ROLE_KEY || '') {
+  if (String(secret).length < 20) throw new Error('configuration');
+  return createHmac('sha256', String(secret))
+    .update(`${String(namespace).slice(0, 80)}:${String(value).slice(0, 500)}`)
+    .digest('hex');
 }
 
 export function resetMonitoringState() {
-  alertStore.clear();
+  // Shared production state is intentionally not process-local. Tests use
+  // isolated fake RPC stores instead of resetting a module-level Map.
+}
+
+export async function consumeSharedBudget(namespace, value, limit, windowMs, fetchImpl = fetch) {
+  const url = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
+  const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) || key.length < 20) {
+    throw new Error('configuration');
+  }
+  const result = await fetchImpl(`${url}/rest/v1/rpc/consume_service_rate_limit`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      p_key_hash: sharedBudgetKey(namespace, value, key),
+      p_limit: limit,
+      p_window_seconds: Math.max(60, Math.ceil(windowMs / 1000))
+    })
+  });
+  const rows = await result.json().catch(() => null);
+  if (!result.ok) throw new Error('database');
+  const budget = Array.isArray(rows) ? rows[0] : rows;
+  if (!budget || typeof budget.allowed !== 'boolean') throw new Error('database');
+  return {
+    allowed: budget.allowed,
+    remaining: Math.max(0, Number(budget.remaining) || 0),
+    retryAfter: Math.max(0, Number(budget.retry_after) || 0)
+  };
 }
 
 export async function sendMonitoringAlert(input, fetchImpl = fetch) {
@@ -70,9 +100,21 @@ export async function sendMonitoringAlert(input, fetchImpl = fetch) {
   const event = emitMonitoringEvent(category, severity, details);
   const dedupeKey = safeText(input?.dedupeKey, 120) || `${category}:${details.route || ''}:${details.stage || ''}:${details.code || ''}`;
 
-  if (!process.env.RESEND_API_KEY || !shouldSend(dedupeKey)) {
+  if (!process.env.RESEND_API_KEY) {
     return { logged: true, emailed: false };
   }
+
+  const cooldown = Math.max(60_000, Number(process.env.MONITORING_ALERT_COOLDOWN_MS) || DEFAULT_COOLDOWN_MS);
+  let emailBudget;
+  try {
+    emailBudget = await consumeSharedBudget('monitor-alert', dedupeKey, 1, cooldown, fetchImpl);
+  } catch {
+    emitMonitoringEvent('monitoring_rate_limit_failed', 'critical', {
+      route: '/api/monitoring', stage: 'shared_dedupe', code: category
+    });
+    return { logged: true, emailed: false };
+  }
+  if (!emailBudget.allowed) return { logged: true, emailed: false };
 
   const rows = Object.entries(details)
     .map(([key, value]) => `${key}: ${value}`)

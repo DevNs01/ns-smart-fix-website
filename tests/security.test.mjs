@@ -5,10 +5,16 @@ import test from 'node:test';
 const source = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
 
-test('WhatsApp destinations are fixed business numbers and messages are encoded', () => {
+test('WhatsApp destinations are fixed and follow-up URLs contain references only', () => {
   assert.match(source, /waLink\(phone, msg\)\{ return "https:\/\/wa\.me\/" \+ phone \+ "\?text=" \+ encodeURIComponent\(msg\); \}/);
   assert.match(source, /this\.waLink\('60162119969'/);
   assert.doesNotMatch(source, /60164110681|016-411 0681/);
+  const quickMessage = /const quickWaMessage =([\s\S]*?)const quickWaLink/.exec(source)?.[1] || '';
+  const quoteMessage = /const quoteWaMsg =([\s\S]*?)const quoteWaLink/.exec(source)?.[1] || '';
+  assert.match(quickMessage, /s\.quickRef/);
+  assert.match(quoteMessage, /s\.quoteRef/);
+  assert.doesNotMatch(quickMessage, /quickForm|phone|message|service/i);
+  assert.doesNotMatch(quoteMessage, /quoteForm|quoteServices|quoteFiles|location|email|phone|description|budget|urgency/i);
 });
 
 test('public forms constrain personal-data fields', () => {

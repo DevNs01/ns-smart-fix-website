@@ -6,13 +6,17 @@ Audit date: 22 July 2026. Scope: repository, reachable Git history signature sca
 
 The repository now also contains a Supabase-backed staff portal and Vercel API functions. The October remediation removes the legacy standalone-invoice route and authenticated direct invoice inserts, adds transaction-coupled database audit triggers, replaces process-local login throttling with an atomic shared database limiter, and precompiles the public-site logic so the global CSP no longer needs `unsafe-eval`. The complete local suite and a production-build browser render passed. Production is not remediated until the new Supabase migration and matching application deployment are promoted together.
 
+## Remediation addendum — 18 October 2026
+
+The public WhatsApp follow-up URLs now contain only a generated request reference and fixed explanatory text; names, contact details, locations, descriptions, budgets and filenames are not placed in the URL. The staff portal remediation also removes authenticated table-level writes, introduces narrowly scoped transactional RPCs for draft-quotation replacement and payment recording, verifies payment-proof objects at the database boundary, moves monitoring throttling to the shared database limiter, and binds quotation delivery to the exact reserved snapshot. Deployment still requires the two accompanying Supabase migrations and matching application release.
+
 ## Summary
 
 | Severity | Open | Fixed | Not applicable |
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 0 | 0 | 0 |
-| Medium | 1 | 3 | 0 |
+| Medium | 0 | 4 | 0 |
 | Low | 1 | 3 | 0 |
 | Informational | 1 | 1 | 4 |
 
@@ -75,13 +79,13 @@ The repository now also contains a Supabase-backed staff portal and Vercel API f
 - **Severity:** Medium
 - **References:** OWASP ASVS 5.0 V14 Data Protection; CWE-359
 - **Affected:** `index.html` WhatsApp message construction
-- **Evidence:** Name, phone, project location and description are encoded into the query of a fixed `wa.me` link after submission.
+- **Evidence:** The earlier implementation encoded name, phone, project location and description into the query of a fixed `wa.me` link after submission.
 - **Scenario:** On a shared device, browser history, clipboard/screenshots or WhatsApp account access may reveal enquiry details.
 - **Impact:** Disclosure of customer/contact/site information.
 - **Remediation:** Keep collection minimal; clearly tell users that clicking transfers details to WhatsApp; discourage secrets or sensitive site/security information; consider a properly secured server form with defined retention if business needs expand.
-- **Status:** Open / product-owner acceptance required. Preserved because WhatsApp handoff is existing core functionality.
-- **Verification:** Data-flow/source review; fixed destination and encoding verified.
-- **Residual risk:** WhatsApp and endpoint-device handling are outside this repository.
+- **Status:** Fixed in code on 18 October 2026.
+- **Verification:** Static and unit tests require a reference-only WhatsApp message and reject form-field interpolation into the URL.
+- **Residual risk:** The generated request reference and fixed business message are still disclosed to WhatsApp and may remain in browser or device history; endpoint handling is outside this repository.
 
 ### NSF-SEC-006 — External Google Fonts dependency
 

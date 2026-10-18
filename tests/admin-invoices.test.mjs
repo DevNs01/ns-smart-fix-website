@@ -6,9 +6,10 @@ const admin = readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const invoices = readFileSync(new URL('../src/admin-invoices.js', import.meta.url), 'utf8');
 const adminModules = readFileSync(new URL('../src/admin-modules.js', import.meta.url), 'utf8');
 const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
-const migration = readFileSync(new URL('../supabase/migrations/202609100003_invoice_module_permissions.sql', import.meta.url), 'utf8');
 const workflowMigration = readFileSync(new URL('../supabase/migrations/202609150001_controlled_quote_to_cash.sql', import.meta.url), 'utf8');
 const paymentMigration = readFileSync(new URL('../supabase/migrations/202609150003_atomic_invoice_payments.sql', import.meta.url), 'utf8');
+const paymentHardeningMigration = readFileSync(new URL('../supabase/migrations/20261018032632_prepare_security_boundaries.sql', import.meta.url), 'utf8');
+const readOnlyMigration = readFileSync(new URL('../supabase/migrations/20261018032714_enforce_portal_read_only.sql', import.meta.url), 'utf8');
 const serialMigration = readFileSync(new URL('../supabase/migrations/202609150004_invoice_item_serial_numbers.sql', import.meta.url), 'utf8');
 const paymentStatusMigration = readFileSync(new URL('../supabase/migrations/202609170001_payment_status.sql', import.meta.url), 'utf8');
 const pdf = readFileSync(new URL('../api/quotation-pdf.js', import.meta.url), 'utf8');
@@ -126,6 +127,9 @@ test('payment and receipt are committed atomically and status remains database-d
   assert.match(paymentMigration, /insert into public\.payments/);
   assert.match(paymentMigration, /insert into public\.receipts/);
   assert.match(paymentMigration, /p_proof_storage_path is null/);
+  assert.match(paymentHardeningMigration, /drop function if exists public\.record_invoice_payment\([\s\S]*uuid, date, numeric, public\.payment_method, text, text, text[\s\S]*\)/i);
+  assert.match(paymentHardeningMigration, /bucket_id = 'payment-proofs'[\s\S]*name = p_proof_storage_path/i);
+  assert.match(paymentHardeningMigration, /security definer[\s\S]*Active staff access is required/i);
   assert.doesNotMatch(invoices, /name="status"[^>]*>[\s\S]*value="paid"/);
   assert.match(invoices, /id="invoice-status-filter"/);
 });
@@ -139,7 +143,7 @@ test('invoice items support validated serial numbers in the portal and PDF', () 
   assert.match(pdf, /Serial No:/);
 });
 
-test('invoice tables are granted only to authenticated users', () => {
-  assert.match(migration, /grant select, insert, update on table public\.invoices to authenticated/);
-  assert.doesNotMatch(migration, /\bto anon\b/);
+test('invoice tables are read-only to authenticated browser sessions', () => {
+  assert.match(readOnlyMigration, /revoke all on table[\s\S]*public\.invoices[\s\S]*public\.invoice_items[\s\S]*from public, anon, authenticated/i);
+  assert.match(readOnlyMigration, /grant select on table[\s\S]*public\.invoices[\s\S]*public\.invoice_items[\s\S]*to authenticated/i);
 });
