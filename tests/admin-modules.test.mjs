@@ -7,6 +7,8 @@ const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8
 const adminShell = readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const migration = readFileSync(new URL('../supabase/migrations/202609100004_complete_admin_modules.sql', import.meta.url), 'utf8');
 const draftEditingMigration = readFileSync(new URL('../supabase/migrations/202609110002_draft_quotation_editing.sql', import.meta.url), 'utf8');
+const securityBoundaryMigration = readFileSync(new URL('../supabase/migrations/20261018032632_prepare_security_boundaries.sql', import.meta.url), 'utf8');
+const readOnlyMigration = readFileSync(new URL('../supabase/migrations/20261018032714_enforce_portal_read_only.sql', import.meta.url), 'utf8');
 
 for (const module of ['Dashboard','Customers','Requests','Quotations','Payments','Receipts','Settings','Users','Audit']) {
   test(`${module} has a production renderer`, () => assert.match(frontend, new RegExp(`render${module}`)));
@@ -53,10 +55,19 @@ test('only unsent draft quotations expose audited editing', () => {
   assert.match(adminShell, /String\(action\)\.split\('&'\)/);
   assert.match(api, /route === '\/quotation-detail'/);
   assert.match(api, /route === '\/quotation-update'/);
-  assert.match(api, /existing\[0\]\.status !== 'draft' \|\| existing\[0\]\.sent_at/);
-  assert.match(api, /status=eq\.draft&sent_at=is\.null/);
+  assert.match(api, /existing\[0\]\.status !== 'draft' \|\| existing\[0\]\.sent_at \|\| existing\[0\]\.approved_at/);
+  assert.match(api, /rpc\/replace_draft_quotation/);
   assert.match(api, /auditSupplemental\(session,'update','quotations'/);
   assert.match(draftEditingMigration, /grant delete on table public\.quotation_items to authenticated/);
+  assert.match(securityBoundaryMigration, /for update[\s\S]*Only an unreserved draft quotation can be edited/i);
+  assert.match(readOnlyMigration, /revoke all on table[\s\S]*public\.quotation_items[\s\S]*from public, anon, authenticated/i);
+});
+
+test('quotation delivery reloads the exact reserved snapshot', () => {
+  assert.match(api, /bundle = await quotationBundle\(id, session\)/);
+  assert.match(api, /approved_at=eq\.\$\{encodeURIComponent\(deliveryReservationAt\)\}/);
+  assert.match(api, /storedRecipient !== recipientEmail/);
+  assert.match(api, /Idempotency-Key/);
 });
 
 test('customer master records support audited profile editing', () => {

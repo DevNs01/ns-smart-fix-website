@@ -4,6 +4,10 @@ import { readFile } from 'node:fs/promises';
 
 const api = await readFile(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261009134705_enforce_admin_security_controls.sql', import.meta.url), 'utf8');
+const boundaryMigration = await readFile(new URL('../supabase/migrations/20261018032632_prepare_security_boundaries.sql', import.meta.url), 'utf8');
+const enforcementMigration = await readFile(new URL('../supabase/migrations/20261018032714_enforce_portal_read_only.sql', import.meta.url), 'utf8');
+const monitoring = await readFile(new URL('../api/monitoring.js', import.meta.url), 'utf8');
+const monitorApi = await readFile(new URL('../api/monitor.js', import.meta.url), 'utf8');
 const runtime = await readFile(new URL('../support.js', import.meta.url), 'utf8');
 const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const vercel = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
@@ -23,6 +27,29 @@ test('business mutations are audited by a fail-together database trigger', () =>
   assert.match(migration, /when raw_id ~\*[\s\S]*then raw_id::uuid[\s\S]*else null/i);
   assert.match(api, /await audit\(session, 'view_bank_details'/);
   assert.match(api, /auditSupplemental[\s\S]*audit_write_failed/);
+  assert.match(boundaryMigration, /request_headers[\s\S]*x-ns-actor-id/i);
+  assert.match(api, /'X-NS-Actor-Id': actorId/);
+});
+
+test('authenticated Data API access is read-only outside scoped RPCs', () => {
+  assert.match(enforcementMigration, /revoke all on table[\s\S]*from public, anon, authenticated/i);
+  assert.match(enforcementMigration, /grant select on table[\s\S]*to authenticated/i);
+  assert.match(enforcementMigration, /drop policy if exists staff_quotations/i);
+  assert.match(enforcementMigration, /create policy staff_quotations_read[\s\S]*for select/i);
+  assert.match(enforcementMigration, /create policy admin_audit_read[\s\S]*public\.is_admin\(\)/i);
+  assert.match(enforcementMigration, /grant select \([\s\S]*bank_account_last_four[\s\S]*\) on table public\.labour_workers to authenticated/i);
+  assert.doesNotMatch(enforcementMigration, /bank_account_number_encrypted[\s\S]*to authenticated/i);
+  assert.match(api, /portalServiceJson[\s\S]*X-NS-Actor-Id/i);
+});
+
+test('monitoring limits and email dedupe use shared service-role state', () => {
+  assert.match(boundaryMigration, /create table public\.service_rate_limits/i);
+  assert.match(boundaryMigration, /create or replace function public\.consume_service_rate_limit/i);
+  assert.match(boundaryMigration, /grant execute on function public\.consume_service_rate_limit[\s\S]*to service_role/i);
+  assert.match(monitoring, /rpc\/consume_service_rate_limit/);
+  assert.match(monitorApi, /consumeSharedBudget\('monitor-client'/);
+  assert.doesNotMatch(monitoring, /__nsMonitoringAlerts|new Map\(\)/);
+  assert.doesNotMatch(monitorApi, /__nsClientMonitorLimits|new Map\(\)/);
 });
 
 test('admin authentication rate limiting is shared and service-role only', () => {

@@ -5,18 +5,21 @@
 - **Framework:** React 18.3.1 with Vite 8.1.5 and a generated Design Canvas runtime
 - **Node.js:** 24.x (`v24.16.0` used locally)
 - **Package manager:** npm with `package-lock.json`
-- **Hosting:** static `dist` output on Vercel
-- **Backend/API/database/ORM/auth/session/storage/email/analytics/payment:** none detected
-- **Forms:** browser-only state and explicit WhatsApp handoff; no upload or submission endpoint
-- **Routes:** public in-page views only; no protected, customer, administrator, API or middleware routes
-- **Environment variables:** none required
+- **Hosting:** static `dist` output and serverless API functions on Vercel
+- **Backend:** Supabase Auth, PostgreSQL/RLS and private storage; Resend transactional email
+- **Forms:** server-validated email submission with an optional reference-only WhatsApp follow-up
+- **Routes:** public in-page views plus an authenticated staff portal and protected API functions
+- **Environment variables:** server-only Supabase and email credentials are required in Vercel
 
 ## Controls implemented
 
 - Compatible CSP and comprehensive Vercel browser security headers.
 - Field types, length limits, name/phone/email/date checks and fixed allowlists.
 - File-selection limit of five; JPG/PNG/WebP/PDF only; 5 MB each; extension plus MIME validation. No files are uploaded.
-- Safe fixed WhatsApp destinations with URL encoding and protected external links.
+- Safe fixed WhatsApp destinations whose messages contain only fixed text and an opaque request reference.
+- Read-only authenticated table grants, scoped security-definer RPCs, transaction-coupled audit triggers and server-side role enforcement.
+- Database-authoritative payment-proof checks, atomic draft-quotation replacement and snapshot-bound quotation delivery.
+- Shared database-backed authentication and monitoring rate limits suitable for multiple serverless instances.
 - No Production source maps; immutable hashed-asset cache policy.
 - Expanded `.gitignore`, safe `.env.example`, configuration/rotation guidance and common secret-pattern tests.
 - Clean-install CI, lint, syntax check, unit tests, build, npm audit and security verification.
@@ -27,17 +30,17 @@
 
 - **Critical:** 0
 - **High:** 0
-- **Medium:** 4 total; 3 fixed, 1 open/owner acceptance
+- **Medium:** 4 total; 4 fixed
 - **Low:** 4 total; 3 fixed, 1 open
 - **Informational:** 1 open/documented
 
-Open risks are personal data in visitor-initiated WhatsApp URLs, external Google Fonts and hosting/provider monitoring dependencies. The Design Canvas logic is now precompiled and the CSP no longer permits `unsafe-eval`.
+Open risks are external Google Fonts and hosting/provider dependencies. WhatsApp follow-up URLs no longer include personal or project details. The Design Canvas logic is precompiled and the CSP does not permit `unsafe-eval`.
 
 ## Manual owner actions
 
 - Review and accept or remediate every open finding in `SECURITY_AUDIT.md`.
 - Have privacy/terms wording reviewed by a qualified Malaysian legal/privacy professional.
-- Do not add accounts, APIs, uploads, payments, databases or admin/customer functions without implementing the release gates in the threat model and test plan.
+- Review role changes, new RPCs, storage paths and business-state transitions against the release gates in the threat model and test plan.
 
 ## Vercel actions
 

@@ -1,10 +1,8 @@
-import { safePath, sendMonitoringAlert } from './monitoring.js';
+import { consumeSharedBudget, safePath, sendMonitoringAlert } from './monitoring.js';
 
 const MAX_BODY_BYTES = 4 * 1024;
 const CLIENT_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const CLIENT_LIMIT_MAX = 10;
-const clientStore = globalThis.__nsClientMonitorLimits || new Map();
-globalThis.__nsClientMonitorLimits = clientStore;
 const AUTOMATED_CLIENT = /(?:Googlebot|bingbot|DuckDuckBot|YandexBot|Baiduspider|Applebot|facebookexternalhit|Twitterbot|LinkedInBot|Slackbot|WhatsApp|crawler|spider)/i;
 const BROWSER_ERROR_CODES = new Set([
   'Error', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError',
@@ -16,18 +14,12 @@ function authorizedCron(request) {
   return Boolean(secret) && request.headers?.authorization === `Bearer ${secret}`;
 }
 
-function clientAllowed(request, now = Date.now()) {
+async function clientAllowance(request) {
   const key = String(request.headers?.['x-vercel-forwarded-for']
     || request.headers?.['x-forwarded-for']
     || request.socket?.remoteAddress
     || 'unknown').split(',')[0].trim().slice(0, 80);
-  const current = clientStore.get(key);
-  if (!current || current.resetAt <= now) {
-    clientStore.set(key, { count: 1, resetAt: now + CLIENT_LIMIT_WINDOW_MS });
-    return true;
-  }
-  current.count += 1;
-  return current.count <= CLIENT_LIMIT_MAX;
+  return consumeSharedBudget('monitor-client', key, CLIENT_LIMIT_MAX, CLIENT_LIMIT_WINDOW_MS);
 }
 
 export function isAutomatedClient(userAgent) {
@@ -108,7 +100,18 @@ export default async function handler(request, response) {
   if (Number(request.headers?.['content-length'] || 0) > MAX_BODY_BYTES) {
     return response.status(413).json({ error: 'Request is too large.' });
   }
-  if (!clientAllowed(request)) return response.status(429).json({ error: 'Too many reports.' });
+  let clientBudget;
+  try {
+    clientBudget = await clientAllowance(request);
+  } catch {
+    return response.status(503).json({ error: 'Monitoring protection is temporarily unavailable.' });
+  }
+  response.setHeader('X-RateLimit-Limit', String(CLIENT_LIMIT_MAX));
+  response.setHeader('X-RateLimit-Remaining', String(clientBudget.remaining));
+  if (!clientBudget.allowed) {
+    response.setHeader('Retry-After', String(clientBudget.retryAfter));
+    return response.status(429).json({ error: 'Too many reports.' });
+  }
 
   const body = request.body;
   const allowedTypes = new Set(['javascript_error', 'unhandled_rejection', 'app_load_timeout']);
