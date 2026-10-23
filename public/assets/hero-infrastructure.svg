@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" role="img" aria-labelledby="title desc">
+  <title id="title">Connected server and network infrastructure</title>
+  <desc id="desc">Isometric server racks, a network appliance and a workstation connected by illuminated data lines.</desc>
+  <defs>
+    <linearGradient id="rack" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6488b3"/>
+      <stop offset="1" stop-color="#2d4a70"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#233e61"/>
+      <stop offset="1" stop-color="#132a49"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#65e2f8"/>
+      <stop offset="1" stop-color="#347dff"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78 397 352 236 646 404 369 469Z" fill="#102743" stroke="#35577e" stroke-width="2"/>
+    <path d="m103 388 264 63 250-57" stroke="#2d527a" stroke-width="1.5" opacity=".75"/>
+    <path d="M134 357 370 415 579 365" stroke="#2d527a" stroke-width="1.5" opacity=".7"/>
+    <path d="m180 330 189 46 164-39" stroke="#2d527a" stroke-width="1.5" opacity=".65"/>
+    <path d="M315 114 431 50l92 54-117 67Z" fill="#6f91b9" stroke="#8aabd0" stroke-width="2"/>
+    <path d="m315 114 91 57v221l-91-55Z" fill="url(#rack)" stroke="#7b9dc4" stroke-width="2"/>
+    <path d="m406 171 117-67v220l-117 68Z" fill="url(#side)" stroke="#52769e" stroke-width="2"/>
+    <path d="M334 143v38l53 32v-39Z" fill="#122844" stroke="#8caed0"/>
+    <path d="M334 200v38l53 32v-39Z" fill="#122844" stroke="#8caed0"/>
+    <path d="M334 257v38l53 32v-39Z" fill="#122844" stroke="#8caed0"/>
+    <path d="M334 314v20l53 32v-21Z" fill="#122844" stroke="#8caed0"/>
+    <g stroke="#57d9f5" stroke-width="4" filter="url(#glow)">
+      <path d="m346 158 3 2M358 165l3 2M346 215l3 2M358 222l3 2M346 272l3 2M358 279l3 2"/>
+    </g>
+    <g stroke="#6b8db2" stroke-width="4">
+      <path d="m430 191 68-39M430 211l68-39M430 248l68-39M430 268l68-39M430 305l68-39M430 325l68-39"/>
+    </g>
+    <path d="m116 287 80-46 69 41-81 47Z" fill="#5d7fa7" stroke="#87a7c9" stroke-width="2"/>
+    <path d="m116 287 68 42v83l-68-40Z" fill="#2c4a70" stroke="#6688af" stroke-width="2"/>
+    <path d="m184 329 81-47v83l-81 47Z" fill="#183353" stroke="#4d7199" stroke-width="2"/>
+    <path d="m138 314 25 15M138 331l25 15M138 348l25 15" stroke="#62daf3" stroke-width="3"/>
+    <path d="m510 296 77-44 70 41-78 46Z" fill="#698bb2" stroke="#8ba9ca" stroke-width="2"/>
+    <path d="m510 296 69 43v72l-69-41Z" fill="#2e4e76" stroke="#6f91b7" stroke-width="2"/>
+    <path d="m579 339 78-46v73l-78 45Z" fill="#183654" stroke="#52769c" stroke-width="2"/>
+    <path d="m492 358 73 43-67 39-74-44Z" fill="#29496e" stroke="#7094bb" stroke-width="2"/>
+    <path d="m439 365 53-30 50 29-54 31Z" fill="#102943" stroke="#7199bf" stroke-width="2"/>
+    <path d="m451 365 41-23 38 22-42 24Z" fill="url(#screen)" opacity=".88" filter="url(#glow)"/>
+    <g stroke="#53daf5" stroke-width="3" filter="url(#glow)">
+      <path d="M185 412v22h181"/>
+      <path d="M406 420v28h90v-10"/>
+      <path d="M524 421h83v-28"/>
+      <path d="M265 324h35v52h65"/>
+    </g>
+    <g fill="#62e3f9" stroke="#c5f7ff" stroke-width="1" filter="url(#glow)">
+      <circle cx="185" cy="412" r="5"/><circle cx="366" cy="434" r="5"/><circle cx="406" cy="420" r="5"/>
+      <circle cx="496" cy="438" r="5"/><circle cx="607" cy="393" r="5"/><circle cx="265" cy="324" r="5"/>
+    </g>
+  </g>
+</svg>
