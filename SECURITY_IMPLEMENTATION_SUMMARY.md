@@ -2,7 +2,7 @@
 
 ## Architecture reviewed
 
-- **Framework:** React 18.3.1 with Vite 8.1.5 and a generated Design Canvas runtime
+- **Framework:** React 19.3.1 with Vite 8.3.5 and a generated Design Canvas runtime
 - **Node.js:** 24.x (`v24.16.0` used locally)
 - **Package manager:** npm with `package-lock.json`
 - **Hosting:** static `dist` output and serverless API functions on Vercel
@@ -15,11 +15,11 @@
 
 - Compatible CSP and comprehensive Vercel browser security headers.
 - Field types, length limits, name/phone/email/date checks and fixed allowlists.
-- File-selection limit of five; JPG/PNG/WebP/PDF only; 5 MB each; extension plus MIME validation. No files are uploaded.
+- Public file selection is limited to five JPG/PNG/WebP/PDF filenames of 5 MB each; public file bytes are not uploaded. Authenticated payment evidence uses private signed Supabase uploads with the same type/size limits.
 - Safe fixed WhatsApp destinations whose messages contain only fixed text and an opaque request reference.
 - Read-only authenticated table grants, scoped security-definer RPCs, transaction-coupled audit triggers and server-side role enforcement.
-- Database-authoritative payment-proof checks, atomic draft-quotation replacement and snapshot-bound quotation delivery.
-- Shared database-backed authentication and monitoring rate limits suitable for multiple serverless instances.
+- Database-authoritative payment-proof checks, immutable invoice evidence, single-use proof-path constraints, atomic draft-quotation replacement and snapshot-bound quotation delivery.
+- Shared database-backed authentication, monitoring, quotation and duplicate-submission limits suitable for multiple serverless instances.
 - No Production source maps; immutable hashed-asset cache policy.
 - Expanded `.gitignore`, safe `.env.example`, configuration/rotation guidance and common secret-pattern tests.
 - Clean-install CI, lint, syntax check, unit tests, build, npm audit and security verification.
@@ -30,7 +30,7 @@
 
 - **Critical:** 0
 - **High:** 0
-- **Medium:** 4 total; 4 fixed
+- **Medium:** 9 total; 9 fixed in the repository (the 5 latest fixes require migration/application deployment)
 - **Low:** 4 total; 3 fixed, 1 open
 - **Informational:** 1 open/documented
 
@@ -56,7 +56,7 @@ Open risks are external Google Fonts and hosting/provider dependencies. WhatsApp
 
 ## Secrets and dependencies
 
-No high-confidence secret signature was found in reachable Git history and no environment variable is required. This is not a guarantee; enable provider scanning. No secret is known to require rotation. No runtime dependency was added or removed. Development scripts use Node built-ins.
+No high-confidence secret signature was found in reachable Git history. Server-side environment variables listed in `.env.example` are required; no live values belong in source. No secret is known to require rotation. Vite was updated from 8.1.5 to 8.3.5 to clear the current audit advisories.
 
 ## Tests and build
 

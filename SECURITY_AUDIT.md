@@ -10,13 +10,17 @@ The repository now also contains a Supabase-backed staff portal and Vercel API f
 
 The public WhatsApp follow-up URLs now contain only a generated request reference and fixed explanatory text; names, contact details, locations, descriptions, budgets and filenames are not placed in the URL. The staff portal remediation also removes authenticated table-level writes, introduces narrowly scoped transactional RPCs for draft-quotation replacement and payment recording, verifies payment-proof objects at the database boundary, moves monitoring throttling to the shared database limiter, and binds quotation delivery to the exact reserved snapshot. Deployment still requires the two accompanying Supabase migrations and matching application release.
 
+## Remediation addendum — 23 October 2026
+
+The repository security-health scan found five medium-severity issues: mutable invoice proof objects, reusable invoice and finance proof paths, process-local quotation abuse controls, and Vite 8.1.5 advisories. The matching patch removes staff Storage UPDATE authority, adds database uniqueness for proof bindings, moves quotation rate and duplicate budgets to the shared Supabase limiter, prefers the Vercel-managed client IP header, and updates Vite to 8.3.5. Production remains unremediated until duplicate-path preflight is clean, `202610230001_lock_financial_payment_proofs.sql` is applied, and the matching application is deployed.
+
 ## Summary
 
 | Severity | Open | Fixed | Not applicable |
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 0 | 0 | 0 |
-| Medium | 0 | 4 | 0 |
+| Medium | 0 | 9 | 0 |
 | Low | 1 | 3 | 0 |
 | Informational | 1 | 1 | 4 |
 
@@ -113,21 +117,21 @@ The public WhatsApp follow-up URLs now contain only a generated request referenc
 - **Verification:** No high-confidence secret signature matched reachable history; no required variables exist; automated patterns added.
 - **Residual risk:** Pattern scans have false negatives; provider-side scanning and review remain necessary.
 
-### NSF-SEC-008 — Security monitoring is platform-only
+### NSF-SEC-008 — Security monitoring was platform-only
 
 - **Severity:** Informational
 - **References:** OWASP ASVS 5.0 V16 Security Logging and Error Handling; CWE-778
-- **Affected:** Architecture/repository
-- **Evidence:** Static site has no application backend or security event stream.
-- **Scenario:** Abuse or deployment/account compromise may be noticed only in GitHub/Vercel/provider evidence.
+- **Affected:** Earlier static-site architecture/repository
+- **Evidence:** The earlier site had no application security event stream.
+- **Scenario:** Abuse or deployment/account compromise could be noticed only in GitHub/Vercel/provider evidence.
 - **Impact:** Slower detection/response.
 - **Remediation:** Configure provider alerts/access review now; implement privacy-preserving structured audit events before any portal/backend launch.
-- **Status:** Documented; no application logging is justified for a static marketing site.
-- **Verification:** Repository architecture inspection.
-- **Residual risk:** Alert/log availability and retention depend on provider plan/settings.
+- **Status:** Fixed in code. The current APIs emit privacy-minimised operational events, use shared alert deduplication, expose database audit records to administrators, and run an authenticated scheduled health check.
+- **Verification:** Monitoring, health, shared-budget and audit-trigger tests plus repository inspection.
+- **Residual risk:** Alert delivery, provider audit logs and retention still depend on external plan/settings.
 
-## Not-applicable control families
+## Current control boundaries
 
-Authentication, sessions, password reset, MFA implementation, RBAC/IDOR, CSRF, CORS API policy, SSRF, SQL/ORM, database encryption/backups, server-side uploads/download authorisation, payment security and administrator audit trails are not implemented because the corresponding systems do not exist. They are release-blocking requirements if those features are added later.
+Authentication, sessions, password recovery, RBAC, same-origin mutation checks, database RLS/RPCs, private proof uploads/downloads, financial workflows and administrator audit trails are in scope and implemented. Provider-managed MFA, backups, infrastructure encryption, firewall settings, account membership and deployed migration state require owner verification outside the repository. Reassess cross-origin API policy, SSRF and any tenant/record-ownership boundary if new integrations or multi-organisation access are introduced.
 
 Reference: [OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/releases/tag/v5.0.0_release).

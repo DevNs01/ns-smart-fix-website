@@ -2,7 +2,7 @@
 
 ## Scope and safety
 
-Tests apply only to source, generated local output and localhost. No destructive or active scan is authorised against Production. A protected project-owned Preview may be tested later with owner approval. The baseline is OWASP ASVS 5.0 Level 2 concepts applicable to a static public site.
+Tests apply only to source, generated local output, disposable test data and localhost. No destructive or active scan is authorised against Production. A protected project-owned Preview may be tested later with owner approval. The baseline is OWASP ASVS 5.0 Level 2 concepts applicable to the public site, Vercel APIs, staff portal and Supabase backend.
 
 ## Planned cases
 
@@ -20,12 +20,15 @@ Tests apply only to source, generated local output and localhost. No destructive
 | ST-10 | File selection | More than five, over 5 MB, empty, wrong MIME or disallowed extensions are rejected |
 | ST-11 | Reverse tabnabbing | Every `_blank` link has `noopener noreferrer` |
 | ST-12 | Source-map/cache review | No `.map` output; assets use intended cache policy |
-| ST-13 | Method/CORS/CSRF/SSRF/SQL/path tests | Confirm not applicable: no server endpoint, database, server fetch, redirect or cookie session |
-| ST-14 | Auth/session/IDOR/cross-account/reset | Confirm not applicable: no accounts, protected records or sessions |
+| ST-13 | API boundary and injection tests | Reject unsupported methods/content types/body sizes and unsafe identifiers; keep outbound destinations and table/operation selection allowlisted |
+| ST-14 | Auth/session/role/RLS/RPC tests | Reject inactive/unauthenticated sessions, role escalation, direct table writes and unauthorised proof access; verify cookie/origin/session lifecycle controls |
 | ST-15 | Production build | Vite build succeeds and asset/navigation/contact handoff checks pass |
+| ST-16 | Shared abuse budgets | Quotation, duplicate, monitoring and login limits remain atomic across independent serverless invocations and fail closed where required |
+| ST-17 | Financial proof integrity | Staff cannot overwrite recorded invoice proof objects, and a proof path cannot bind to more than one payment/outgoing-payment row |
+| ST-18 | Hosted security gates | GitHub dependency review/CodeQL/CI and protected Vercel Preview checks complete successfully |
 
-## Future portal gate
+## Portal expansion gate
 
-Before any portal release, add integration tests for unauthenticated access, role escalation, cross-account object access, every CRUD/export/download permission, CSRF, session rotation/revocation/expiry, reset-token reuse, enumeration, API methods/content types/body limits, CORS, SSRF, parameterised queries, upload signature spoofing, malware scanning, authorised signed downloads, rate limits, errors/caches and security-event logs.
+Before adding new portal capabilities, extend integration tests for unauthenticated access, role escalation, every CRUD/export/download permission, same-origin enforcement, session rotation/revocation/expiry, reset-token reuse, enumeration, API methods/content types/body limits, CORS, SSRF, query construction, upload signature spoofing, malware scanning, authorised signed downloads, shared rate limits, errors/caches and security-event logs. Add cross-tenant tests if the application introduces more than one organisation.
 
 An OWASP ZAP baseline scan may be run against localhost after starting `npm run preview -- --host 127.0.0.1`; active scanning remains prohibited against Production.

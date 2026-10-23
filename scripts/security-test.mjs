@@ -27,8 +27,9 @@ if (!/validPhone\(value\)/.test(source) || !/validName\(value\)/.test(source)) f
 if (!/fetch\('\/api\/quotation'/.test(source)) failures.push('Quotation form does not use the same-origin email endpoint');
 if (!/process\.env\.RESEND_API_KEY/.test(emailApi)) failures.push('Email API does not use a server-only credential');
 if (!/process\.env\.TURNSTILE_SECRET_KEY/.test(emailApi) || !/siteverify/.test(emailApi)) failures.push('Server-side Turnstile verification missing');
-if (!/checkRateLimit\(ip\)/.test(emailApi) || !/status\(429\)/.test(emailApi)) failures.push('Server-side request throttling missing');
-if (!/checkDuplicate\(payload, ip\)/.test(emailApi) || !/status\(409\)/.test(emailApi)) failures.push('Duplicate-submission protection missing');
+if (!/await checkRateLimit\(ip\)/.test(emailApi) || !/consumeSharedBudget\(/.test(emailApi) || !/status\(429\)/.test(emailApi)) failures.push('Shared server-side request throttling missing');
+if (!/await checkDuplicate\(payload, ip\)/.test(emailApi) || !/status\(409\)/.test(emailApi)) failures.push('Shared duplicate-submission protection missing');
+if (/__nsQuotationRateLimits|__nsQuotationDuplicates|new Map\(\)/.test(emailApi)) failures.push('Quotation protection uses process-local state');
 if (!/turnstileToken:this\.state\.turnstileToken/.test(source)) failures.push('Turnstile token is not submitted by the form');
 if (!/escapeHtml\(input\.description/.test(emailApi)) failures.push('Email body escaping missing');
 if (/legacy-invoice-create-disabled/.test(adminApi)) failures.push('Legacy standalone invoice route is still reachable');

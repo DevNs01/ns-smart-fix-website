@@ -1,4 +1,7 @@
-import { emitMonitoringEvent, sendMonitoringAlert } from './monitoring.js';
+import { createHash } from 'node:crypto';
+import {
+  consumeSharedBudget, emitMonitoringEvent, sendMonitoringAlert
+} from './monitoring.js';
 
 const MAX_BODY_BYTES = 24 * 1024;
 const RECIPIENT = process.env.QUOTATION_TO_EMAIL || 'admin@nssmartfixsolution.com';
@@ -12,10 +15,6 @@ const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/sit
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 5;
 const DUPLICATE_WINDOW_MS = 10 * 60 * 1000;
-const rateLimitStore = globalThis.__nsQuotationRateLimits || new Map();
-const duplicateStore = globalThis.__nsQuotationDuplicates || new Map();
-globalThis.__nsQuotationRateLimits = rateLimitStore;
-globalThis.__nsQuotationDuplicates = duplicateStore;
 const SERVICE_LABELS = {
   electrical: 'Electrical Wiring', network: 'Network Cabling', server: 'Server Setup',
   product: 'IT Product Supply', webdesign: 'Web Design & Development', tv: 'TV Bracket Installation', renovation: 'Minor Renovation',
@@ -51,34 +50,10 @@ function makeReference() {
 }
 
 function clientIp(request) {
-  const forwarded = String(request.headers?.['x-forwarded-for'] || '').split(',')[0].trim();
+  const forwarded = String(
+    request.headers?.['x-vercel-forwarded-for'] || request.headers?.['x-forwarded-for'] || ''
+  ).split(',')[0].trim();
   return forwarded || String(request.headers?.['x-real-ip'] || request.socket?.remoteAddress || 'unknown').slice(0, 80);
-}
-
-function cleanupProtectionStores(now = Date.now()) {
-  for (const [key, value] of rateLimitStore) {
-    if (value.resetAt <= now) rateLimitStore.delete(key);
-  }
-  for (const [key, expiresAt] of duplicateStore) {
-    if (expiresAt <= now) duplicateStore.delete(key);
-  }
-}
-
-export function checkRateLimit(ip, now = Date.now()) {
-  cleanupProtectionStores(now);
-  const key = clean(ip, 80) || 'unknown';
-  const current = rateLimitStore.get(key);
-  if (!current || current.resetAt <= now) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, retryAfter: 0 };
-  }
-  current.count += 1;
-  const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
-  return {
-    allowed: current.count <= RATE_LIMIT_MAX_REQUESTS,
-    remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - current.count),
-    retryAfter
-  };
 }
 
 function duplicateFingerprint(input, ip) {
@@ -90,24 +65,22 @@ function duplicateFingerprint(input, ip) {
     [...(input.services || [])].sort().join(','),
     clean(input.description, 2000).toLowerCase().replace(/\s+/g, ' ')
   ].join('|');
-  let hash = 2166136261;
-  for (let index = 0; index < normalized.length; index += 1) {
-    hash ^= normalized.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16);
+  return createHash('sha256').update(normalized).digest('hex');
 }
 
-export function checkDuplicate(input, ip, now = Date.now()) {
-  cleanupProtectionStores(now);
-  const fingerprint = duplicateFingerprint(input, ip);
-  if ((duplicateStore.get(fingerprint) || 0) > now) return true;
-  duplicateStore.set(fingerprint, now + DUPLICATE_WINDOW_MS);
-  return false;
+export async function checkRateLimit(ip, fetchImpl = fetch) {
+  return consumeSharedBudget(
+    'quotation-client', clean(ip, 80) || 'unknown',
+    RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_MS, fetchImpl
+  );
 }
 
-function releaseDuplicate(input, ip) {
-  duplicateStore.delete(duplicateFingerprint(input, ip));
+export async function checkDuplicate(input, ip, fetchImpl = fetch) {
+  const budget = await consumeSharedBudget(
+    'quotation-duplicate', duplicateFingerprint(input, ip),
+    1, DUPLICATE_WINDOW_MS, fetchImpl
+  );
+  return !budget.allowed;
 }
 
 async function storeQuotationRequest(input, reference) {
@@ -131,8 +104,8 @@ async function storeQuotationRequest(input, reference) {
 }
 
 export function resetProtectionStores() {
-  rateLimitStore.clear();
-  duplicateStore.clear();
+  // Shared production state is intentionally not process-local. Tests use an
+  // isolated fake Supabase store instead of resetting module-level Maps.
 }
 
 export async function verifyTurnstile(token, ip, fetchImpl = fetch) {
@@ -351,7 +324,15 @@ export default async function handler(request, response) {
   if (Number(request.headers['content-length'] || 0) > MAX_BODY_BYTES) return response.status(413).json({ error: 'Request is too large.' });
   response.setHeader('Cache-Control', 'no-store');
   const ip = clientIp(request);
-  const rateLimit = checkRateLimit(ip);
+  let rateLimit;
+  try {
+    rateLimit = await checkRateLimit(ip);
+  } catch {
+    emitMonitoringEvent('quotation_rate_limit_failed', 'critical', {
+      route: '/api/quotation', stage: 'shared_rate_limit', status: 503
+    });
+    return response.status(503).json({ error: 'Security service is temporarily unavailable. Please try again.' });
+  }
   response.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
   response.setHeader('X-RateLimit-Remaining', String(rateLimit.remaining));
   if (!rateLimit.allowed) {
@@ -364,7 +345,16 @@ export default async function handler(request, response) {
   if (!await verifyTurnstile(payload.turnstileToken, ip)) {
     return response.status(403).json({ error: 'Security verification failed. Please try again.' });
   }
-  if (checkDuplicate(payload, ip)) {
+  let duplicate;
+  try {
+    duplicate = await checkDuplicate(payload, ip);
+  } catch {
+    emitMonitoringEvent('quotation_rate_limit_failed', 'critical', {
+      route: '/api/quotation', stage: 'shared_duplicate_limit', status: 503
+    });
+    return response.status(503).json({ error: 'Security service is temporarily unavailable. Please try again.' });
+  }
+  if (duplicate) {
     return response.status(409).json({ error: 'This request was already submitted. Please wait before sending it again.' });
   }
 
@@ -383,24 +373,22 @@ export default async function handler(request, response) {
       })
     });
   } catch {
-    releaseDuplicate(payload, ip);
     await sendMonitoringAlert({
       category: 'quotation_submission_failed',
       severity: 'critical',
       details: { route: '/api/quotation', stage: 'admin_email', status: 502, code: 'network_error' },
       dedupeKey: 'quotation-admin-email-network'
     });
-    return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
+    return response.status(502).json({ error: 'Email delivery could not be confirmed. Please wait before trying again.' });
   }
   if (!resendResponse.ok) {
-    releaseDuplicate(payload, ip);
     await sendMonitoringAlert({
       category: 'email_delivery_failed',
       severity: 'critical',
       details: { route: '/api/quotation', stage: 'admin_email', status: resendResponse.status },
       dedupeKey: `quotation-admin-email:${resendResponse.status}`
     });
-    return response.status(502).json({ error: 'Email delivery failed. Please try again.' });
+    return response.status(502).json({ error: 'Email delivery failed. Please wait before trying again.' });
   }
   try {
     const stored = await storeQuotationRequest(payload, reference);

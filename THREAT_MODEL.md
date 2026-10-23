@@ -48,24 +48,24 @@ Public routes are implemented as in-page client state. The repository also conta
 - Spam/scraping bot harvesting public business details or repeatedly requesting static assets.
 - Malicious contributor attempting to commit a secret or weaken deployment configuration.
 - Social engineer impersonating the business through a lookalike domain or altered WhatsApp number.
-- Future attacker targeting portal capabilities if accounts, APIs, uploads or documents are added without a new design review.
+- Malicious or compromised staff account attempting to exceed its role, alter financial evidence, reuse proof objects, or misuse broad organisation-wide read access.
 
 ## Threat analysis
 
 - **Injection/XSS:** Content is fixed in source and rendered as text through the runtime. Dynamic code compilation in the generated runtime requires CSP `unsafe-eval`, weakening defense in depth.
 - **URL/open redirect:** WhatsApp hostname and business numbers are fixed; only fixed text plus an opaque request reference is encoded. There is no redirect parameter.
 - **Framing:** Clickjacking is blocked by CSP `frame-ancestors 'none'` and `X-Frame-Options: DENY`.
-- **Uploads:** No upload endpoint exists. Browser selection is restricted to five JPG/PNG/WebP/PDF files of 5 MB each, but file signature scanning is impossible and unnecessary until bytes are transmitted.
+- **Uploads:** Public quotation forms transmit filenames only. Authenticated staff can upload JPG/PNG/WebP/PDF payment evidence up to 5 MB through signed URLs into private `payment-proofs` and `finance-proofs` buckets. Proof objects are append-only, and database uniqueness binds each path to one financial transaction. Magic-byte and malware scanning remain recommended hardening for higher-risk deployments.
 - **Authentication/authorisation:** Server APIs validate active staff sessions and roles. Authenticated database table access is read-only; scoped RPCs and trusted server mutations enforce business-state transitions.
 - **Privacy:** WhatsApp follow-up URLs contain only a request reference. Personal enquiry details remain subject to server, email-provider and endpoint retention controls.
 - **Supply chain:** npm lockfile, immutable Action SHAs, Dependabot, dependency review, CodeQL and least-privilege workflow permissions reduce risk.
 - **Deployment:** An unprotected branch, excessive Vercel/GitHub access or automatic Production deploy from an unreviewed branch could change public content.
-- **Monitoring:** Application alerts and client error intake use a shared database-backed limiter so throttling remains consistent across serverless instances.
+- **Monitoring and abuse controls:** Application alerts, client error intake, public quotation submissions and login attempts use shared database-backed limits so enforcement remains consistent across serverless instances.
 
-## Required controls before a portal is added
+## Required controls for portal expansion
 
-Use a maintained identity provider; server-only validated configuration; secure HttpOnly sessions; MFA for administrators; central RBAC; object-ownership checks; CSRF protection; schema validation; per-IP/account rate limits; private object storage; magic-byte checks and malware scanning; authorised short-lived downloads; structured audit logs; retention/deletion controls; non-Production test data; and dedicated negative tests for IDOR, cross-account access and session lifecycle.
+Preserve the maintained identity provider, server-only validated configuration, secure HttpOnly sessions, central RBAC, same-origin mutation checks, schema validation, shared per-IP/account limits, private append-only object storage, authorised short-lived downloads, structured audit logs, retention/deletion controls, non-Production test data, and dedicated negative tests. Add administrator MFA, magic-byte validation and malware scanning before the risk or compliance profile requires them.
 
 ## Assumptions and review triggers
 
-This model assumes Vercel serves only the built static output and that no untracked backend exists. Repeat threat modelling before adding any API, database, authentication, upload, analytics, email, payment, admin or customer feature, and after a material hosting or runtime change.
+This model assumes the Vercel application and ordered Supabase migrations are deployed together, server secrets remain confined to API functions, and no untracked backend or policy override exists. Repeat threat modelling before adding a new identity, role, integration, data class, upload type, payment flow, provider, or material hosting/runtime change.

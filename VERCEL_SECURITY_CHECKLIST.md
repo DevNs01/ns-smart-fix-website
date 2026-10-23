@@ -8,7 +8,7 @@ Reviewed against Vercel documentation current on 22 July 2026. No dashboard, DNS
 - Enforced compatible CSP, HSTS, MIME sniffing protection, referrer policy, permissions policy, anti-framing, COOP/CORP and cross-domain policy headers.
 - CSP blocks objects, framing and form submissions; restricts resources; and upgrades insecure requests.
 - Hashed static assets receive immutable caching. Vite production source maps remain disabled.
-- No environment variables or Vercel credentials are required by the site.
+- Server-only Supabase, Resend, Turnstile, encryption and monitoring variables are required by the API functions; browser-visible configuration is limited to explicitly public keys and endpoints.
 
 ## Required dashboard actions
 
@@ -18,14 +18,12 @@ Reviewed against Vercel documentation current on 22 July 2026. No dashboard, DNS
 - Review project/team members; remove unused access; require MFA for all owners and administrators.
 - Review Domains and remove only confirmed unused entries through a separate approved change. Do not alter DNS during this review.
 - Review Activity/Firewall views after deploy and configure alerts available to the plan.
-- Confirm no obsolete environment variables exist. If future secrets are added, scope distinct values to Development, Preview and Production and mark them sensitive.
+- Confirm every variable in `.env.example` has the intended environment scope, remove obsolete values, and mark secret values sensitive. Preview and Production must use distinct credentials where providers support them.
 - Review Git integration deployment permissions and ensure Production originates only from approved `main` commits.
 
 ## Firewall recommendations
 
-The site has no API or server-side form endpoint, so application endpoint rate limits are currently not applicable. Use Vercel's platform DDoS protection and monitor static-request anomalies. Consider log/challenge rules for clearly abusive automated traffic only after observing normal traffic; avoid blocking search-engine crawlers needed for SEO.
-
-If `/api`, login, reset, upload, search or submission endpoints are added, set endpoint-specific burst and sustained rate limits and application-level per-account limits. Test in Preview before enforcement.
+The site has public quotation and monitoring endpoints plus an authenticated administration API. Application code enforces shared database-backed limits for public submissions, monitoring and login attempts. Keep Vercel's platform DDoS protection enabled, monitor denied and allowed traffic, and add endpoint-specific firewall limits when normal traffic is understood. Test rules in Preview and avoid blocking required crawlers or integrations.
 
 ## Plan-dependent features
 

@@ -14,4 +14,6 @@ The maintainers will acknowledge reports when operationally possible, validate t
 
 ## Scope notes
 
-The current application is a static public website. It has no application accounts, server API, database, or server-side upload endpoint. Any future portal, authentication, API, payment, or private document feature requires a new security review before Production release.
+The application includes a public website, Vercel API functions, an authenticated staff portal, Supabase Auth/PostgreSQL/private Storage, and Resend transactional email. Public quotation forms send validated text and filenames only; authenticated staff upload payment evidence directly to private Supabase buckets through signed URLs.
+
+Security-sensitive changes include authentication/session handling, staff roles, service-role routes, database grants/RLS/RPCs, financial state transitions, private Storage policies, uploads, monitoring, provider credentials, and deployment configuration. Review the application and matching Supabase migrations together before every Production release.

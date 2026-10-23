@@ -4,6 +4,7 @@ import quotationHandler, {
   buildCustomerEmail, buildEmail, checkDuplicate, checkRateLimit, resetProtectionStores,
   validatePayload, verifyTurnstile
 } from '../api/quotation.js';
+import { sharedBudgetKey } from '../api/monitoring.js';
 
 const validPayload = {
   fullName: 'Nur Aina', company: 'Aina Trading', phone: '012-345 6789',
@@ -13,6 +14,45 @@ const validPayload = {
   urgency: 'Standard', files: ['floor-plan.pdf'], agree: true, language:'en',
   turnstileToken:'test-turnstile-token'
 };
+
+function sharedBudgetFetch(store = new Map()) {
+  return async (url, options = {}) => {
+    if (String(url).includes('/consume_service_rate_limit')) {
+      const body = JSON.parse(options.body);
+      const count = (store.get(body.p_key_hash) || 0) + 1;
+      store.set(body.p_key_hash, count);
+      return {
+        ok:true,
+        json:async () => [{
+          allowed:count <= body.p_limit,
+          remaining:Math.max(0, body.p_limit - count),
+          retry_after:count <= body.p_limit ? 0 : body.p_window_seconds
+        }]
+      };
+    }
+    if (String(url).includes('/service_rate_limits?')) {
+      const keyHash = decodeURIComponent(String(url).split('key_hash=eq.')[1] || '');
+      store.delete(keyHash);
+      return { ok:true, status:204 };
+    }
+    throw new Error(`Unexpected shared-budget request: ${url}`);
+  };
+}
+
+function setSharedSecurityEnv() {
+  const original = {
+    url:process.env.SUPABASE_URL,
+    key:process.env.SUPABASE_SERVICE_ROLE_KEY
+  };
+  process.env.SUPABASE_URL = 'https://example-project.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-secret-key';
+  return () => {
+    if (original.url === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = original.url;
+    if (original.key === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = original.key;
+  };
+}
 
 test('quotation payload validation rejects invalid or unconsented requests', () => {
   assert.equal(validatePayload(validPayload), '');
@@ -50,24 +90,32 @@ test('Turnstile verification is performed server-side and fails closed', async (
   }
 });
 
-test('request throttling blocks excessive submissions per IP', () => {
-  resetProtectionStores();
-  const now = Date.now();
-  for (let index = 0; index < 5; index += 1) {
-    assert.equal(checkRateLimit('203.0.113.20',now + index).allowed,true);
+test('request throttling blocks excessive submissions across shared state', async () => {
+  const restoreEnv = setSharedSecurityEnv();
+  const fetchImpl = sharedBudgetFetch();
+  try {
+    for (let index = 0; index < 5; index += 1) {
+      assert.equal((await checkRateLimit('203.0.113.20', fetchImpl)).allowed,true);
+    }
+    const blocked = await checkRateLimit('203.0.113.20', fetchImpl);
+    assert.equal(blocked.allowed,false);
+    assert.ok(blocked.retryAfter > 0);
+    assert.equal((await checkRateLimit('203.0.113.21', fetchImpl)).allowed,true);
+  } finally {
+    restoreEnv();
   }
-  const blocked = checkRateLimit('203.0.113.20',now + 6);
-  assert.equal(blocked.allowed,false);
-  assert.ok(blocked.retryAfter > 0);
-  assert.equal(checkRateLimit('203.0.113.21',now + 6).allowed,true);
 });
 
-test('duplicate detection normalizes repeated form submissions', () => {
-  resetProtectionStores();
-  const now = Date.now();
-  assert.equal(checkDuplicate(validPayload,'203.0.113.30',now),false);
-  assert.equal(checkDuplicate({...validPayload,fullName:'  NUR AINA  '},'203.0.113.30',now + 1000),true);
-  assert.equal(checkDuplicate({...validPayload,phone:'0199999999'},'203.0.113.30',now + 1000),false);
+test('duplicate detection normalizes repeated form submissions in shared state', async () => {
+  const restoreEnv = setSharedSecurityEnv();
+  const fetchImpl = sharedBudgetFetch();
+  try {
+    assert.equal(await checkDuplicate(validPayload,'203.0.113.30',fetchImpl),false);
+    assert.equal(await checkDuplicate({...validPayload,fullName:'  NUR AINA  '},'203.0.113.30',fetchImpl),true);
+    assert.equal(await checkDuplicate({...validPayload,phone:'0199999999'},'203.0.113.30',fetchImpl),false);
+  } finally {
+    restoreEnv();
+  }
 });
 
 test('formatted quotation email includes details and escapes customer HTML', () => {
@@ -127,25 +175,38 @@ function responseRecorder() {
 test('successful quotation sends the admin email before the customer acknowledgement', async () => {
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.RESEND_API_KEY;
+  const restoreEnv = setSharedSecurityEnv();
+  const budgetFetch = sharedBudgetFetch();
   const requests = [];
+  const budgetBodies = [];
   process.env.RESEND_API_KEY = 'test-key';
   resetProtectionStores();
-  globalThis.fetch = async (_url, options) => {
+  globalThis.fetch = async (url, options) => {
+    if (String(url).includes('/consume_service_rate_limit') || String(url).includes('/service_rate_limits?')) {
+      if (String(url).includes('/consume_service_rate_limit')) budgetBodies.push(JSON.parse(options.body));
+      return budgetFetch(url, options);
+    }
+    if (String(url).includes('/rest/v1/quotation_requests')) return { ok:true, status:201 };
     requests.push(JSON.parse(options.body));
     return { ok:true, status:200 };
   };
   try {
     const response = responseRecorder();
-    await quotationHandler({ method:'POST', headers:{'x-forwarded-for':'203.0.113.40','content-type':'application/json'}, body:validPayload }, response);
+    await quotationHandler({ method:'POST', headers:{'x-vercel-forwarded-for':'203.0.113.40','x-forwarded-for':'198.51.100.99','content-type':'application/json'}, body:validPayload }, response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.payload.acknowledgementSent, true);
     assert.equal(requests.length, 2);
+    assert.equal(budgetBodies[0].p_key_hash, sharedBudgetKey('quotation-client', '203.0.113.40'));
+    assert.notEqual(budgetBodies[0].p_key_hash, sharedBudgetKey('quotation-client', '198.51.100.99'));
+    assert.match(budgetBodies[0].p_key_hash, /^[0-9a-f]{64}$/);
+    assert.doesNotMatch(JSON.stringify(budgetBodies), /203\.0\.113\.40|Nur Aina|aina@example/);
     assert.deepEqual(requests[0].to, ['admin@nssmartfixsolution.com']);
     assert.deepEqual(requests[1].to, ['aina@example.com']);
     assert.equal(requests[1].reply_to, 'admin@nssmartfixsolution.com');
     assert.match(requests[1].subject, /Quotation Request Confirmation/);
   } finally {
     globalThis.fetch = originalFetch;
+    restoreEnv();
     if (originalKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalKey;
   }
@@ -155,11 +216,17 @@ test('customer acknowledgement failure does not lose the successful admin enquir
   const originalFetch = globalThis.fetch;
   const originalError = console.error;
   const originalKey = process.env.RESEND_API_KEY;
+  const restoreEnv = setSharedSecurityEnv();
+  const budgetFetch = sharedBudgetFetch();
   let delivery = 0;
   process.env.RESEND_API_KEY = 'test-key';
   resetProtectionStores();
   console.error = () => {};
-  globalThis.fetch = async () => {
+  globalThis.fetch = async (url, options) => {
+    if (String(url).includes('/consume_service_rate_limit') || String(url).includes('/service_rate_limits?')) {
+      return budgetFetch(url, options);
+    }
+    if (String(url).includes('/rest/v1/quotation_requests')) return { ok:true, status:201 };
     delivery += 1;
     return delivery === 1 ? { ok:true, status:200 } : { ok:false, status:503 };
   };
@@ -172,7 +239,76 @@ test('customer acknowledgement failure does not lose the successful admin enquir
     assert.match(response.payload.reference, /^NSQ-/);
   } finally {
     globalThis.fetch = originalFetch;
+    restoreEnv();
     console.error = originalError;
+    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalKey;
+  }
+});
+
+test('quotation submission fails closed before email when the shared limiter is unavailable', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalError = console.error;
+  const originalKey = process.env.RESEND_API_KEY;
+  const restoreEnv = setSharedSecurityEnv();
+  let emailRequests = 0;
+  process.env.RESEND_API_KEY = 'test-key';
+  console.error = () => {};
+  globalThis.fetch = async url => {
+    if (String(url).includes('/consume_service_rate_limit')) throw new Error('database unavailable');
+    emailRequests += 1;
+    return { ok:true, status:200 };
+  };
+  try {
+    const response = responseRecorder();
+    await quotationHandler({ method:'POST', headers:{'x-vercel-forwarded-for':'203.0.113.50','content-type':'application/json'}, body:validPayload }, response);
+    assert.equal(response.statusCode, 503);
+    assert.equal(emailRequests, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.error = originalError;
+    restoreEnv();
+    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalKey;
+  }
+});
+
+test('failed admin email retains the shared duplicate reservation to prevent ambiguous retries', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalError = console.error;
+  const originalKey = process.env.RESEND_API_KEY;
+  const restoreEnv = setSharedSecurityEnv();
+  const budgetFetch = sharedBudgetFetch();
+  let adminAttempts = 0;
+  process.env.RESEND_API_KEY = 'test-key';
+  console.error = () => {};
+  globalThis.fetch = async (url, options = {}) => {
+    if (String(url).includes('/consume_service_rate_limit')) return budgetFetch(url, options);
+    if (String(url).includes('/rest/v1/quotation_requests')) return { ok:true, status:201 };
+    if (String(url).includes('api.resend.com/emails')) {
+      const body = JSON.parse(options.body);
+      if (String(body.subject).startsWith('[NSQ-') && body.to?.includes('admin@nssmartfixsolution.com')) {
+        adminAttempts += 1;
+        return { ok:adminAttempts > 1, status:adminAttempts > 1 ? 200 : 503 };
+      }
+      return { ok:true, status:200 };
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  };
+  try {
+    const request = { method:'POST', headers:{'x-vercel-forwarded-for':'203.0.113.51','content-type':'application/json'}, body:validPayload };
+    const first = responseRecorder();
+    await quotationHandler(request, first);
+    assert.equal(first.statusCode, 502);
+
+    const second = responseRecorder();
+    await quotationHandler(request, second);
+    assert.equal(second.statusCode, 409);
+    assert.equal(adminAttempts, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.error = originalError;
+    restoreEnv();
     if (originalKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalKey;
   }

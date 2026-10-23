@@ -57,7 +57,12 @@ export function trustedOrigin(request) {
 }
 
 function clientIp(request) {
-  return String(request.headers?.['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown').split(',')[0].trim().slice(0, 80);
+  return String(
+    request.headers?.['x-vercel-forwarded-for']
+      || request.headers?.['x-forwarded-for']
+      || request.socket?.remoteAddress
+      || 'unknown'
+  ).split(',')[0].trim().slice(0, 80);
 }
 
 export function quotationResendWaitSeconds(sentAt, now = Date.now()) {

@@ -2,11 +2,15 @@
 
 ## Current capability
 
-The application has no server, accounts, privileged operations or database, so application login, session, role, quotation-status, upload/download and export logs do not exist. Vercel request/firewall/deployment events and GitHub audit, workflow and security alerts are the available evidence sources.
+The application emits privacy-minimised structured events for quotation delivery, browser errors, scheduled uptime checks, slow API responses, and monitoring failures. Public monitoring intake, alert deduplication, quotation submissions and admin login attempts use Supabase-backed shared budgets suitable for multiple serverless instances. Database triggers record authenticated business mutations, and administrator-only views expose the audit log.
+
+These application records complement—not replace—Vercel request/firewall/deployment events, Supabase Auth/database/Storage evidence, Resend delivery status, and GitHub audit/workflow/security alerts. Provider-side retention and alert configuration must be verified separately.
 
 ## Recommended alerts
 
+- Application: repeated shared-limit rejection/failure, login abuse, quotation email/storage failure, browser-error spike, audit-log anomaly, proof-access anomaly and scheduled health-check failure.
 - Vercel: material traffic anomaly, DDoS/WAF action, repeated 4xx/5xx spike, bandwidth/cost anomaly, deployment failure, domain/configuration change and new project member.
+- Supabase/Resend: authentication anomaly, migration or policy change, unusual service-role activity, Storage access anomaly and sustained email rejection/bounce.
 - GitHub: secret-scanning alert, push-protection bypass, CodeQL high/critical alert, Dependabot high/critical alert, failed required check, branch-protection change, workflow-file change and unexpected repository member/deploy key.
 - Identity: owner/admin MFA disabled, new recovery method, suspicious login or new personal access token.
 
@@ -26,4 +30,4 @@ Suggested starting thresholds require tuning: alert on any Critical/High securit
 
 Keep access restricted by role. Do not log passwords, tokens, cookies, full WhatsApp message URLs, full phone/email/address values, uploaded content or environment values. Prefer event type, result, timestamp, actor/service identifier, masked subject identifier, deployment/commit ID and correlation ID. Define retention from operational and legal needs; as a starting point, consider 90 days searchable and up to 12 months restricted archive, subject to professional privacy/legal review and provider-plan capability.
 
-If a portal is added, implement structured security events for authentication, reset/MFA/session changes, admin actions, permission changes, enquiry status, exports, uploads/downloads, validation failures, rate limits and configuration changes before release.
+Extend the existing event model when adding authentication factors, exports, new upload/download types, permissions, integrations, or configuration mutations. Keep full customer messages, proof bytes, credentials, tokens, cookies, and raw payment identifiers out of monitoring payloads.
