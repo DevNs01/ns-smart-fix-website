@@ -92,6 +92,8 @@ Add these variables to `.env.local` for local work and to the appropriate Vercel
 - `SUPABASE_PUBLISHABLE_KEY` — server-side publishable key used by the authentication proxy
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only key for trusted Vercel Functions
 - `WORKER_BANK_ENCRYPTION_KEY` — unique server-only value of at least 32 characters used to encrypt worker bank-account and DuitNow details
+- `MICROSOFT_AUTH_ENABLED` — set to `true` only after the Microsoft provider is configured in Supabase Auth
+- `ADMIN_MICROSOFT_CALLBACK_URL` — exact staff OAuth callback; production uses `https://nssmartfixsolution.com/api/admin-auth?action=microsoft-callback`
 
 None of these values should use the `VITE_` prefix. The `/admin` portal sends authentication requests only to the same-origin `/api/admin-auth` endpoint. Supabase access and refresh tokens are stored in scoped, `HttpOnly`, `SameSite=Strict` cookies rather than browser-readable storage.
 
@@ -106,7 +108,20 @@ insert into public.profiles (id, full_name, role, is_active)
 values ('AUTH_USER_UUID', 'Administrator Name', 'admin', true);
 ```
 
-Configure the exact production Site URL as `https://nssmartfixsolution.com` in Supabase Authentication. The portal currently uses email/password sign-in and does not require an OAuth redirect.
+Configure the exact production Site URL as `https://nssmartfixsolution.com` in Supabase Authentication. Email/password sign-in remains available as a recovery option.
+
+### Enable Microsoft staff sign-in
+
+Microsoft sign-in is server-managed with PKCE. Supabase access and refresh tokens remain in scoped `HttpOnly` cookies and Microsoft accounts still need an active `admin` or `staff` row in `public.profiles`; successful Microsoft authentication alone never grants portal access.
+
+1. In Microsoft Entra ID, register a single-tenant web application for NS Smart Fix staff. Set its redirect URI to the Supabase Auth callback shown by the Azure provider page: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`.
+2. Create a client secret and record the secret **Value**, not its identifier. Add the optional `xms_edov` and `email` ID-token claims so Supabase can verify the returned email domain.
+3. In Supabase **Authentication → Providers → Azure**, enter the Entra application client ID, secret and tenant URL: `https://login.microsoftonline.com/YOUR_TENANT_ID`.
+4. In Supabase **Authentication → URL Configuration**, add `https://nssmartfixsolution.com/api/admin-auth?action=microsoft-callback` to the redirect allow list.
+5. Confirm that each Microsoft email exactly matches an existing authorized Supabase staff email. Supabase automatically links verified OAuth identities with the same email; the existing profile UUID therefore remains the authorization boundary.
+6. Set `MICROSOFT_AUTH_ENABLED=true` and the exact `ADMIN_MICROSOFT_CALLBACK_URL` in Vercel, then deploy and test with one authorized and one unauthorized Microsoft account.
+
+Do not use Microsoft profile metadata, email domain or browser-supplied claims to assign portal roles. Roles and active status continue to come only from the protected `public.profiles` table.
 
 ## Production monitoring and recovery
 
