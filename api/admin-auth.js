@@ -829,6 +829,7 @@ export default async function handler(request, response) {
 
       const deliveryReservationAt = new Date().toISOString();
       let previousDelivery = null;
+      let reservedTimestamp;
       if (isResend) {
         previousDelivery = {
           sentAt: previousSentAt,
@@ -840,7 +841,7 @@ export default async function handler(request, response) {
           body: JSON.stringify({ sent_at: deliveryReservationAt })
         }, session);
         if (!locked[0]) return json(response, 409, { error: 'This quotation is already being resent. Refresh before trying again.' });
-        bundle.quotation.sent_at = deliveryReservationAt;
+        reservedTimestamp = locked[0].sent_at;
       } else {
         const companySnapshot = {
           company_name: bundle.settings.company_name, registration_number: bundle.settings.registration_number,
@@ -854,7 +855,7 @@ export default async function handler(request, response) {
           body: JSON.stringify({ company_snapshot: companySnapshot, approved_by:session.user.id, approved_at:deliveryReservationAt })
         }, session);
         if (!locked[0]) return json(response, 409, { error: 'This quotation is already being processed. Refresh before trying again.' });
-        bundle.quotation.company_snapshot = companySnapshot;
+        reservedTimestamp = locked[0].approved_at;
       }
       const rollbackDelivery = async () => {
         if (isResend) {
@@ -869,9 +870,9 @@ export default async function handler(request, response) {
         }, session).catch(()=>{});
       };
       bundle = await quotationBundle(id, session);
-      const reserved = isResend
-        ? bundle?.quotation?.sent_at === deliveryReservationAt
-        : bundle?.quotation?.approved_at === deliveryReservationAt;
+      // Compare the database representations so equivalent UTC timestamp formats match.
+      const currentReservation = isResend ? bundle?.quotation?.sent_at : bundle?.quotation?.approved_at;
+      const reserved = Boolean(reservedTimestamp) && currentReservation === reservedTimestamp;
       const storedRecipient = bounded(bundle?.quotation?.customer_snapshot?.email, 254).toLowerCase();
       if (!reserved || storedRecipient !== recipientEmail) {
         await rollbackDelivery();
