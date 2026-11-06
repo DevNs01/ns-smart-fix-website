@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 const api = readFileSync(new URL('../api/admin-auth.js', import.meta.url), 'utf8');
 const modules = readFileSync(new URL('../src/admin-modules.js', import.meta.url), 'utf8');
 const admin = readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
+const invoices = readFileSync(new URL('../src/admin-invoices.js', import.meta.url), 'utf8');
 const migration = readFileSync(new URL('../supabase/migrations/202609150002_archive_business_records.sql', import.meta.url), 'utf8');
 
 test('business records use audited soft deletion', () => {
@@ -26,6 +27,6 @@ test('requests, quotations and invoices expose deletion actions', () => {
   assert.match(modules, /data-kind="request"/);
   assert.match(modules, /addArchiveActions/);
   assert.match(admin, /addArchiveActions\(api,'quotation'/);
-  assert.match(admin, /addArchiveActions\(api,'invoice'/);
-  assert.match(modules, /Reason for deleting/);
+  assert.match(invoices, /addArchiveActions\(api, 'invoice'/);
+  assert.match(modules, /name="reason" required minlength="3"/);
 });

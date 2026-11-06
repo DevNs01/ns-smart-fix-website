@@ -5,22 +5,63 @@ const money = value => `RM ${Number(value || 0).toLocaleString('en-MY',{minimumF
 const date = value => value ? new Date(value).toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const content = () => document.getElementById('portal-content');
 const loading = label => { content().setAttribute('aria-busy','true'); content().innerHTML=`<section class="empty-state module-loading" role="status"><span class="empty-icon spinning">${icon('loader')}</span><h1>Loading ${esc(label)}</h1><p>Retrieving the latest secure business records.</p></section>`; };
-const errorView = (label,error) => { content().setAttribute('aria-busy','false'); content().innerHTML=`<section class="empty-state module-error" role="alert"><span class="empty-icon">${icon('warning')}</span><h1>${esc(label)} unavailable</h1><p>${esc(error.message)}</p><button class="secondary-button" type="button" onclick="window.location.reload()">Try again</button></section>`; };
+const errorView = (label,error) => { content().setAttribute('aria-busy','false'); content().innerHTML=`<section class="empty-state module-error" role="alert"><span class="empty-icon">${icon('warning')}</span><h1>${esc(label)} unavailable</h1><p>${esc(error.message)}</p><button class="secondary-button" type="button" data-retry-module>Try again</button></section>`; content().querySelector('[data-retry-module]').addEventListener('click', () => window.location.reload()); };
 const badge = value => { const normalized=String(value||'unknown'); const badgeIcon=['active','accepted','paid','completed','success'].includes(normalized)?icon('check'):['overdue','spam','inactive','rejected'].includes(normalized)?icon('warning'):''; return `<span class="status ${esc(normalized)}">${badgeIcon}${esc(normalized.replaceAll('_',' '))}</span>`; };
 const emptyRow = (columns,message) => `<tr><td colspan="${columns}" class="table-empty">${esc(message)}</td></tr>`;
 const toolbar = (kicker,title,description,action='') => `<div class="module-toolbar"><div><span class="eyebrow">${esc(kicker)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${action}</div>`;
 const messageBox = id => `<div id="${id}" class="form-error" role="alert" hidden></div>`;
 function wireForm(id, action, success, refresh) { const form=document.getElementById(id); if(!form)return; form.addEventListener('submit',async event=>{event.preventDefault();if(!form.reportValidity())return;const button=form.querySelector('[type=submit]');const message=form.querySelector('[role=alert]');button.disabled=true;button.textContent='Saving…';message.hidden=true;try{const payload=Object.fromEntries(new FormData(form).entries());await action(payload);message.classList.add('success-message');message.textContent=success;message.hidden=false;setTimeout(refresh,450);}catch(error){message.classList.remove('success-message');message.textContent=error.message;message.hidden=false;button.disabled=false;button.textContent='Save';}}); }
 
-export function wireArchiveButtons(api, refresh, messageId = 'document-message') {
-  document.querySelectorAll('.archive-record').forEach(button => button.addEventListener('click', async () => {
-    const reason = window.prompt(`Reason for deleting ${button.dataset.number}? This removes it from active views but preserves the audit history.`);
-    if (reason === null) return;
-    if (reason.trim().length < 3) { const output=document.getElementById(messageId); if(output)output.textContent='Please provide a reason of at least 3 characters.'; return; }
-    if (!window.confirm(`Delete ${button.dataset.number} from active records? This action will be audit-logged.`)) return;
-    button.disabled=true; button.textContent='Deleting…';
-    try { await api('record-archive',{method:'POST',body:JSON.stringify({id:button.dataset.id,kind:button.dataset.kind,reason:reason.trim()})}); await refresh(); }
-    catch(error){button.disabled=false;button.textContent='Delete';const output=document.getElementById(messageId);if(output)output.textContent=error.message;}
+export function wireArchiveButtons(api, refresh) {
+  document.querySelectorAll('.archive-record').forEach(button => button.addEventListener('click', () => {
+    const { id, kind, number } = button.dataset;
+    document.body.insertAdjacentHTML('beforeend', `<dialog class="admin-dialog" id="archive-dialog" aria-labelledby="archive-title">
+      <h2 id="archive-title">Delete ${esc(number)}</h2>
+      <p>This removes the record from active views and preserves its audit history.</p>
+      <form class="admin-form">
+        <label>Reason <textarea name="reason" required minlength="3" maxlength="500"></textarea></label>
+        ${messageBox('archive-error')}
+        <div class="invoice-actions">
+          <button class="secondary-button" type="button" autofocus>Cancel</button>
+          <button class="danger-button" type="submit">Delete</button>
+        </div>
+      </form>
+    </dialog>`);
+    const dialog = document.getElementById('archive-dialog');
+    const form = dialog.querySelector('form');
+    const cancel = form.querySelector('[type=button]');
+    const submit = form.querySelector('[type=submit]');
+    const message = dialog.querySelector('#archive-error');
+    dialog.addEventListener('close', () => dialog.remove());
+    dialog.addEventListener('cancel', event => {
+      if (submit.disabled) event.preventDefault();
+    });
+    cancel.addEventListener('click', () => dialog.close());
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (submit.disabled) return;
+      const reason = form.elements.reason.value.trim();
+      if (reason.length < 3) {
+        message.textContent = 'Please provide a reason of at least 3 characters.';
+        message.hidden = false;
+        return;
+      }
+      submit.disabled = cancel.disabled = true;
+      submit.textContent = 'Deleting…';
+      message.hidden = true;
+      try {
+        await api('record-archive', { method:'POST', body:JSON.stringify({ id, kind, reason }) });
+      } catch (error) {
+        message.textContent = error.message;
+        message.hidden = false;
+        submit.disabled = cancel.disabled = false;
+        submit.textContent = 'Delete';
+        return;
+      }
+      dialog.close();
+      await refresh();
+    });
+    dialog.showModal();
   }));
 }
 
@@ -127,7 +168,7 @@ export async function renderRequests(api){
       dialog.showModal();
     }));
     document.querySelectorAll('.status-select').forEach(select=>select.addEventListener('change',async()=>{select.disabled=true;const out=document.getElementById('request-message');try{await api('request-status',{method:'POST',body:JSON.stringify({id:select.dataset.requestId,status:select.value})});out.textContent='Request status updated.';}catch(error){out.textContent=error.message;}finally{select.disabled=false;}}));
-    wireArchiveButtons(api,()=>renderRequests(api),'request-message');
+    wireArchiveButtons(api,()=>renderRequests(api));
   }catch(error){errorView('Requests',error);}
 }
 

@@ -227,12 +227,12 @@ function renderPortal(profile) {
       <div class="portal-main">
         <header class="portal-header">
           <button id="menu-button" class="menu-button" type="button" aria-controls="portal-sidebar" aria-expanded="false" aria-label="Open navigation">☰</button>
-          <label class="global-search"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search portal records</span><input id="global-search" type="search" placeholder="Search customers, invoices, quotations…"><kbd>⌘ K</kbd></label>
-          <button class="notification-button" type="button" aria-label="No new notifications" title="No new notifications">♢</button>
+          <label class="global-search"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search portal records</span><input id="global-search" type="search" placeholder="Search invoices or customers…"><kbd>⌘ K</kbd></label>
+          <button class="notification-button" type="button" disabled aria-label="No new notifications" title="No new notifications">♢</button>
           <div class="profile-menu">
             <div class="profile-copy"><strong>${escapeHtml(profile.full_name)}</strong><span>${roleLabel}</span></div>
             <span class="avatar" aria-hidden="true">${escapeHtml(profile.full_name.charAt(0).toUpperCase())}</span>
-            <button id="sign-out" class="sign-out" type="button">Sign out</button>
+            <button id="sign-out" class="sign-out" type="button" aria-label="Sign out" title="Sign out"><span>Sign out</span></button>
           </div>
         </header>
         <main class="portal-content" id="portal-content">
@@ -264,7 +264,7 @@ function renderPortal(profile) {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
     portalContent.dataset.module = button.dataset.module;
-    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotationsWithResend(api); addArchiveActions(api,'quotation',renderers.quotations); }, finance: () => renderFinance(api,profile), invoices: async () => { await renderInvoices(api); addArchiveActions(api,'invoice',renderers.invoices); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
+    const renderers = { dashboard: () => renderDashboard(api, profile), customers: () => renderCustomers(api), requests: () => renderRequests(api), quotations: async () => { await renderQuotationsWithResend(api); addArchiveActions(api,'quotation',renderers.quotations); }, finance: () => renderFinance(api,profile), invoices: async () => { await renderInvoices(api); }, payments: () => renderPayments(api), receipts: () => renderReceipts(api), settings: () => renderSettings(api), users: () => renderUsers(api), audit: () => renderAudit(api) };
     await renderers[button.dataset.module]();
     enhanceAdminModule(button.dataset.module);
     closeMenu();

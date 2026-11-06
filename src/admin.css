@@ -79,3 +79,48 @@
 
 /* Microsoft staff authentication */
 .login-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#8291a2;font-size:.78rem}.login-divider::before,.login-divider::after{content:"";height:1px;flex:1;background:#dbe4ee}.microsoft-button{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;padding:13px 15px;border:1px solid #bcc8d4;border-radius:11px;background:#fff;color:#172b3f;text-decoration:none;font-weight:750}.microsoft-button:hover{background:#f7f9fb;border-color:#9babb9}.microsoft-mark{display:grid;grid-template-columns:repeat(2,8px);gap:2px}.microsoft-mark i{width:8px;height:8px;background:#f35325}.microsoft-mark i:nth-child(2){background:#81bc06}.microsoft-mark i:nth-child(3){background:#05a6f0}.microsoft-mark i:nth-child(4){background:#ffba08}
+
+/* Keep the portal header, forms and record actions usable on small screens. */
+@media (max-width: 760px) {
+  html { scroll-padding-top: 84px; }
+  .portal-shell, .portal-main, .portal-content { min-width: 0; }
+  .portal-header { height: 64px; gap: 10px; padding: 0 12px; }
+  .portal-header .menu-button { display: grid; flex: 0 0 44px; height: 44px; }
+  .portal-header .global-search { min-width: 0; width: 0; flex: 1 1 0; padding: 0 10px; }
+  .portal-header .global-search input { width: 100%; min-width: 0; font-size: 16px; }
+  .portal-header .notification-button, .portal-header .profile-copy, .portal-header .avatar { display: none; }
+  .portal-header .profile-menu { flex: 0 0 auto; margin-left: 0; padding: 0; border: 0; }
+  .portal-header .sign-out { width: 44px; height: 44px; padding: 10px; justify-content: center; }
+  .portal-header .sign-out span { display: none; }
+  .portal-content { padding: 20px 14px 32px; }
+  .sidebar { height: 100dvh; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .portal-content input, .portal-content select, .portal-content textarea,
+  .admin-dialog input, .admin-dialog select, .admin-dialog textarea { font-size: 16px; max-width: 100%; }
+  .portal-content button, .admin-dialog button, .row-menu summary { min-height: 44px; }
+  .invoice-page-heading h1 { font-size: 1.9rem; }
+  .invoice-page-heading p { font-size: .95rem; line-height: 1.5; }
+  .invoice-workflow-grid .ready-to-invoice { padding: 16px; border-radius: 14px; }
+  .workflow-heading { grid-template-columns: 36px minmax(0,1fr) auto; gap: 10px; }
+  .workflow-heading h2 { font-size: 1.05rem; line-height: 1.3; }
+  .workflow-heading p { font-size: .85rem; line-height: 1.5; }
+  .workflow-icon { width: 36px; height: 36px; }
+  .conversion-row { gap: 12px; min-width: 0; }
+  .conversion-row > div { min-width: 0; }
+  .conversion-row strong, .conversion-row span { overflow-wrap: anywhere; }
+  .decision-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .decision-actions button { width: 100%; }
+  .admin-dialog { width: calc(100% - 24px); max-width: calc(100% - 24px); max-height: calc(100dvh - 32px); padding: 20px 16px; overflow: auto; }
+  .admin-dialog h2 { font-size: 1.3rem; overflow-wrap: anywhere; }
+  .admin-dialog p { line-height: 1.5; overflow-wrap: anywhere; }
+  .admin-dialog .invoice-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .admin-dialog .invoice-actions button { flex: 1 1 120px; }
+  .row-menu > div { bottom: max(16px, env(safe-area-inset-bottom)); max-height: calc(100dvh - 100px); overflow: auto; }
+  .invoice-list .invoice-table td { min-width: 0; overflow-wrap: anywhere; }
+  .invoice-list .record-link { text-align: left; }
+}
+
+/* Responsive display rules must respect filtering and hidden form feedback. */
+[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .conversion-row .decision-actions { display: grid; grid-template-columns: 1fr; }
+}
