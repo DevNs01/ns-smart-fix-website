@@ -140,12 +140,50 @@ export async function renderInvoices(api) {
       document.querySelectorAll('.invoice-detail').forEach(button=>button.addEventListener('click',async()=>{button.disabled=true;try{const detail=await api(`invoice-detail&id=${encodeURIComponent(button.dataset.id)}`);document.body.insertAdjacentHTML('beforeend',`<dialog id="invoice-detail-dialog" class="admin-dialog wide invoice-detail-dialog" aria-labelledby="invoice-detail-title"><form method="dialog"><button class="dialog-close" aria-label="Close invoice preview" title="Close">${icon('close')}</button></form>${invoiceDetail(detail)}</dialog>`);const dialog=document.getElementById('invoice-detail-dialog');dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();}catch(error){showMessage(error.message);}finally{button.disabled=false;}}));
       document.querySelectorAll('.manage-serials').forEach(button=>button.addEventListener('click',async()=>{button.disabled=true;try{const detail=await api(`invoice-detail&id=${encodeURIComponent(button.dataset.id)}`);document.body.insertAdjacentHTML('beforeend',serialDialog(detail));const dialog=document.getElementById('serial-dialog');dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();const form=document.getElementById('serial-form');form.addEventListener('submit',async event=>{event.preventDefault();const message=document.getElementById('serial-message');const items=[...form.querySelectorAll('[data-item-id]')].map(field=>({id:field.dataset.itemId,serialNumbers:field.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean),maximum:Number(field.dataset.maximum)}));const allSerials=items.flatMap(item=>item.serialNumbers);const duplicate=allSerials.find((serial,index)=>allSerials.findIndex(value=>value.toLowerCase()===serial.toLowerCase())!==index);const excessive=items.find(item=>item.serialNumbers.length>item.maximum);if(duplicate||excessive){message.textContent=duplicate?`Serial number ${duplicate} is entered more than once.`:`An item has more serial numbers than its quantity (${excessive.maximum}).`;message.hidden=false;return;}const submit=form.querySelector('[type=submit]');submit.disabled=true;try{await api('invoice-serials-update',{method:'POST',body:JSON.stringify({invoiceId:detail.invoice.id,items:items.map(({id,serialNumbers})=>({id,serialNumbers}))})});dialog.close();showMessage('Serial numbers saved and added to the invoice PDF.');}catch(error){message.textContent=error.message;message.hidden=false;submit.disabled=false;}});}catch(error){showMessage(error.message);}finally{button.disabled=false;}}));
       document.querySelectorAll('.record-payment').forEach(button=>button.addEventListener('click',()=>{const invoice=(data.invoices||[]).find(i=>i.id===button.dataset.id);document.body.insertAdjacentHTML('beforeend',paymentDialog(invoice,data.cashAccounts||[]));const dialog=document.getElementById('payment-dialog');dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();const form=document.getElementById('invoice-payment-form');form.addEventListener('submit',async event=>{event.preventDefault();if(!form.reportValidity())return;const submit=form.querySelector('[type=submit]');const message=document.getElementById('payment-message');const fields=new FormData(form);const proof=fields.get('proof');submit.disabled=true;submit.textContent='Uploading proof…';message.hidden=true;try{if(!(proof instanceof File)||!proof.size)throw new Error('Payment proof is required.');const signed=await api('payment-proof-upload-url',{method:'POST',body:JSON.stringify({invoiceId:invoice.id,fileName:proof.name,mimeType:proof.type,size:proof.size})});const upload=await fetch(signed.uploadUrl,{method:'PUT',headers:{'Content-Type':proof.type,apikey:signed.uploadKey},body:proof});if(!upload.ok){const problem=await upload.json().catch(()=>null);throw new Error(problem?.message||problem?.error||'Payment proof upload failed. Please try again.');}submit.textContent='Recording payment…';await api('payment-create',{method:'POST',body:JSON.stringify({invoiceId:invoice.id,cashAccountId:fields.get('cashAccountId'),paymentDate:fields.get('paymentDate'),amount:fields.get('amount'),paymentMethod:fields.get('paymentMethod'),reference:fields.get('reference'),notes:fields.get('notes'),proofPath:signed.path})});dialog.close();await renderInvoices(api);}catch(error){message.textContent=error.message;message.hidden=false;submit.disabled=false;submit.textContent='Verify proof & record payment';}});}));
-      document.querySelectorAll('.quotation-decision').forEach(button => button.addEventListener('click', async () => {
-        const accepted = button.dataset.status === 'accepted';
-        if (!window.confirm(`Confirm that the customer ${accepted ? 'accepted' : 'rejected'} this quotation?`)) return;
-        button.disabled = true;
-        try { await api('document-status', { method:'POST', body:JSON.stringify({ id:button.dataset.id, kind:'quotation', status:button.dataset.status }) }); await renderInvoices(api); }
-        catch (error) { button.disabled = false; const out=document.getElementById('document-message'); if(out)out.textContent=error.message; }
+      document.querySelectorAll('.quotation-decision').forEach(button => button.addEventListener('click', () => {
+        const { id, status } = button.dataset;
+        const quotation = data.sentQuotations.find(item => item.id === id);
+        const label = status === 'accepted' ? 'Mark Accepted' : 'Mark Rejected';
+        content.insertAdjacentHTML('beforeend', `<dialog id="quotation-decision-dialog" class="admin-dialog" aria-labelledby="quotation-decision-title">
+          <h2 id="quotation-decision-title">${label}</h2>
+          <p>Confirm that the customer ${status} quotation <strong>${esc(quotation.quotation_number)}</strong>.</p>
+          <form class="admin-form">
+            <div class="form-error" role="alert" hidden></div>
+            <div class="invoice-actions">
+              <button class="secondary-button" type="button" autofocus>Cancel</button>
+              <button class="primary-button" type="submit">${label}</button>
+            </div>
+          </form>
+        </dialog>`);
+        const dialog = document.getElementById('quotation-decision-dialog');
+        const form = dialog.querySelector('form');
+        const cancel = form.querySelector('[type=button]');
+        const submit = form.querySelector('[type=submit]');
+        const message = form.querySelector('[role=alert]');
+        dialog.addEventListener('close', () => dialog.remove());
+        dialog.addEventListener('cancel', event => {
+          if (submit.disabled) event.preventDefault();
+        });
+        cancel.addEventListener('click', () => dialog.close());
+        form.addEventListener('submit', async event => {
+          event.preventDefault();
+          if (submit.disabled) return;
+          submit.disabled = cancel.disabled = true;
+          submit.textContent = 'Saving…';
+          message.hidden = true;
+          try {
+            await api('document-status', { method:'POST', body:JSON.stringify({ id, kind:'quotation', status }) });
+          } catch (error) {
+            message.textContent = error.message;
+            message.hidden = false;
+            submit.disabled = cancel.disabled = false;
+            submit.textContent = label;
+            return;
+          }
+          dialog.close();
+          await renderInvoices(api);
+        });
+        dialog.showModal();
       }));
       document.querySelectorAll('.convert-accepted').forEach(button => button.addEventListener('click', async () => {
         if (!window.confirm('Create one draft invoice from this accepted quotation? Customer, items and agreed totals will be copied.')) return;
