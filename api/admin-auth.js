@@ -4,11 +4,13 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes }
 
 const ACCESS_COOKIE = 'ns_admin_access';
 const REFRESH_COOKIE = 'ns_admin_refresh';
+const OAUTH_VERIFIER_COOKIE = 'ns_admin_oauth_verifier';
 const MAX_BODY_BYTES = 32 * 1024;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LIMIT = 8;
 export const QUOTATION_RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 const ADMIN_REDIRECT_URL = 'https://nssmartfixsolution.com/admin';
+const MICROSOFT_CALLBACK_URL = 'https://nssmartfixsolution.com/api/admin-auth?action=microsoft-callback';
 
 function json(response, status, body, headers = {}) {
   response.statusCode = status;
@@ -17,6 +19,15 @@ function json(response, status, body, headers = {}) {
   response.setHeader('Pragma', 'no-cache');
   for (const [name, value] of Object.entries(headers)) response.setHeader(name, value);
   response.end(JSON.stringify(body));
+}
+
+function redirect(response, location, cookies = []) {
+  response.statusCode = 303;
+  response.setHeader('Location', location);
+  response.setHeader('Cache-Control', 'no-store, max-age=0');
+  response.setHeader('Pragma', 'no-cache');
+  if (cookies.length) response.setHeader('Set-Cookie', cookies);
+  response.end();
 }
 
 export function parseCookies(header = '') {
@@ -44,6 +55,16 @@ function clearCookies() {
     `${ACCESS_COOKIE}=; Path=/api/admin-auth; HttpOnly${secure}; SameSite=Strict; Max-Age=0`,
     `${REFRESH_COOKIE}=; Path=/api/admin-auth; HttpOnly${secure}; SameSite=Strict; Max-Age=0`
   ];
+}
+
+export function oauthVerifierCookie(codeVerifier) {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  return `${OAUTH_VERIFIER_COOKIE}=${encodeURIComponent(codeVerifier)}; Path=/api/admin-auth; HttpOnly${secure}; SameSite=Lax; Max-Age=600`;
+}
+
+function clearOauthVerifierCookie() {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  return `${OAUTH_VERIFIER_COOKIE}=; Path=/api/admin-auth; HttpOnly${secure}; SameSite=Lax; Max-Age=0`;
 }
 
 export function trustedOrigin(request) {
@@ -75,7 +96,38 @@ function config() {
   const url = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const key = String(process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '');
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
-  return { url, key, serviceRoleKey, ready: /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && key.length >= 20 };
+  const microsoftAuthEnabled = String(process.env.MICROSOFT_AUTH_ENABLED || '').toLowerCase() === 'true';
+  return { url, key, serviceRoleKey, microsoftAuthEnabled, ready: /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && key.length >= 20 };
+}
+
+function microsoftCallbackUrl() {
+  const value = String(process.env.ADMIN_MICROSOFT_CALLBACK_URL || MICROSOFT_CALLBACK_URL);
+  try {
+    const url = new URL(value);
+    const localDevelopment = process.env.NODE_ENV !== 'production' && url.protocol === 'http:' && url.hostname === 'localhost';
+    if (url.protocol !== 'https:' && !localDevelopment) throw new Error('configuration');
+    if (url.pathname !== '/api/admin-auth' || url.searchParams.get('action') !== 'microsoft-callback' || url.hash) throw new Error('configuration');
+    return url.toString();
+  } catch {
+    throw new Error('configuration');
+  }
+}
+
+function adminRedirectUrl(status = '') {
+  const url = new URL(process.env.ADMIN_REDIRECT_URL || ADMIN_REDIRECT_URL);
+  if (status) url.searchParams.set('auth', status);
+  return url.toString();
+}
+
+export function microsoftAuthorizeUrl(supabaseUrl, callbackUrl, codeChallenge) {
+  const url = new URL(`${String(supabaseUrl).replace(/\/$/, '')}/auth/v1/authorize`);
+  url.searchParams.set('provider', 'azure');
+  url.searchParams.set('redirect_to', callbackUrl);
+  url.searchParams.set('scopes', 'email');
+  url.searchParams.set('flow_type', 'pkce');
+  url.searchParams.set('code_challenge', codeChallenge);
+  url.searchParams.set('code_challenge_method', 's256');
+  return url.toString();
 }
 
 async function supabaseFetch(path, options = {}, accessToken = '') {
@@ -406,6 +458,43 @@ export default async function handler(request, response) {
   if (!config().ready) return json(response, 503, { error: 'The staff portal is not configured yet.' });
 
   try {
+    if (route === '/auth-options' && request.method === 'GET') {
+      return json(response, 200, { microsoft: config().microsoftAuthEnabled });
+    }
+
+    if (route === '/microsoft-login' && request.method === 'GET') {
+      const settings = config();
+      if (!settings.microsoftAuthEnabled) return json(response, 404, { error: 'Microsoft sign-in is not enabled.' });
+      if (!await enforceAuthRateLimit(request, response)) return;
+      const codeVerifier = randomBytes(32).toString('base64url');
+      const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
+      const authorizeUrl = microsoftAuthorizeUrl(settings.url, microsoftCallbackUrl(), codeChallenge);
+      return redirect(response, authorizeUrl, [oauthVerifierCookie(codeVerifier)]);
+    }
+
+    if (route === '/microsoft-callback' && request.method === 'GET') {
+      const settings = config();
+      const verifier = String(parseCookies(request.headers?.cookie)[OAUTH_VERIFIER_COOKIE] || '');
+      const authCode = String(requestUrl.searchParams.get('code') || '');
+      const callbackCookies = [clearOauthVerifierCookie()];
+      if (!settings.microsoftAuthEnabled || !/^[A-Za-z0-9._~-]{43,128}$/.test(verifier)
+          || !/^[0-9a-f-]{36}$/i.test(authCode) || requestUrl.searchParams.has('error')) {
+        return redirect(response, adminRedirectUrl('microsoft-error'), callbackCookies);
+      }
+      const tokenResponse = await supabaseFetch('/auth/v1/token?grant_type=pkce', {
+        method: 'POST',
+        body: JSON.stringify({ auth_code: authCode, code_verifier: verifier })
+      });
+      if (!tokenResponse.ok) return redirect(response, adminRedirectUrl('microsoft-error'), callbackCookies);
+      const session = await tokenResponse.json();
+      const profile = await profileFor(session.access_token, session.user?.id);
+      if (!profile) {
+        await supabaseFetch('/auth/v1/logout?scope=local', { method: 'POST' }, session.access_token).catch(() => {});
+        return redirect(response, adminRedirectUrl('microsoft-unauthorized'), callbackCookies);
+      }
+      return redirect(response, adminRedirectUrl(), [...sessionCookies(session), ...callbackCookies]);
+    }
+
     if (route === '/login' && request.method === 'POST') {
       if (!await enforceAuthRateLimit(request, response)) return;
       const body = await readBody(request);
