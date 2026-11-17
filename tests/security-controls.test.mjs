@@ -93,6 +93,6 @@ test('production browser code runs precompiled logic without unsafe eval', () =>
 });
 
 test('Vite resolves to the patched release', () => {
-  assert.equal(packageManifest.devDependencies.vite, '^8.3.5');
-  assert.equal(packageLock.packages['node_modules/vite'].version, '8.3.5');
+  assert.equal(packageManifest.devDependencies.vite, '^8.3.8');
+  assert.equal(packageLock.packages['node_modules/vite'].version, '8.3.8');
 });
