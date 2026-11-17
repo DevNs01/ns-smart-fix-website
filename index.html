@@ -223,16 +223,150 @@
       .ns-quick-form-panel{padding-left:18px !important;padding-right:18px !important;}
       .ns-quote-form-panel{padding-left:18px !important;padding-right:18px !important;}
     }
+
+    /* Canva reference direction: deep navy canvas, electric-blue actions and cyan detail. */
+    :root{
+      --ns-ink:#071426;
+      --ns-navy:#0A1930;
+      --ns-navy-soft:#102847;
+      --ns-blue:#377DFF;
+      --ns-blue-strong:#2E6FE8;
+      --ns-cyan:#57D9F5;
+      --ns-surface:#FFFFFF;
+      --ns-canvas:#F3F7FC;
+      --ns-line:#D9E5F2;
+      --ns-muted:#607086;
+    }
+    html{background:var(--ns-canvas);scroll-behavior:smooth;}
+    body{background:var(--ns-canvas);color:#1C2B3C;}
+    .ns-body-pad{background:var(--ns-canvas);}
+    .ns-site-header{
+      background:rgba(7,20,38,.96)!important;
+      border-bottom:1px solid rgba(136,178,224,.16)!important;
+      box-shadow:0 12px 34px rgba(2,12,28,.14)!important;
+      backdrop-filter:blur(16px);
+    }
+    .ns-site-header .ns-header-inner{max-width:1280px!important;padding-top:8px!important;padding-bottom:8px!important;}
+    .ns-site-header .ns-header-logo{width:40px!important;height:40px!important;object-fit:cover!important;object-position:50% 43%;filter:drop-shadow(0 4px 12px rgba(0,0,0,.2));}
+    .ns-brand-lockup{display:flex;flex-direction:column;line-height:1;color:#FFFFFF;letter-spacing:.08em;}
+    .ns-brand-lockup strong{font-family:'Manrope',sans-serif;font-size:11px;font-weight:800;white-space:nowrap;}
+    .ns-brand-lockup small{font-size:7px;font-weight:700;letter-spacing:.22em;color:#8FA7C3;margin-top:4px;}
+    .ns-site-header .ns-desktop-nav a{color:#C6D3E4!important;transition:color .18s ease;}
+    .ns-site-header .ns-desktop-nav a:hover,
+    .ns-site-header .ns-desktop-nav a[aria-current="page"]{color:#FFFFFF!important;}
+    .ns-lang-toggle{border-color:rgba(150,190,232,.34)!important;color:#D5E4F5!important;background:rgba(255,255,255,.04)!important;}
+    .ns-primary-cta{
+      background:linear-gradient(135deg,var(--ns-blue),#5A96FF)!important;
+      color:#FFFFFF!important;
+      border-radius:10px!important;
+      box-shadow:0 10px 24px rgba(55,125,255,.28);
+    }
+    .ns-mobile-toggle{border-color:rgba(150,190,232,.34)!important;color:#FFFFFF!important;background:rgba(255,255,255,.04)!important;}
+    .ns-mobile-menu{background:#0B1D35!important;border-top-color:rgba(150,190,232,.18)!important;}
+    .ns-mobile-menu a{color:#E4EDF7!important;}
+    .ns-home-hero{
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 76% 42%,rgba(65,139,255,.17),transparent 34%),
+        radial-gradient(circle at 12% 0%,rgba(75,212,244,.08),transparent 28%),
+        linear-gradient(135deg,#071426 0%,#0A1930 58%,#0D2745 100%)!important;
+      padding:72px 24px 0!important;
+    }
+    .ns-home-hero::before{
+      content:"";position:absolute;inset:0;pointer-events:none;opacity:.2;
+      background-image:linear-gradient(rgba(110,157,207,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(110,157,207,.12) 1px,transparent 1px);
+      background-size:48px 48px;mask-image:linear-gradient(90deg,transparent,black 58%,transparent);
+    }
+    .ns-home-hero .ns-hero-row{position:relative;z-index:1;gap:64px!important;min-height:440px;}
+    .ns-hero-copy{padding:22px 0 50px;}
+    .ns-hero-kicker{
+      background:transparent!important;border:0!important;color:var(--ns-cyan)!important;
+      padding:0!important;border-radius:0!important;font-size:11px!important;letter-spacing:.13em!important;text-transform:uppercase;
+    }
+    .ns-hero-title{color:#FFFFFF!important;font-size:clamp(42px,5.1vw,68px)!important;line-height:1.04!important;letter-spacing:-.035em;max-width:720px;}
+    .ns-hero-title .ns-hero-title-lead{color:#FFFFFF!important;}
+    .ns-hero-title .ns-hero-title-accent{color:var(--ns-cyan)!important;}
+    .ns-hero-subtitle{max-width:610px!important;color:#BECCDC!important;font-size:16px!important;}
+    .ns-hero-actions{gap:12px!important;}
+    .ns-hero-quote{
+      background:linear-gradient(135deg,var(--ns-blue),#5A96FF)!important;color:#FFFFFF!important;
+      box-shadow:0 12px 28px rgba(55,125,255,.3);border-radius:9px!important;
+    }
+    .ns-hero-whatsapp{
+      background:rgba(7,20,38,.24)!important;border:1px solid rgba(173,199,226,.32)!important;
+      color:#FFFFFF!important;border-radius:9px!important;
+    }
+    .ns-hero-visual{
+      position:relative!important;overflow:visible!important;border:1px solid rgba(121,168,217,.24)!important;
+      border-radius:18px!important;background:linear-gradient(145deg,rgba(29,67,108,.55),rgba(9,27,50,.84))!important;
+      box-shadow:0 30px 80px rgba(0,0,0,.3)!important;padding:18px;isolation:isolate;
+    }
+    .ns-hero-visual::before,.ns-hero-visual::after{content:"";position:absolute;border:1px solid rgba(87,217,245,.34);pointer-events:none;}
+    .ns-hero-visual::before{width:68px;height:44px;right:28px;top:58px;border-left:0;border-bottom:0;}
+    .ns-hero-visual::after{width:52px;height:58px;left:28px;bottom:42px;border-right:0;border-top:0;}
+    .ns-hero-image{height:auto!important;min-height:360px;object-fit:contain!important;filter:drop-shadow(0 28px 32px rgba(0,0,0,.24));}
+    .ns-hero-trust-strip{
+      position:relative;z-index:2;max-width:1280px;margin:26px auto 0;display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid rgba(145,177,211,.2);
+    }
+    .ns-hero-trust-item{padding:18px 22px;display:flex;align-items:center;gap:12px;color:#D3DFEC;font-size:13px;font-weight:600;}
+    .ns-hero-trust-item+ .ns-hero-trust-item{border-left:1px solid rgba(145,177,211,.2);}
+    .ns-hero-trust-mark{width:8px;height:8px;border-radius:50%;background:var(--ns-cyan);box-shadow:0 0 0 5px rgba(87,217,245,.1);flex:0 0 auto;}
+    .ns-home-services,.ns-home-brands,.ns-home-process{position:relative;}
+    .ns-home-services .ns-card-link{
+      border-color:var(--ns-line)!important;border-radius:18px!important;padding:28px!important;
+      box-shadow:0 12px 34px rgba(28,62,100,.06);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
+    }
+    .ns-home-services .ns-card-link:hover{transform:translateY(-5px)!important;border-color:#9DBEF0!important;box-shadow:0 18px 40px rgba(28,62,100,.11)!important;}
+    .ns-home-services .ns-card-link>div:first-child{background:#EAF2FF!important;color:var(--ns-blue)!important;border-radius:12px!important;}
+    .ns-home-why{background:linear-gradient(135deg,#071426,#102847)!important;}
+    .ns-home-why .ns-grid-3>div{border-left-color:var(--ns-cyan)!important;}
+    .ns-home-feature>div{border:1px solid rgba(18,55,91,.12);box-shadow:0 22px 55px rgba(16,46,79,.12);}
+    .ns-home-brands .ns-grid-4>div,.ns-home-process .ns-grid-3>div{border-color:var(--ns-line)!important;border-radius:16px!important;box-shadow:0 10px 28px rgba(28,62,100,.05);}
+    .ns-home-process .ns-grid-3>div>div:first-child{background:var(--ns-blue)!important;}
+    .ns-quick-shell,.ns-quote-shell{border-color:var(--ns-line);box-shadow:0 28px 70px rgba(25,58,94,.12);}
+    .ns-quick-intro,.ns-quote-intro{background:linear-gradient(150deg,#071426 0%,#102847 100%);}
+    .ns-quick-submit,.ns-quote-form button[type="submit"]{background:linear-gradient(135deg,var(--ns-blue),#5A96FF)!important;color:#FFFFFF!important;box-shadow:0 10px 24px rgba(55,125,255,.22)!important;}
+    .ns-page-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071426 0%,#102847 100%)!important;}
+    .ns-page-hero::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;right:-110px;top:-210px;background:radial-gradient(circle,rgba(87,217,245,.16),transparent 70%);pointer-events:none;}
+    .ns-page-hero h1{letter-spacing:-.025em;}
+    .ns-faq-hero h1{color:#FFFFFF!important;}
+    .ns-site-footer{background:#071426!important;border-top:1px solid rgba(145,177,211,.15);}
+    .ns-site-footer a:hover{color:#FFFFFF!important;}
+    .ns-sticky-bar a:last-child{background:var(--ns-blue)!important;color:#FFFFFF!important;}
+    @media (max-width:860px){
+      .ns-home-hero{padding-top:46px!important;}
+      .ns-home-hero .ns-hero-row{gap:28px!important;}
+      .ns-hero-copy{padding:8px 0 10px;}
+      .ns-hero-title{font-size:clamp(38px,10vw,56px)!important;}
+      .ns-hero-visual{max-width:680px;margin:0 auto;}
+      .ns-hero-image{min-height:300px;}
+      .ns-hero-trust-strip{grid-template-columns:1fr;margin-top:32px;}
+      .ns-hero-trust-item{padding:14px 6px;}
+      .ns-hero-trust-item+ .ns-hero-trust-item{border-left:0;border-top:1px solid rgba(145,177,211,.2);}
+    }
+    @media (max-width:480px){
+      .ns-site-header .ns-header-logo{width:36px!important;height:36px!important;}
+      .ns-brand-lockup strong{font-size:10px;}
+      .ns-home-hero{padding-left:16px!important;padding-right:16px!important;}
+      .ns-hero-title{font-size:clamp(36px,12vw,48px)!important;}
+      .ns-hero-actions{display:grid!important;grid-template-columns:1fr;}
+      .ns-hero-actions a{justify-content:center;width:100%;}
+      .ns-hero-visual{padding:8px;border-radius:14px!important;}
+      .ns-hero-image{min-height:235px!important;}
+    }
   </style>
 </helmet>
 
 <div class="ns-body-pad" style="min-height:100vh;display:flex;flex-direction:column;">
 
   <!-- HEADER -->
-  <header style="position:sticky;top:0;z-index:50;background:#FFFFFF;border-bottom:1px solid #E5E9EF;box-shadow:0 1px 3px rgba(11,31,51,0.04);">
+  <header class="ns-site-header" style="position:sticky;top:0;z-index:50;background:#FFFFFF;border-bottom:1px solid #E5E9EF;box-shadow:0 1px 3px rgba(11,31,51,0.04);">
     <div class="ns-header-inner" style="max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
       <a href="{{ navHref.home }}" aria-label="{{ t.nav.home }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;" onClick="{{ goHome }}">
-        <img class="ns-header-logo" src="assets/ns-smart-fix-logo.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
+        <img class="ns-header-logo" src="assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution logo" style="height:60px;width:auto;object-fit:contain;">
+        <span class="ns-brand-lockup" aria-hidden="true"><strong>NS SMART FIX</strong><small>SOLUTION</small></span>
       </a>
       <nav class="ns-desktop-nav" style="display:flex;align-items:center;gap:22px;">
         <a href="{{ navHref.home }}" aria-current="{{ navCurrent.home }}" style="font-size:14px;font-weight:600;color:{{ navColor.home }};text-decoration:none;cursor:pointer;" onClick="{{ nav.home }}">{{ t.nav.home }}</a>
@@ -243,8 +377,8 @@
         <a href="{{ navHref.faq }}" aria-current="{{ navCurrent.faq }}" style="font-size:14px;font-weight:600;color:{{ navColor.faq }};text-decoration:none;cursor:pointer;" onClick="{{ nav.faq }}">{{ t.nav.faq }}</a>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
-        <a class="ns-desktop-nav" href="{{ navHref.quotation }}" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
+        <button class="ns-lang-toggle" style="background:none;border:1px solid #D9E2EC;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#0B1F33;cursor:pointer;" onClick="{{ toggleLang }}">{{ langLabel }}</button>
+        <a class="ns-desktop-nav ns-primary-cta" href="{{ navHref.quotation }}" style="display:flex;background:#F59E0B;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;color:#0B1F33;cursor:pointer;white-space:nowrap;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.nav.cta }}</a>
         <button class="ns-mobile-toggle" aria-label="{{ mobileMenuLabel }}" aria-expanded="{{ mobileMenuOpen }}" aria-controls="mobile-navigation" style="display:none;background:none;border:1px solid #D9E2EC;border-radius:8px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;" onClick="{{ toggleMobileMenu }}">{{ mobileMenuIcon }}</button>
       </div>
     </div>
@@ -265,32 +399,29 @@
 
   <!-- ================= HOME ================= -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
-    <section style="background:linear-gradient(135deg,#0B1F33 0%,#0F2A47 55%,#146CBE 130%);padding:72px 24px 88px;">
+    <section class="ns-home-hero" style="background:linear-gradient(135deg,#0B1F33 0%,#0F2A47 55%,#146CBE 130%);padding:72px 24px 88px;">
       <div class="ns-hero-row" style="max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:48px;">
-        <div style="flex:1.1;min-width:280px;">
-          <div style="display:inline-block;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:0.04em;padding:6px 14px;border-radius:100px;margin-bottom:20px;">{{ t.hero.badge }}</div>
-          <h1 style="font-family:'Manrope',sans-serif;font-size:44px;line-height:1.15;color:#FFFFFF;font-weight:800;margin:0 0 18px;">{{ t.hero.title }}</h1>
-          <p style="font-size:17px;line-height:1.6;color:#C9D6E5;margin:0 0 32px;max-width:560px;">{{ t.hero.subtitle }}</p>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;">
-            <a href="{{ navHref.quotation }}" style="display:inline-flex;background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}</a>
-            <a href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}</a>
+        <div class="ns-hero-copy" style="flex:1.1;min-width:280px;">
+          <div class="ns-hero-kicker" style="display:inline-block;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#F59E0B;font-size:13px;font-weight:700;letter-spacing:0.04em;padding:6px 14px;border-radius:100px;margin-bottom:20px;">{{ t.hero.badge }}</div>
+          <h1 class="ns-hero-title" style="font-family:'Manrope',sans-serif;font-size:44px;line-height:1.15;color:#FFFFFF;font-weight:800;margin:0 0 18px;"><span class="ns-hero-title-lead">{{ t.hero.titleLead }}</span><br><span class="ns-hero-title-accent">{{ t.hero.titleAccent }}</span></h1>
+          <p class="ns-hero-subtitle" style="font-size:17px;line-height:1.6;color:#C9D6E5;margin:0 0 32px;max-width:560px;">{{ t.hero.subtitle }}</p>
+          <div class="ns-hero-actions" style="display:flex;gap:14px;flex-wrap:wrap;">
+            <a class="ns-hero-quote" href="{{ navHref.quotation }}" style="display:inline-flex;background:#F59E0B;border:none;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#0B1F33;cursor:pointer;text-decoration:none;" onClick="{{ nav.quotation }}">{{ t.hero.cta1 }}&nbsp;→</a>
+            <a class="ns-hero-whatsapp" href="{{ waLinks.general }}" target="_blank" rel="noopener noreferrer" style="background:#25D366;border-radius:10px;padding:15px 26px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">{{ t.hero.cta2 }}&nbsp;↗</a>
           </div>
         </div>
-        <div style="flex:1;min-width:280px;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
-          <img class="ns-hero-image" src="assets/photo-db-testing.jpg" alt="Electrician testing a distribution board with a voltage tester" style="width:100%;height:360px;object-fit:cover;display:block;">
-          <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(11,31,51,0.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
-              <div>
-                <div style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#FFFFFF;">{{ s.value }}</div>
-                <div style="font-size:11.5px;color:#C9D6E5;margin-top:2px;">{{ s.label }}</div>
-              </div>
-            </sc-for>
-          </div>
+        <div class="ns-hero-visual" style="flex:1;min-width:280px;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
+          <img class="ns-hero-image" src="assets/hero-infrastructure.svg" alt="Illustration of connected servers, network equipment and a workstation" style="width:100%;height:360px;object-fit:cover;display:block;">
         </div>
+      </div>
+      <div class="ns-hero-trust-strip" aria-label="{{ heroTrustLabel }}">
+        <sc-for list="{{ heroTrust }}" as="item" hint-placeholder-count="3">
+          <div class="ns-hero-trust-item"><span class="ns-hero-trust-mark" aria-hidden="true"></span><span>{{ item }}</span></div>
+        </sc-for>
       </div>
     </section>
 
-    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+    <section class="ns-home-services" style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
       <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:30px;font-weight:800;color:#0B1F33;margin:0 0 10px;">{{ t.home.servicesTitle }}</h2>
         <p style="font-size:15.5px;color:#4B5768;margin:0;">{{ t.home.servicesSub }}</p>
@@ -309,7 +440,7 @@
       </div>
     </section>
 
-    <section style="background:#0B1F33;margin-top:64px;padding:64px 24px;">
+    <section class="ns-home-why" style="background:#0B1F33;margin-top:64px;padding:64px 24px;">
       <div style="max-width:1280px;margin:0 auto;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#FFFFFF;text-align:center;margin:0 0 40px;">{{ t.home.whyTitle }}</h2>
         <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
@@ -323,7 +454,7 @@
       </div>
     </section>
 
-    <section style="max-width:1280px;margin:64px auto 0;padding:0 24px;">
+    <section class="ns-home-feature" style="max-width:1280px;margin:64px auto 0;padding:0 24px;">
       <div style="position:relative;border-radius:16px;overflow:hidden;">
         <img class="ns-feature-image" src="assets/photo-datacenter.jpg" alt="Server room data hall with rows of illuminated network racks" style="width:100%;height:300px;object-fit:cover;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,31,51,0.85) 0%,rgba(11,31,51,0.15) 55%);display:flex;align-items:flex-end;padding:28px;">
@@ -332,7 +463,7 @@
       </div>
     </section>
 
-    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+    <section class="ns-home-brands" style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:8px;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#0B1F33;margin:0;">{{ t.home.featuredTitle }}</h2>
           <a href="{{ navHref.products }}" style="font-size:14px;font-weight:700;cursor:pointer;" onClick="{{ nav.products }}">{{ t.common.viewMore }} →</a>
@@ -352,7 +483,7 @@
       </div>
     </section>
 
-    <section style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
+    <section class="ns-home-process" style="max-width:1280px;margin:0 auto;padding:64px 24px 16px;">
       <h2 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#0B1F33;text-align:center;margin:0 0 40px;">{{ t.home.processTitle }}</h2>
       <div class="ns-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
         <sc-for list="{{ t.home.process }}" as="step" hint-placeholder-count="6">
@@ -448,7 +579,7 @@
 
   <!-- ================= ABOUT ================= -->
   <sc-if value="{{ isAbout }}">
-    <section style="background:#0B1F33;padding:56px 24px;">
+    <section class="ns-page-hero" style="background:#0B1F33;padding:56px 24px;">
       <div style="max-width:900px;margin:0 auto;text-align:center;">
         <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.about.title }}</h1>
         <p style="font-size:16px;color:#C9D6E5;line-height:1.6;margin:0;">{{ t.about.intro }}</p>
@@ -493,7 +624,7 @@
 
   <!-- ================= SERVICES ================= -->
   <sc-if value="{{ isServices }}">
-    <section style="background:#0B1F33;padding:56px 24px;">
+    <section class="ns-page-hero" style="background:#0B1F33;padding:56px 24px;">
       <div style="max-width:900px;margin:0 auto;text-align:center;">
         <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.services.title }}</h1>
         <p style="font-size:16px;color:#C9D6E5;margin:0;">{{ t.services.subtitle }}</p>
@@ -536,7 +667,7 @@
 
   <!-- ================= SERVICE DETAIL ================= -->
   <sc-if value="{{ isServiceDetail }}">
-    <section style="background:#0B1F33;padding:64px 24px;">
+    <section class="ns-page-hero ns-service-detail-hero" style="background:#0B1F33;padding:64px 24px;">
       <div class="ns-grid-2" style="max-width:1120px;margin:0 auto;display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;">
         <div>
           <a href="{{ navHref.services }}" onClick="{{ nav.services }}" style="display:inline-block;color:#AFC5D8;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:18px;">← {{ allServicesLabel }}</a>
@@ -568,7 +699,7 @@
 
   <!-- ================= PRODUCTS ================= -->
   <sc-if value="{{ isProducts }}">
-    <section style="position:relative;padding:64px 24px;overflow:hidden;">
+    <section class="ns-page-hero ns-products-hero" style="position:relative;padding:64px 24px;overflow:hidden;">
       <img src="assets/photo-cctv.jpg" alt="CCTV cameras mounted for outdoor surveillance" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,31,51,0.88) 0%,rgba(11,31,51,0.8) 60%,rgba(11,31,51,0.92) 100%);"></div>
       <div style="position:relative;max-width:900px;margin:0 auto;text-align:center;">
@@ -747,7 +878,7 @@
 
   <!-- ================= CONTACT ================= -->
   <sc-if value="{{ isContact }}">
-    <section style="background:#0B1F33;padding:56px 24px;">
+    <section class="ns-page-hero" style="background:#0B1F33;padding:56px 24px;">
       <div style="max-width:900px;margin:0 auto;text-align:center;">
         <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#FFFFFF;margin:0 0 12px;">{{ t.contact.title }}</h1>
       </div>
@@ -782,7 +913,7 @@
 
   <!-- ================= FAQ ================= -->
   <sc-if value="{{ isFaq }}">
-    <section style="background:#EAF4FF;padding:56px 24px;">
+    <section class="ns-page-hero ns-faq-hero" style="background:#EAF4FF;padding:56px 24px;">
       <div style="max-width:900px;margin:0 auto;text-align:center;">
         <h1 style="font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;color:#0B1F33;margin:0;">{{ t.faq.title }}</h1>
       </div>
@@ -806,7 +937,7 @@
 
   <!-- ================= LEGAL ================= -->
   <sc-if value="{{ isLegal }}">
-    <section style="background:#0B1F33;padding:48px 24px 32px;">
+    <section class="ns-page-hero" style="background:#0B1F33;padding:48px 24px 32px;">
       <div style="max-width:1080px;margin:0 auto;text-align:center;">
         <h1 style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#FFFFFF;margin:0 0 10px;">{{ legalPageTitle }}</h1>
         <sc-if value="{{ legalMeta }}">
@@ -852,7 +983,7 @@
   </main>
 
   <!-- FOOTER -->
-  <footer style="background:#0B1F33;padding:56px 24px 24px;">
+  <footer class="ns-site-footer" style="background:#0B1F33;padding:56px 24px 24px;">
     <div class="ns-footer-grid" style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;">
       <div>
         <img src="assets/ns-smart-fix-logo-transparent.png" alt="NS Smart Fix Solution" style="height:64px;margin-bottom:14px;">
@@ -906,7 +1037,7 @@ en: {
   seo: { desc: "NS Smart Fix Solution — electrical wiring, IT networking, server infrastructure, product supply and TV bracket installation across Peninsular Malaysia." },
   nav: { home:"Home", about:"About Us", services:"Services", products:"Products", quotation:"Request Quotation", contact:"Contact Us", faq:"FAQ", login:"Customer Login", cta:"Get a Quotation" },
   common: { requestQuote:"Request Quotation", whatsappUs:"WhatsApp Us", learnMore:"Learn More", requestService:"Request Service", viewMore:"View More", submit:"Submit", backHome:"Back to Home" },
-  hero: { badge:"Electrical • Networking • IT Infrastructure", title:"Reliable Electrical, Networking and IT Infrastructure Solutions for Homes and Businesses", subtitle:"From electrical wiring and network cabling to server installation, IT equipment supply and TV bracket mounting, NS Smart Fix Solution delivers complete supply, delivery and installation services.", cta1:"Request a Quotation", cta2:"WhatsApp Us" },
+  hero: { badge:"Electrical • Networking • IT Infrastructure", titleLead:"Smarter spaces.", titleAccent:"Stronger connections.", subtitle:"From electrical wiring and network cabling to server installation, IT equipment supply and TV bracket mounting, NS Smart Fix Solution delivers complete supply, delivery and installation services.", cta1:"Request a Quotation", cta2:"WhatsApp Us" },
   home: {
     servicesTitle:"What We Do", servicesSub:"One team for electrical, networking, IT infrastructure and installation work.",
     whyTitle:"Why Choose NS Smart Fix Solution",
@@ -987,7 +1118,7 @@ bm: {
   seo: { desc: "NS Smart Fix Solution — pendawaian elektrik, rangkaian IT, infrastruktur server, bekalan produk dan pemasangan pendakap TV di seluruh Semenanjung Malaysia." },
   nav: { home:"Utama", about:"Tentang Kami", services:"Perkhidmatan", products:"Produk", quotation:"Mohon Sebut Harga", contact:"Hubungi Kami", faq:"Soalan Lazim", login:"Log Masuk Pelanggan", cta:"Dapatkan Sebut Harga" },
   common: { requestQuote:"Mohon Sebut Harga", whatsappUs:"WhatsApp Kami", learnMore:"Ketahui Lebih Lanjut", requestService:"Mohon Perkhidmatan", viewMore:"Lihat Lagi", submit:"Hantar", backHome:"Kembali ke Utama" },
-  hero: { badge:"Elektrik • Rangkaian • Infrastruktur IT", title:"Penyelesaian Elektrik, Rangkaian dan Infrastruktur IT yang Boleh Dipercayai untuk Rumah dan Perniagaan", subtitle:"Daripada pendawaian elektrik dan kabel rangkaian sehingga pemasangan server, bekalan peralatan IT dan pemasangan bracket TV, NS Smart Fix Solution menyediakan perkhidmatan bekalan, penghantaran dan pemasangan yang lengkap.", cta1:"Mohon Sebut Harga", cta2:"WhatsApp Kami" },
+  hero: { badge:"Elektrik • Rangkaian • Infrastruktur IT", titleLead:"Ruang lebih pintar.", titleAccent:"Sambungan lebih kukuh.", subtitle:"Daripada pendawaian elektrik dan kabel rangkaian sehingga pemasangan server, bekalan peralatan IT dan pemasangan bracket TV, NS Smart Fix Solution menyediakan perkhidmatan bekalan, penghantaran dan pemasangan yang lengkap.", cta1:"Mohon Sebut Harga", cta2:"WhatsApp Kami" },
   home: {
     servicesTitle:"Perkhidmatan Kami", servicesSub:"Satu pasukan untuk kerja elektrik, rangkaian, infrastruktur IT dan pemasangan.",
     whyTitle:"Kenapa Pilih NS Smart Fix Solution",
@@ -1790,12 +1921,9 @@ class Component extends DCLogic {
       request:this.goQuoteFor(SERVICE_KEYS[activeServiceIndex])
     };
 
-    const heroStats = [
-      {value:"10+", label: isEn ? "Service Categories":"Kategori Perkhidmatan"},
-      {value:"11+", label: isEn ? "Trusted Brands":"Jenama Dipercayai"},
-      {value:"1", label: isEn ? "Peninsular Coverage":"Liputan Semenanjung"},
-      {value:"2", label: isEn ? "Direct Contacts":"Hubungan Terus"}
-    ];
+    const heroTrust = isEn
+      ? ["Homes & businesses", "Supply · Delivery · Installation", "Across Peninsular Malaysia"]
+      : ["Kediaman & perniagaan", "Bekalan · Penghantaran · Pemasangan", "Seluruh Semenanjung Malaysia"];
 
     const brandCards = BRANDS.map(b => ({
       name: b.name, logo: b.logo, category: isEn ? b.catEn : b.catBm, cardClass: b.company ? 'ns-brand-card--company' : '',
@@ -1891,7 +2019,7 @@ class Component extends DCLogic {
       isHome: s.page==='home', isAbout: s.page==='about', isServices: s.page==='services', isServiceDetail:s.page==='serviceDetail', isProducts: s.page==='products',
       isQuotation: s.page==='quotation', isContact: s.page==='contact',
       isFaq: s.page==='faq', isLegal: s.page==='legal',
-      serviceCards, activeService, allServicesLabel:isEn ? 'All services' : 'Semua perkhidmatan', serviceIncludesLabel:isEn ? 'What this service can include' : 'Perkhidmatan ini boleh merangkumi', heroStats, featuredBrands,
+      serviceCards, activeService, allServicesLabel:isEn ? 'All services' : 'Semua perkhidmatan', serviceIncludesLabel:isEn ? 'What this service can include' : 'Perkhidmatan ini boleh merangkumi', heroTrust, heroTrustLabel:isEn ? 'Service coverage and delivery summary' : 'Ringkasan liputan dan penyampaian perkhidmatan', featuredBrands,
       quickForm: s.quickForm, quickAgree:s.quickAgree, quickSubmitted: s.quickSubmitted, quickNotSubmitted: !s.quickSubmitted, quickSending:s.quickSending, quickRef: s.quickRef,
       quickError: s.quickError, hasQuickError: !!s.quickError, quickWaLink, submitQuick: this.submitQuick,
       quickFormLabel:isEn ? 'Quick enquiry form' : 'Borang pertanyaan ringkas',

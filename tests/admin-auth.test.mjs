@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { QUOTATION_RESEND_COOLDOWN_MS, loginRateLimitKey, parseCookies, quotationResendWaitSeconds, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
+import { QUOTATION_RESEND_COOLDOWN_MS, loginRateLimitKey, microsoftAuthorizeUrl, oauthVerifierCookie, parseCookies, quotationResendWaitSeconds, sessionCookies, trustedOrigin } from '../api/admin-auth.js';
 import { readFile } from 'node:fs/promises';
 
 const adminSource = await readFile(new URL('../src/admin.js', import.meta.url), 'utf8');
@@ -17,6 +17,29 @@ test('admin authentication cookies are HttpOnly and same-site restricted', () =>
     assert.match(cookie, /SameSite=Strict/);
     assert.match(cookie, /Path=\/api\/admin-auth/);
   }
+  process.env.NODE_ENV = original;
+});
+
+test('Microsoft OAuth uses PKCE and a short-lived HttpOnly verifier cookie', () => {
+  const original = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  const verifierCookie = oauthVerifierCookie('test-verifier');
+  assert.match(verifierCookie, /HttpOnly/);
+  assert.match(verifierCookie, /Secure/);
+  assert.match(verifierCookie, /SameSite=Lax/);
+  assert.match(verifierCookie, /Max-Age=600/);
+
+  const url = new URL(microsoftAuthorizeUrl(
+    'https://example-project.supabase.co',
+    'https://nssmartfixsolution.com/api/admin-auth?action=microsoft-callback',
+    'test-challenge'
+  ));
+  assert.equal(url.pathname, '/auth/v1/authorize');
+  assert.equal(url.searchParams.get('provider'), 'azure');
+  assert.equal(url.searchParams.get('scopes'), 'email');
+  assert.equal(url.searchParams.get('flow_type'), 'pkce');
+  assert.equal(url.searchParams.get('code_challenge_method'), 's256');
+  assert.equal(url.searchParams.get('code_challenge'), 'test-challenge');
   process.env.NODE_ENV = original;
 });
 
@@ -54,6 +77,9 @@ test('admin frontend uses the same-origin authentication function without browse
   assert.match(adminSource, /\/api\/admin-auth\?action=/);
   assert.doesNotMatch(adminSource, /localStorage|sessionStorage/);
   assert.doesNotMatch(adminSource, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(adminSource, /microsoft-login/);
+  assert.match(apiSource, /grant_type=pkce/);
+  assert.match(apiSource, /microsoft-unauthorized/);
 });
 
 test('admin password recovery removes URL fragments and does not persist recovery tokens', () => {

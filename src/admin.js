@@ -5,6 +5,7 @@ import { icon } from './admin-icons.js';
 import { enhanceAdminModule, enhanceAdminShell, observeAdminModules } from './admin-ui.js';
 
 const root = document.getElementById('admin-app');
+let authOptions = { microsoft: false };
 
 const modules = [
   ['dashboard', 'Dashboard', 'dashboard'], ['customers', 'Customers', 'customers'],
@@ -73,6 +74,12 @@ function renderLogin(message = '') {
             <div id="login-error" class="form-error" role="alert" ${message ? '' : 'hidden'}>${escapeHtml(message)}</div>
             <button class="primary-button" type="submit">Sign in securely</button>
           </form>
+          ${authOptions.microsoft ? `
+            <div class="login-divider"><span>or</span></div>
+            <a class="microsoft-button" href="/api/admin-auth?action=microsoft-login">
+              <span class="microsoft-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              Continue with Microsoft
+            </a>` : ''}
           <button class="text-button" id="forgot-password" type="button">Forgot your password?</button>
           <p class="login-help">Access is limited to active Admin and Staff accounts. Contact the administrator if you cannot sign in.</p>
           <a class="back-link" href="/">← Return to public website</a>
@@ -304,11 +311,22 @@ async function start() {
     renderNewPassword(recoveryToken);
     return;
   }
+  const loginStatus = new URLSearchParams(window.location.search).get('auth');
+  let loginMessage = '';
+  if (loginStatus) {
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('auth');
+    history.replaceState(null, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+    loginMessage = loginStatus === 'microsoft-unauthorized'
+      ? 'This Microsoft account is not authorized for staff access.'
+      : 'Microsoft sign-in could not be completed. Please try again or use your staff password.';
+  }
+  try { authOptions = await api('auth-options'); } catch {}
   try {
     const session = await api('session');
     renderPortal(session.profile);
   } catch {
-    renderLogin();
+    renderLogin(loginMessage);
   }
 }
 
